@@ -1,6 +1,8 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    kotlin("kapt")
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -30,11 +32,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -46,6 +48,9 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+    }
+    viewBinding {
+        this.enable = true
     }
 }
 
@@ -66,4 +71,30 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+    // 引入 Room
+    val versionRoom = "2.5.2"
+    implementation("androidx.room:room-runtime:$versionRoom")
+    kapt("androidx.room:room-compiler:$versionRoom")
+    implementation("androidx.room:room-rxjava3:$versionRoom")
+
+    // 引入 RxJava
+    implementation("io.reactivex.rxjava3:rxandroid:3.0.2")
+    implementation("io.reactivex.rxjava3:rxjava:3.1.5")
+
+    // 引入 ConstraintLayout
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+//    implementation("androidx.constraintlayout:constraintlayout-compose:1.1.0-alpha11")
+
+    // 引入 Glide
+    implementation("com.github.bumptech.glide:glide:4.15.1")
+
+    // 引入 RecyclerView
+    implementation("androidx.recyclerview:recyclerview:1.3.1")
+
+    // 引入 Material
+    implementation("com.google.android.material:material:1.9.0")
+
+    // 引入下拉刷新组件
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 }
