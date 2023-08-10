@@ -12,6 +12,8 @@ import com.creepersan.memorialday.database.model.MemorialDay
 import com.creepersan.memorialday.databinding.ActivityAddEditMemorialDayBinding
 import com.creepersan.memorialday.extension.disposeIfNeed
 import com.creepersan.memorialday.extension.setVisible
+import com.creepersan.memorialday.ui.dialog.DialogManager
+import com.creepersan.memorialday.ui.toast.ToastManager
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.Disposable
 import java.lang.NullPointerException
@@ -91,6 +93,16 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
         }
 
         binding.save.setOnClickListener {
+            if (memorialDayModel.title.trim().isEmpty()) {
+                ToastManager.message(this, "请输入名称")
+                return@setOnClickListener
+            }
+
+            if (memorialDayModel.time <= 0) {
+                ToastManager.message(this, "请选择时间")
+                return@setOnClickListener
+            }
+
             databaseDisposable.disposeIfNeed()
             databaseDisposable = Observable.just(Unit).observeOn(MemorialDayScheduler.database).map {
                 MemorialDayApplication.instance.databaseManager.memorialDatabase.memorialDayDao()
@@ -101,7 +113,8 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
                     dao.insert(memorialDayModel)
                 }
             }.observeOn(MemorialDayScheduler.ui).subscribe({
-                MemorialDayRoute.finish(this)
+                setResult(RESULT_OK)
+                finish()
             }, { error ->
                 error.printStackTrace()
             })
@@ -111,12 +124,21 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
 
         binding.delete.setOnClickListener {
             databaseDisposable.disposeIfNeed()
-            databaseDisposable = Observable.just(Unit).observeOn(MemorialDayScheduler.database).map {
+            databaseDisposable = DialogManager.confirm(
+                context = this,
+                title = "确定要删除吗？",
+                message = "删除后将无法恢复",
+            ).map { confirm ->
+                if (!confirm) {
+                    throw InterruptedException("用户取消")
+                }
+            }.observeOn(MemorialDayScheduler.database).map {
                 MemorialDayApplication.instance.databaseManager.memorialDatabase.memorialDayDao()
             }.map { dao ->
                 dao.delete(memorialDayModel)
             }.observeOn(MemorialDayScheduler.ui).subscribe({
-                MemorialDayRoute.finish(this)
+                setResult(RESULT_OK)
+                finish()
             }, { error ->
                 error.printStackTrace()
             })
@@ -137,6 +159,7 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
             initUiAfterDataLoaded()
         }, { error ->
             error.printStackTrace()
+            setResult(RESULT_CANCELED)
             finish()
         })
     }
@@ -150,7 +173,8 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId) {
             android.R.id.home -> {
-                MemorialDayRoute.finish(this)
+                setResult(RESULT_CANCELED)
+                finish()
             }
         }
         return super.onOptionsItemSelected(item)

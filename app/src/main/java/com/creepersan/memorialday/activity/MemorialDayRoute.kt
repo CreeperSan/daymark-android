@@ -8,17 +8,17 @@ import com.creepersan.memorialday.activity.add.AddEditMemorialDayActivity
 
 object MemorialDayRoute {
 
-    fun toAddMemorialDayPage(context: Context) {
+    fun toAddMemorialDayPage(context: Activity): Intent {
         val intent = Intent(context, AddEditMemorialDayActivity::class.java)
         intent.putExtra(AddEditMemorialDayActivity.INTENT_TYPE, AddEditMemorialDayActivity.INTENT_TYPE_ADD)
-        context.startActivity(intent)
+        return intent
     }
 
-    fun toEditMemorialDayPage(context: Context, id: Long) {
+    fun toEditMemorialDayPage(context: Activity, id: Long): Intent {
         val intent = Intent(context, AddEditMemorialDayActivity::class.java)
         intent.putExtra(AddEditMemorialDayActivity.INTENT_TYPE, AddEditMemorialDayActivity.INTENT_TYPE_EDIT)
         intent.putExtra(AddEditMemorialDayActivity.INTENT_MEMORIAL_DAY_ID, id)
-        context.startActivity(intent)
+        return intent
     }
 
     fun finish(context: Context) {

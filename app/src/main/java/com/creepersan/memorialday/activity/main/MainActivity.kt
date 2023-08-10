@@ -1,64 +1,108 @@
 package com.creepersan.memorialday.activity.main
 
 import android.os.Bundle
+import android.text.SpannableString
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.AbsoluteSizeSpan
+import android.text.style.TextAppearanceSpan
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.creepersan.memorialday.activity.MemorialDayRoute
-import com.creepersan.memorialday.application.MemorialDayApplication
+import com.creepersan.memorialday.activity.main.viewmodel.MainUIEvent
+import com.creepersan.memorialday.activity.main.viewmodel.MainViewModel
 import com.creepersan.memorialday.base.activity.BaseViewBindingActivity
-import com.creepersan.memorialday.constance.MemorialDayScheduler
 import com.creepersan.memorialday.database.model.MemorialDay
 import com.creepersan.memorialday.databinding.ActivityMainBinding
 import com.creepersan.memorialday.databinding.ItemMainMemorialDayBinding
-import io.reactivex.rxjava3.core.Observable
+import com.creepersan.memorialday.extension.setVisible
+import com.creepersan.memorialday.extension.sp
+import com.creepersan.memorialday.extension.spi
+import com.creepersan.memorialday.utils.FormatUtils
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.launch
+import java.util.Calendar
+import java.util.Date
+import kotlin.math.abs
 
 class MainActivity : BaseViewBindingActivity<ActivityMainBinding>() {
     private val mAdapter = MemorialDayAdapter()
+    private val viewModel by viewModels<MainViewModel>()
+
+    private val toAddEditPage = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            viewModel.loadData()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         initUi()
-        loadData()
+
+        viewModel.loadData()
     }
 
     private fun initUi() {
+        /* 初始化列表 */
+        mAdapter.setActionListener(object : MemorialDayAdapter.ActionListener {
+            override fun onItemClicked(memorialDay: MemorialDay) {
+                val intent = MemorialDayRoute.toEditMemorialDayPage(this@MainActivity, memorialDay.id)
+                toAddEditPage.launch(intent)
+            }
+        })
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.adapter = mAdapter
-
-        binding.addButton.setOnClickListener {
-            MemorialDayRoute.toAddMemorialDayPage(this)
+        lifecycleScope.launch {
+            viewModel.memorialDayListChannel.consumeAsFlow().collectLatest { memorialList ->
+                mAdapter.updateList(memorialList)
+                binding.refreshLayout.isRefreshing = false
+                binding.hintEmpty.setVisible(memorialList.isEmpty())
+            }
         }
 
+        /* 初始化添加按钮 */
+        binding.addButton.setOnClickListener {
+            val intent = MemorialDayRoute.toAddMemorialDayPage(this)
+            toAddEditPage.launch(intent)
+        }
+
+        /* 初始化下拉刷新组件 */
         binding.refreshLayout.isRefreshing = true
         binding.refreshLayout.setOnRefreshListener {
-            loadData()
+            viewModel.loadData()
         }
 
-        loadData()
-    }
+        lifecycleScope.launch {
+            viewModel.uiChannel.consumeAsFlow().collectLatest { event ->
+                when(event) {
+                    is MainUIEvent.LoadDataFinish -> {
+                        binding.refreshLayout.isRefreshing = false
+                    }
+                    else -> {}
+                }
+            }
+        }
 
-
-    private fun loadData() {
-        val disposable = Observable.just(Unit).observeOn(MemorialDayScheduler.database).map {
-            MemorialDayApplication.instance.databaseManager.memorialDatabase.memorialDayDao()
-        }.map {  dao ->
-            dao.getAll()
-        }.observeOn(MemorialDayScheduler.ui).subscribe({ memorialDayList ->
-            mAdapter.updateList(memorialDayList)
-        }, { error ->
-            error.printStackTrace()
-        }, {
-            binding.refreshLayout.isRefreshing = false
-        })
+        viewModel.loadData()
     }
 
 }
 
 private class MemorialDayAdapter : RecyclerView.Adapter<MemorialDayViewHolder>() {
     private val dataList = ArrayList<MemorialDay>()
+    private var actionListener: ActionListener? = null
+
+    fun setActionListener(listener: ActionListener) {
+        actionListener = listener
+    }
 
     fun updateList(memorialDayList: List<MemorialDay>) {
         dataList.clear()
@@ -81,6 +125,13 @@ private class MemorialDayAdapter : RecyclerView.Adapter<MemorialDayViewHolder>()
     override fun onBindViewHolder(holder: MemorialDayViewHolder, position: Int) {
         val memorialDay = dataList[position]
         holder.bind(memorialDay)
+        holder.setOnClickListener {
+            actionListener?.onItemClicked(memorialDay)
+        }
+    }
+
+    interface ActionListener {
+        fun onItemClicked(memorialDay: MemorialDay)
     }
 
 }
@@ -89,7 +140,44 @@ private class MemorialDayViewHolder(private val binding: ItemMainMemorialDayBind
 
     fun bind(model: MemorialDay) {
         binding.title.text = model.title
-        binding.time.text = model.time.toString()
+        binding.time.text = FormatUtils.timestampToYYYYMMDD(model.time)
+
+        val todayCalendar = Calendar.getInstance()
+        todayCalendar.set(Calendar.HOUR, 0)
+        todayCalendar.set(Calendar.MINUTE, 0)
+        todayCalendar.set(Calendar.SECOND, 0)
+        todayCalendar.set(Calendar.MILLISECOND, 0)
+        val memorialDayCalendar = Calendar.getInstance()
+        memorialDayCalendar.time = Date(model.time)
+        memorialDayCalendar.set(Calendar.HOUR, 0)
+        memorialDayCalendar.set(Calendar.MINUTE, 0)
+        memorialDayCalendar.set(Calendar.SECOND, 0)
+        memorialDayCalendar.set(Calendar.MILLISECOND, 0)
+        val dayBetween = (memorialDayCalendar.time.time - todayCalendar.time.time) / (1000 * 60 * 60 * 24)
+        binding.countDown.text = when {
+            dayBetween > 0 -> {
+                val timeStr = "还剩 $dayBetween 天"
+                SpannableString(timeStr).apply {
+                    setSpan(AbsoluteSizeSpan(20.spi), 3, timeStr.length - 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                }
+            }
+            dayBetween < 0 -> {
+                val timeStr = "已过 ${abs(dayBetween)} 天"
+                SpannableString(timeStr).apply {
+                    setSpan(AbsoluteSizeSpan(20.spi), 3, timeStr.length - 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                }
+            }
+            else -> {
+                val timeStr = "就在 今天"
+                SpannableString(timeStr).apply {
+                    setSpan(AbsoluteSizeSpan(20.spi), 3, timeStr.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                }
+            }
+        }
+    }
+
+    fun setOnClickListener(listener: View.OnClickListener) {
+        binding.card.setOnClickListener(listener)
     }
 
 }

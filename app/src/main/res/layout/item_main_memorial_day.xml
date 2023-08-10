@@ -6,6 +6,8 @@
 
     <androidx.cardview.widget.CardView
         android:id="@+id/card"
+        android:clickable="true"
+        android:foreground="?attr/selectableItemBackground"
         android:layout_gravity="center"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
