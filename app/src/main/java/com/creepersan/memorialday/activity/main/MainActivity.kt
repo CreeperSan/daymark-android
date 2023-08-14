@@ -24,6 +24,7 @@ import com.creepersan.memorialday.databinding.ItemMainMemorialDayBinding
 import com.creepersan.memorialday.extension.setVisible
 import com.creepersan.memorialday.extension.sp
 import com.creepersan.memorialday.extension.spi
+import com.creepersan.memorialday.ui.system.StatusBarManager
 import com.creepersan.memorialday.utils.FormatUtils
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.consumeAsFlow
@@ -79,6 +80,9 @@ class MainActivity : BaseViewBindingActivity<ActivityMainBinding>() {
         binding.refreshLayout.setOnRefreshListener {
             viewModel.loadData()
         }
+
+        /* 初始化系统状态栏颜色 */
+        StatusBarManager.setSystemStatusBarContentColor(window, StatusBarManager.ContentColor.DARK)
 
         lifecycleScope.launch {
             viewModel.uiChannel.consumeAsFlow().collectLatest { event ->

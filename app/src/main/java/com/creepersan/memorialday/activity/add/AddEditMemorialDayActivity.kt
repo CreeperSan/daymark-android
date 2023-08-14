@@ -13,6 +13,7 @@ import com.creepersan.memorialday.databinding.ActivityAddEditMemorialDayBinding
 import com.creepersan.memorialday.extension.disposeIfNeed
 import com.creepersan.memorialday.extension.setVisible
 import com.creepersan.memorialday.ui.dialog.DialogManager
+import com.creepersan.memorialday.ui.system.StatusBarManager
 import com.creepersan.memorialday.ui.toast.ToastManager
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.Disposable
@@ -42,6 +43,9 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        /* 初始化系统状态栏颜色 */
+        StatusBarManager.setSystemStatusBarContentColor(window, StatusBarManager.ContentColor.DARK)
 
         initIntent()
         initUI()
