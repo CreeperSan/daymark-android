@@ -15,6 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.creepersan.memorialday.activity.MemorialDayRoute
+import com.creepersan.memorialday.activity.main.model.MemorialDayMainModel
 import com.creepersan.memorialday.activity.main.viewmodel.MainUIEvent
 import com.creepersan.memorialday.activity.main.viewmodel.MainViewModel
 import com.creepersan.memorialday.base.activity.BaseViewBindingActivity
@@ -101,14 +102,14 @@ class MainActivity : BaseViewBindingActivity<ActivityMainBinding>() {
 }
 
 private class MemorialDayAdapter : RecyclerView.Adapter<MemorialDayViewHolder>() {
-    private val dataList = ArrayList<MemorialDay>()
+    private val dataList = ArrayList<MemorialDayMainModel>()
     private var actionListener: ActionListener? = null
 
     fun setActionListener(listener: ActionListener) {
         actionListener = listener
     }
 
-    fun updateList(memorialDayList: List<MemorialDay>) {
+    fun updateList(memorialDayList: List<MemorialDayMainModel>) {
         dataList.clear()
         dataList.addAll(memorialDayList)
         notifyDataSetChanged()
@@ -130,7 +131,7 @@ private class MemorialDayAdapter : RecyclerView.Adapter<MemorialDayViewHolder>()
         val memorialDay = dataList[position]
         holder.bind(memorialDay)
         holder.setOnClickListener {
-            actionListener?.onItemClicked(memorialDay)
+            actionListener?.onItemClicked(memorialDay.memorialDay)
         }
     }
 
@@ -142,42 +143,38 @@ private class MemorialDayAdapter : RecyclerView.Adapter<MemorialDayViewHolder>()
 
 private class MemorialDayViewHolder(private val binding: ItemMainMemorialDayBinding) : RecyclerView.ViewHolder(binding.root) {
 
-    fun bind(model: MemorialDay) {
+    @Suppress("KotlinConstantConditions")
+    fun bind(model: MemorialDayMainModel) {
         binding.title.text = model.title
-        binding.time.text = FormatUtils.timestampToYYYYMMDD(model.time)
+        binding.time.text = model.time
 
-        val todayCalendar = Calendar.getInstance()
-        todayCalendar.set(Calendar.HOUR, 0)
-        todayCalendar.set(Calendar.MINUTE, 0)
-        todayCalendar.set(Calendar.SECOND, 0)
-        todayCalendar.set(Calendar.MILLISECOND, 0)
-        val memorialDayCalendar = Calendar.getInstance()
-        memorialDayCalendar.time = Date(model.time)
-        memorialDayCalendar.set(Calendar.HOUR, 0)
-        memorialDayCalendar.set(Calendar.MINUTE, 0)
-        memorialDayCalendar.set(Calendar.SECOND, 0)
-        memorialDayCalendar.set(Calendar.MILLISECOND, 0)
-        val dayBetween = (memorialDayCalendar.time.time - todayCalendar.time.time) / (1000 * 60 * 60 * 24)
         binding.countDown.text = when {
-            dayBetween > 0 -> {
-                val timeStr = "还剩 $dayBetween 天"
-                SpannableString(timeStr).apply {
-                    setSpan(AbsoluteSizeSpan(20.spi), 3, timeStr.length - 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                }
-            }
-            dayBetween < 0 -> {
-                val timeStr = "已过 ${abs(dayBetween)} 天"
-                SpannableString(timeStr).apply {
-                    setSpan(AbsoluteSizeSpan(20.spi), 3, timeStr.length - 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                }
-            }
-            else -> {
+            model.dayLeft == 0 -> {
                 val timeStr = "就在 今天"
                 SpannableString(timeStr).apply {
                     setSpan(AbsoluteSizeSpan(20.spi), 3, timeStr.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 }
             }
+            model.dayLeft == MemorialDayMainModel.DAY_LEFT_UNKNOWN -> {
+                "未知"
+            }
+            model.dayLeft > 0 -> {
+                val timeStr = "还剩 ${model.dayLeft} 天"
+                SpannableString(timeStr).apply {
+                    setSpan(AbsoluteSizeSpan(20.spi), 3, timeStr.length - 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                }
+            }
+            model.dayLeft < 0 -> {
+                val timeStr = "已过 ${abs(model.dayLeft)} 天"
+                SpannableString(timeStr).apply {
+                    setSpan(AbsoluteSizeSpan(20.spi), 3, timeStr.length - 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                }
+            }
+            else -> {
+                "未知"
+            }
         }
+
     }
 
     fun setOnClickListener(listener: View.OnClickListener) {

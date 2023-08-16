@@ -147,6 +147,17 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
                 error.printStackTrace()
             })
         }
+
+        binding.loopOnce.setOnClickListener {
+            memorialDayModel = memorialDayModel.copy(
+                loop = MemorialDay.LOOP_ONCE
+            )
+        }
+        binding.loopYearly.setOnClickListener {
+            memorialDayModel = memorialDayModel.copy(
+                loop = MemorialDay.LOOP_YEARLY
+            )
+        }
     }
 
     private fun initData() {
@@ -172,6 +183,15 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
         binding.title.setText(memorialDayModel.title)
 
         binding.time.setText(dateFormatter.format(Date(memorialDayModel.time)))
+
+        when (memorialDayModel.loop) {
+            MemorialDay.LOOP_ONCE -> {
+                binding.loopOnce.isChecked = true
+            }
+            MemorialDay.LOOP_YEARLY -> {
+                binding.loopYearly.isChecked = true
+            }
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
