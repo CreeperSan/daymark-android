@@ -77,6 +77,13 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
 
         binding.time.setOnClickListener {
             val datePicketDialog = DatePickerDialog(this)
+            val memorialDayCalendar = Calendar.getInstance()
+            memorialDayCalendar.time = Date(memorialDayModel.time)
+            datePicketDialog.updateDate(
+                memorialDayCalendar.get(Calendar.YEAR),
+                memorialDayCalendar.get(Calendar.MONDAY),
+                memorialDayCalendar.get(Calendar.DAY_OF_MONTH)
+            )
             datePicketDialog.setOnDateSetListener { datePicker, year, month, day ->
                 val calendar = Calendar.getInstance()
                 calendar.set(Calendar.YEAR, year)
