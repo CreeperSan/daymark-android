@@ -55,7 +55,11 @@ class MainViewModel: ViewModel() {
                     }
                 }
             }
-            todayList + comingList + passedList + unknownList
+
+            todayList.sortedBy { it.memorialDay.id } +
+            comingList.sortedBy { it.dayLeft } +
+            passedList.sortedBy { Math.abs(it.dayLeft) } +
+            unknownList
         }.observeOn(MemorialDayScheduler.ui).subscribe({ memorialDayList ->
             viewModelScope.launch { memorialDayListChannel.send(memorialDayList) }
         }, { error ->
