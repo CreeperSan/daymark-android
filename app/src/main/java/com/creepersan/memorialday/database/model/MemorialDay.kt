@@ -9,7 +9,7 @@ data class MemorialDay (
     @PrimaryKey(autoGenerate = true) val id: Long,
     @ColumnInfo(name = "title") val title: String,
     @ColumnInfo(name = "time") val time: Long,
-    @ColumnInfo(name = "lunar_time") val lunarTime: String, /* 储存格式为：1901-05-23 */
+    @ColumnInfo(name = "lunar_time") val lunarTime: String, /* 储存格式为：1901-*05-23 ，其中月份前面的*代表是闰月 */
     @ColumnInfo(name = "loop") val loop: Int,
 ) {
 

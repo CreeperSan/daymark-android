@@ -2,10 +2,8 @@ package com.creepersan.memorialday.activity.main
 
 import android.os.Bundle
 import android.text.SpannableString
-import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.AbsoluteSizeSpan
-import android.text.style.TextAppearanceSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,15 +21,12 @@ import com.creepersan.memorialday.database.model.MemorialDay
 import com.creepersan.memorialday.databinding.ActivityMainBinding
 import com.creepersan.memorialday.databinding.ItemMainMemorialDayBinding
 import com.creepersan.memorialday.extension.setVisible
-import com.creepersan.memorialday.extension.sp
 import com.creepersan.memorialday.extension.spi
 import com.creepersan.memorialday.ui.system.StatusBarManager
-import com.creepersan.memorialday.utils.FormatUtils
+import com.creepersan.memorialday.utils.chinese_calendar.ChineseCalendarUtils
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
-import java.util.Calendar
-import java.util.Date
 import kotlin.math.abs
 
 class MainActivity : BaseViewBindingActivity<ActivityMainBinding>() {
