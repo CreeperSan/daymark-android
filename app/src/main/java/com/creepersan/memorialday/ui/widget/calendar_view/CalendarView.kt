@@ -68,7 +68,7 @@ class CalendarView : ConstraintLayout {
         selectionYear = year
         selectionMonth = month
         selectionDay = day
-        loadCalendar(currentYear, currentMonth) // FIXME UI刷新，性能消耗过大，后面要优化
+        loadCalendar(currentYear, currentMonth, showLoading = false) // FIXME UI刷新，性能消耗过大，后面要优化
     }
 
 
@@ -104,7 +104,9 @@ class CalendarView : ConstraintLayout {
             return
         }
 
-        showAsLoading()
+        if (showLoading) {
+            showAsLoading()
+        }
 
         currentYear = loadYear
         currentMonth = loadMonth

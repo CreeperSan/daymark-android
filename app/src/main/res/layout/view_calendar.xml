@@ -9,31 +9,31 @@
 
     <ImageView
         android:id="@+id/leftArrow"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="52dp"
+        android:layout_height="68dp"
         android:contentDescription="@null"
         android:padding="10dp"
         android:src="@drawable/ic_arrow_left_black_24"
-        app:layout_constraintBottom_toBottomOf="@id/yearText"
         app:layout_constraintStart_toStartOf="@id/calendarMonthView"
-        app:layout_constraintTop_toTopOf="@id/yearText" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/yearText"
+        app:layout_constraintBottom_toTopOf="@id/lunarText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingStart="8dp"
-        android:paddingTop="16dp"
         android:paddingEnd="8dp"
-        android:paddingBottom="16dp"
         android:textColor="@color/text_primary"
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toStartOf="@id/monthText"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintVertical_bias="0.5"
         app:layout_constraintStart_toEndOf="@id/leftArrow"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toTopOf="@id/leftArrow"
         tools:text="2023年" />
 
     <TextView
@@ -41,9 +41,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingStart="8dp"
-        android:paddingTop="16dp"
         android:paddingEnd="8dp"
-        android:paddingBottom="16dp"
         android:textColor="@color/text_primary"
         android:textSize="20sp"
         android:textStyle="bold"
@@ -53,16 +51,28 @@
         app:layout_constraintTop_toTopOf="@id/yearText"
         tools:text="12月" />
 
+    <TextView
+        app:layout_constraintStart_toEndOf="@id/leftArrow"
+        app:layout_constraintEnd_toStartOf="@id/rightArrow"
+        android:textAlignment="center"
+        app:layout_constraintTop_toBottomOf="@id/yearText"
+        app:layout_constraintBottom_toBottomOf="@id/leftArrow"
+        android:text="xx年xx月"
+        android:textSize="11sp"
+        android:id="@+id/lunarText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"/>
+
     <ImageView
         android:id="@+id/rightArrow"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="52dp"
+        android:layout_height="0dp"
         android:contentDescription="@null"
         android:padding="10dp"
         android:src="@drawable/ic_arrow_right_black_24"
-        app:layout_constraintBottom_toBottomOf="@id/yearText"
         app:layout_constraintEnd_toEndOf="@id/calendarMonthView"
-        app:layout_constraintTop_toTopOf="@id/yearText" />
+        app:layout_constraintTop_toTopOf="@id/leftArrow"
+        app:layout_constraintBottom_toBottomOf="@id/leftArrow"/>
 
     <androidx.constraintlayout.widget.Barrier
         android:id="@+id/barrier"
@@ -77,6 +87,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
         android:id="@+id/calendarMonthView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>

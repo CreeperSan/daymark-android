@@ -3,7 +3,6 @@ package com.creepersan.memorialday.activity.add
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.core.widget.addTextChangedListener
-import com.creepersan.memorialday.activity.MemorialDayRoute
 import com.creepersan.memorialday.application.MemorialDayApplication
 import com.creepersan.memorialday.base.activity.BaseViewBindingActivity
 import com.creepersan.memorialday.constance.MemorialDayScheduler
@@ -18,6 +17,7 @@ import com.creepersan.memorialday.ui.dialog.date_picker.DatePickerDialog
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.Disposable
 import java.lang.NullPointerException
+import java.sql.Time
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -78,13 +78,14 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
         binding.time.setOnClickListener {
 
             val memorialDayCalendar = Calendar.getInstance()
+            memorialDayCalendar.time = Time(memorialDayModel.time)
 
             DatePickerDialog(
                 context = this,
-                selectionYear = memorialDayCalendar.get(Calendar.YEAR),
+                selectionYear =  memorialDayCalendar.get(Calendar.YEAR),
                 selectionMonth = memorialDayCalendar.get(Calendar.MONTH) + 1,
                 selectionDay = memorialDayCalendar.get(Calendar.DAY_OF_MONTH),
-                onDayClickListener = { chineseCalendar ->
+                onDayConfirmListener = { chineseCalendar ->
                     val calendar = Calendar.getInstance()
                     calendar.set(Calendar.YEAR, chineseCalendar.year)
                     calendar.set(Calendar.MONDAY, chineseCalendar.month - 1)
