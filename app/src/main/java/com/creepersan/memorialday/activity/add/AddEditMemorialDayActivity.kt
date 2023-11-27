@@ -1,6 +1,5 @@
 package com.creepersan.memorialday.activity.add
 
-import android.app.DatePickerDialog
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.core.widget.addTextChangedListener
@@ -15,6 +14,7 @@ import com.creepersan.memorialday.extension.setVisible
 import com.creepersan.memorialday.ui.dialog.DialogManager
 import com.creepersan.memorialday.ui.system.StatusBarManager
 import com.creepersan.memorialday.ui.toast.ToastManager
+import com.creepersan.memorialday.ui.dialog.date_picker.DatePickerDialog
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.Disposable
 import java.lang.NullPointerException
@@ -76,31 +76,30 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
         }
 
         binding.time.setOnClickListener {
-            val datePicketDialog = DatePickerDialog(this)
+
             val memorialDayCalendar = Calendar.getInstance()
-            memorialDayCalendar.time = Date(memorialDayModel.time)
-            datePicketDialog.updateDate(
-                memorialDayCalendar.get(Calendar.YEAR),
-                memorialDayCalendar.get(Calendar.MONDAY),
-                memorialDayCalendar.get(Calendar.DAY_OF_MONTH)
-            )
-            datePicketDialog.setOnDateSetListener { datePicker, year, month, day ->
-                val calendar = Calendar.getInstance()
-                calendar.set(Calendar.YEAR, year)
-                calendar.set(Calendar.MONDAY, month)
-                calendar.set(Calendar.DAY_OF_MONTH, day)
-                calendar.set(Calendar.HOUR, 0)
-                calendar.set(Calendar.MINUTE, 0)
-                calendar.set(Calendar.SECOND, 0)
-                calendar.set(Calendar.MILLISECOND, 0)
 
-                memorialDayModel = memorialDayModel.copy(
-                    time = calendar.time.time
-                )
-
-                binding.time.setText(dateFormatter.format(Date(memorialDayModel.time)))
-            }
-            datePicketDialog.show()
+            DatePickerDialog(
+                context = this,
+                selectionYear = memorialDayCalendar.get(Calendar.YEAR),
+                selectionMonth = memorialDayCalendar.get(Calendar.MONTH) + 1,
+                selectionDay = memorialDayCalendar.get(Calendar.DAY_OF_MONTH),
+                onDayClickListener = { chineseCalendar ->
+                    val calendar = Calendar.getInstance()
+                    calendar.set(Calendar.YEAR, chineseCalendar.year)
+                    calendar.set(Calendar.MONDAY, chineseCalendar.month - 1)
+                    calendar.set(Calendar.DAY_OF_MONTH, chineseCalendar.day)
+                    calendar.set(Calendar.HOUR, 0)
+                    calendar.set(Calendar.MINUTE, 0)
+                    calendar.set(Calendar.SECOND, 0)
+                    calendar.set(Calendar.MILLISECOND, 0)
+                    memorialDayModel = memorialDayModel.copy(
+                        time = calendar.time.time
+                    )
+                    binding.time.text = dateFormatter.format(Date(memorialDayModel.time))
+                }
+            ).show()
+            return@setOnClickListener
         }
 
         binding.save.setOnClickListener {

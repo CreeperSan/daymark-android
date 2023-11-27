@@ -29,3 +29,62 @@ data class ChineseCalendar(
     val solarTerm: ChineseCalendarSolarTerm,
     val zodiac: ChineseCalendarZodiac,
 )
+
+
+fun ChineseCalendar.lunarMonthToString(): String {
+    var resultStr = when (month) {
+        1 -> "正月"
+        2 -> "二月"
+        3 -> "三月"
+        4 -> "四月"
+        5 -> "五月"
+        6 -> "六月"
+        7 -> "七月"
+        8 -> "八月"
+        9 -> "九月"
+        10 -> "十月"
+        11 -> "冬月"
+        12 -> "腊月"
+        else -> ""
+    }
+    if (isLeapMonth) {
+        resultStr = "润$resultStr"
+    }
+    return resultStr
+}
+
+
+fun ChineseCalendar.lunarDayToString(): String {
+    // 特殊处理
+    if (lunarDay == 10) {
+        return "初十"
+    } else if (lunarDay == 20) {
+        return "二十"
+    }
+
+    val lunarDay1 = lunarDay % 10
+    val lunarDay10 = lunarDay / 10
+    var resultStr = ""
+    resultStr += when (lunarDay10) {
+        0 -> "初"
+        1 -> "十"
+        2 -> "廿"
+        3 -> "三"
+        else -> ""
+    }
+    resultStr += when(lunarDay1) {
+        0 -> "十"
+        1 -> "一"
+        2 -> "二"
+        3 -> "三"
+        4 -> "四"
+        5 -> "五"
+        6 -> "六"
+        7 -> "七"
+        8 -> "八"
+        9 -> "九"
+        else -> ""
+    }
+    return resultStr
+}
+

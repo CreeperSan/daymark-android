@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="CalendarDayView">
+        <attr name="cdv_day_text" format="string|reference"/>
+        <attr name="cdv_day_text_size" format="dimension|reference"/>
+        <attr name="cdv_day_text_color" format="color|reference"/>
+        <attr name="cdv_description_text" format="string|reference"/>
+        <attr name="cdv_description_text_size" format="dimension|reference"/>
+        <attr name="cdv_description_text_color" format="color|reference"/>
+        <attr name="cdv_hint_color" format="color|reference"/>
+        <attr name="cdv_hint_visible" format="boolean|reference"/>
+    </declare-styleable>
+
+</resources>

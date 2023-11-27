@@ -8,4 +8,14 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="gray">#FF808080</color>
+
+
+    <color name="text_primary">#FF000000</color>
+    <color name="text_secondary">#FF707070</color>
+    <color name="text_hint">#FFA0A0A0</color>
+    <color name="text_week">#FFC0C0C0</color>
+
+    <color name="hint_warming">#FFEE7C06</color>
+    <color name="hint_error">#FFFA384E</color>
+
 </resources>

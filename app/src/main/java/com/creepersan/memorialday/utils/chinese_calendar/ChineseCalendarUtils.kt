@@ -11,6 +11,7 @@ import com.creepersan.memorialday.utils.chinese_calendar.model.ChineseCalendarSo
 import com.creepersan.memorialday.utils.chinese_calendar.model.ChineseCalendarYear
 import com.creepersan.memorialday.utils.chinese_calendar.model.ChineseCalendarZodiac
 import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.functions.Function
 import java.io.FileOutputStream
 import java.util.ArrayList
 import java.util.Calendar
@@ -251,6 +252,42 @@ object ChineseCalendarUtils {
             val calendarChinese = calendarChineseOb.get()
             return@zipWith calendarToday.id - calendarChinese.id
         }
+    }
+
+
+    /**
+     * 获取从特定日期开始的后面的指定天数
+     * @param year 年份
+     * @param month 月份，1 代表 一月
+     */
+    fun getDaysFromSpecifyWithCount(year: Int, month:Int, day: Int, limitSize: Int): Observable<List<ChineseCalendar>> {
+        return Observable.just(Unit).observeOn(MemorialDayScheduler.database).map {
+            val sql = "SELECT $COL_ID FROM $TABLE_NAME WHERE $COL_YEAR = ? AND $COL_MONTH = ? AND $COL_DAY = ? LIMIT 1"
+            val cursor = database.rawQuery(sql, arrayOf(year.toString(), month.toString(), day.toString()))
+            var idInDatabase = 0L
+            if (cursor.moveToNext()) {
+                val colIndex = cursor.getColumnIndex(COL_ID)
+                if (colIndex < 0) {
+                    throw InterruptedException("找不到对应日期")
+                }
+                idInDatabase = cursor.getLong(colIndex)
+            }
+            cursor.close()
+            return@map idInDatabase
+        }.map { databaseID ->
+            val sql = "SELECT $SQL_SELECTION_CALENDAR FROM $TABLE_NAME WHERE $COL_ID >= ? LIMIT $limitSize"
+            val calendarList = ArrayList<ChineseCalendar>()
+            val cursor = database.rawQuery(sql, arrayOf(databaseID.toString()))
+            while (cursor.moveToNext()) {
+                val chineseCalendar = cursor.convertFromSQLSelectionCalendar()
+                calendarList.add(chineseCalendar)
+            }
+            cursor.close()
+            return@map calendarList.toList()
+        }.onErrorResumeNext(Function { error ->
+            error.printStackTrace()
+             return@Function Observable.just(listOf<ChineseCalendar>())
+        }).observeOn(MemorialDayScheduler.ui)
     }
 
 
