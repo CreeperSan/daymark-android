@@ -88,3 +88,16 @@ fun ChineseCalendar.lunarDayToString(): String {
     return resultStr
 }
 
+
+fun ChineseCalendar.getFullLunarDayString(): String {
+    var resultStr = ""
+    resultStr += lunarYearName
+    resultStr += "年 "
+    if (isLeapMonth) {
+        resultStr += "闰"
+    }
+    resultStr += lunarMonthToString()
+    resultStr += lunarDayToString()
+    return resultStr
+}
+

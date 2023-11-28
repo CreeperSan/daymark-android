@@ -64,10 +64,20 @@ class CalendarView : ConstraintLayout {
     private var selectionDay = 0
 
 
+    var mLoadSelectionLunarNameDisposable: Disposable? = null
     fun setSelection(year: Int, month: Int, day: Int) {
         selectionYear = year
         selectionMonth = month
         selectionDay = day
+        mLoadSelectionLunarNameDisposable?.dispose()
+        mLoadSelectionLunarNameDisposable = ChineseCalendarUtils.getFromCalendar(year, month, day).subscribe({ chineseCalendarOptional ->
+            if (chineseCalendarOptional.isPresent) {
+                val chineseCalendar = chineseCalendarOptional.get()
+                binding.lunarText.text = "${chineseCalendar.lunarYearName}年 ${chineseCalendar.lunarMonthToString()}${chineseCalendar.lunarDayToString()}"
+            }
+        }, { error ->
+            error.printStackTrace()
+        })
         loadCalendar(currentYear, currentMonth, showLoading = false) // FIXME UI刷新，性能消耗过大，后面要优化
     }
 

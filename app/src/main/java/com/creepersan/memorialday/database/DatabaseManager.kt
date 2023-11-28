@@ -4,6 +4,7 @@ import androidx.room.Room
 import com.creepersan.memorialday.application.MemorialDayApplication
 import com.creepersan.memorialday.database.db.MemorialDayDatabase
 import com.creepersan.memorialday.database.migration.MemorialDatabaseMigration_1_2
+import com.creepersan.memorialday.database.migration.MemorialDatabaseMigration_2_3
 
 class DatabaseManager {
 
@@ -14,6 +15,7 @@ class DatabaseManager {
             MemorialDayDatabase.DATABASE_NAME
         ).addMigrations(
             MemorialDatabaseMigration_1_2(),
+            MemorialDatabaseMigration_2_3(),
         ).build()
     }
 

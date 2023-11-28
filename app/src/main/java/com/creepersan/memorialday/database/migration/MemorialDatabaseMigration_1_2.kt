@@ -10,6 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 class MemorialDatabaseMigration_1_2: Migration(1, 2) {
 
     override fun migrate(database: SupportSQLiteDatabase) {
+        // 增加农历字段
         database.execSQL("ALTER TABLE MemorialDay ADD COLUMN lunar_time TEXT NOT NULL DEFAULT ''")
     }
 
