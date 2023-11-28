@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 默认样式 -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="?attr/md_color_primary" />
+            <stroke android:color="?attr/md_color_primary_darken" android:width="2dp" />
+            <corners android:radius="12dp" />
+        </shape>
+    </item>
+
+</selector>

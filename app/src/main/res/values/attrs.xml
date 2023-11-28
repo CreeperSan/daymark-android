@@ -18,6 +18,10 @@
         <attr name="md_color_text_week" format="color|reference"/>
         <attr name="md_color_text_notice" format="color|reference"/>
         <attr name="md_color_text_warming" format="color|reference"/>
+
+        <!-- 控件相关 -->
+        <attr name="md_text_field_color_bg" format="color|reference"/>
+        <attr name="md_text_field_color_stroke" format="color|reference"/>
     </declare-styleable>
 
 

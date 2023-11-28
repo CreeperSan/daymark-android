@@ -3,6 +3,7 @@ package com.creepersan.memorialday.activity.add
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.core.widget.addTextChangedListener
+import com.creepersan.memorialday.R
 import com.creepersan.memorialday.application.MemorialDayApplication
 import com.creepersan.memorialday.base.activity.BaseViewBindingActivity
 import com.creepersan.memorialday.constance.MemorialDayScheduler
@@ -14,6 +15,9 @@ import com.creepersan.memorialday.ui.dialog.DialogManager
 import com.creepersan.memorialday.ui.system.StatusBarManager
 import com.creepersan.memorialday.ui.toast.ToastManager
 import com.creepersan.memorialday.ui.dialog.date_picker.DatePickerDialog
+import com.creepersan.memorialday.utils.chinese_calendar.ChineseCalendarUtils
+import com.creepersan.memorialday.utils.chinese_calendar.model.lunarDayToString
+import com.creepersan.memorialday.utils.chinese_calendar.model.lunarMonthToString
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.Disposable
 import java.lang.NullPointerException
@@ -39,7 +43,7 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
     private var isEdit = false
     private lateinit var memorialDayModel: MemorialDay
     private var databaseDisposable: Disposable? = null
-    private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    private val dateFormatter = SimpleDateFormat("yyyy年MM月dd日", Locale.getDefault())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,7 +79,7 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
             )
         }
 
-        binding.time.setOnClickListener {
+        binding.sectionTimePickGregorian.setOnClickListener {
 
             val memorialDayCalendar = Calendar.getInstance()
             memorialDayCalendar.time = Time(memorialDayModel.time)
@@ -85,7 +89,9 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
                 selectionYear =  memorialDayCalendar.get(Calendar.YEAR),
                 selectionMonth = memorialDayCalendar.get(Calendar.MONTH) + 1,
                 selectionDay = memorialDayCalendar.get(Calendar.DAY_OF_MONTH),
-                onDayConfirmListener = { chineseCalendar ->
+                showClearButton = false,
+                useLunar = false,
+                onDayConfirmListener = { chineseCalendar, useLunar ->
                     val calendar = Calendar.getInstance()
                     calendar.set(Calendar.YEAR, chineseCalendar.year)
                     calendar.set(Calendar.MONDAY, chineseCalendar.month - 1)
@@ -95,9 +101,41 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
                     calendar.set(Calendar.SECOND, 0)
                     calendar.set(Calendar.MILLISECOND, 0)
                     memorialDayModel = memorialDayModel.copy(
-                        time = calendar.time.time
+                        time = calendar.time.time,
+                        timeType = MemorialDay.TIME_TYPE_GREGORIAN,
                     )
-                    binding.time.text = dateFormatter.format(Date(memorialDayModel.time))
+                    refreshTimeText()
+                }
+            ).show()
+            return@setOnClickListener
+        }
+
+        binding.sectionTimePickLunar.setOnClickListener {
+
+            val memorialDayCalendar = Calendar.getInstance()
+            memorialDayCalendar.time = Time(memorialDayModel.time)
+
+            DatePickerDialog(
+                context = this,
+                selectionYear =  memorialDayCalendar.get(Calendar.YEAR),
+                selectionMonth = memorialDayCalendar.get(Calendar.MONTH) + 1,
+                selectionDay = memorialDayCalendar.get(Calendar.DAY_OF_MONTH),
+                showClearButton = false,
+                useLunar = true,
+                onDayConfirmListener = { chineseCalendar, useLunar ->
+                    val calendar = Calendar.getInstance()
+                    calendar.set(Calendar.YEAR, chineseCalendar.year)
+                    calendar.set(Calendar.MONDAY, chineseCalendar.month - 1)
+                    calendar.set(Calendar.DAY_OF_MONTH, chineseCalendar.day)
+                    calendar.set(Calendar.HOUR, 0)
+                    calendar.set(Calendar.MINUTE, 0)
+                    calendar.set(Calendar.SECOND, 0)
+                    calendar.set(Calendar.MILLISECOND, 0)
+                    memorialDayModel = memorialDayModel.copy(
+                        time = calendar.time.time,
+                        timeType = MemorialDay.TIME_TYPE_LUNAR,
+                    )
+                    refreshTimeText()
                 }
             ).show()
             return@setOnClickListener
@@ -155,15 +193,17 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
             })
         }
 
-        binding.loopOnce.setOnClickListener {
+        binding.sectionLoopOnce.setOnClickListener {
             memorialDayModel = memorialDayModel.copy(
                 loop = MemorialDay.LOOP_ONCE
             )
+            refreshLoopMode()
         }
-        binding.loopYearly.setOnClickListener {
+        binding.sectionLoopYear.setOnClickListener {
             memorialDayModel = memorialDayModel.copy(
                 loop = MemorialDay.LOOP_YEARLY
             )
+            refreshLoopMode()
         }
     }
 
@@ -189,17 +229,52 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
     private fun initUiAfterDataLoaded() {
         binding.title.setText(memorialDayModel.title)
 
-        binding.time.setText(dateFormatter.format(Date(memorialDayModel.time)))
+        refreshTimeText()
+        refreshLoopMode()
+    }
 
+
+    private fun refreshLoopMode() {
         when (memorialDayModel.loop) {
-            MemorialDay.LOOP_ONCE -> {
-                binding.loopOnce.isChecked = true
-            }
             MemorialDay.LOOP_YEARLY -> {
-                binding.loopYearly.isChecked = true
+                binding.sectionLoopYear.setBackgroundResource(R.drawable.bg_md_selection_active)
+                binding.sectionLoopOnce.setBackgroundResource(R.drawable.bg_md_selection_inactive)
+            }
+            MemorialDay.LOOP_ONCE -> {
+                binding.sectionLoopYear.setBackgroundResource(R.drawable.bg_md_selection_inactive)
+                binding.sectionLoopOnce.setBackgroundResource(R.drawable.bg_md_selection_active)
             }
         }
     }
+
+
+    private fun refreshTimeText() {
+        when (memorialDayModel.timeType) {
+            MemorialDay.TIME_TYPE_GREGORIAN -> {
+                binding.sectionTimeText.text = dateFormatter.format(Date(memorialDayModel.time))
+            }
+            MemorialDay.TIME_TYPE_LUNAR -> {
+                val tmpCalendar = Calendar.getInstance()
+                tmpCalendar.time = Time(memorialDayModel.time)
+                val tmpYear = tmpCalendar.get(Calendar.YEAR)
+                val tmpMonth = tmpCalendar.get(Calendar.MONTH) + 1
+                val tmpDay = tmpCalendar.get(Calendar.DAY_OF_MONTH)
+                val disposable = ChineseCalendarUtils.getFromCalendar(year = tmpYear, month = tmpMonth, day = tmpDay).subscribe({ calendarOptional ->
+                    if (calendarOptional.isPresent) {
+                        val calendar = calendarOptional.get()
+                        var displayStr = ""
+                        displayStr += "${calendar.lunarYearName}年"
+                        displayStr += "${calendar.lunarMonthToString()}"
+                        displayStr += "${calendar.lunarDayToString()}"
+                        binding.sectionTimeText.text = displayStr
+                    }
+                }, { error ->
+                    error.printStackTrace()
+                })
+            }
+        }
+    }
+
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId) {

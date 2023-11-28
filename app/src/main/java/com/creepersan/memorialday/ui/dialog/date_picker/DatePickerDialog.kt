@@ -8,15 +8,16 @@ import com.creepersan.memorialday.utils.chinese_calendar.model.ChineseCalendar
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.util.Calendar
 
-typealias OnDayConfirmAction = (day: ChineseCalendar) -> Unit
+typealias OnDayConfirmAction = (day: ChineseCalendar, isLunar: Boolean) -> Unit
 
 class DatePickerDialog(
     context: Context,
-    private var selectionYear: Int = 0,
-    private var selectionMonth: Int = 0,
-    private var selectionDay: Int = 0,
-    private val showClearButton: Boolean = true,
-    private val onDayConfirmListener : OnDayConfirmAction? = null,
+    private var selectionYear: Int = 0,                                 // 当前选中公历年
+    private var selectionMonth: Int = 0,                                // 当前选中公历月
+    private var selectionDay: Int = 0,                                  // 当前选中公历月
+    private var useLunar: Boolean = false,                              // 是否使用农历
+    private val showClearButton: Boolean = true,                        // 是否显示清除按钮
+    private val onDayConfirmListener : OnDayConfirmAction? = null,      // 确认选择监听
 ) : BottomSheetDialog(context) {
     private lateinit var binding: DialogDatePickerBinding
 
@@ -58,7 +59,7 @@ class DatePickerDialog(
         binding.btnConfirm.setOnClickListener {
             val currentChineseCalendar = currentSelectChineseCalendar
             if (currentChineseCalendar != null){
-                onDayConfirmListener?.invoke(currentChineseCalendar)
+                onDayConfirmListener?.invoke(currentChineseCalendar, useLunar)
             }
             dismiss()
         }

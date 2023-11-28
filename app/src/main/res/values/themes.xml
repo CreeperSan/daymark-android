@@ -18,6 +18,9 @@
         <item name="md_color_text_notice">#FF7400</item>
         <item name="md_color_text_warming">#FF0000</item>
 
+        <item name="md_text_field_color_bg">#f6f6f6</item>
+        <item name="md_text_field_color_stroke">#e3e3e3</item>
+
         <item name="colorPrimaryDark">@color/theme_camphor_wood_color_background</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>

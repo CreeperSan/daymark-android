@@ -20,6 +20,8 @@
 
     <color name="theme_camphor_wood_color_background">#F2F4EF</color>
     <color name="theme_camphor_wood_color_primary">#EFB730</color>
+    <color name="theme_camphor_wood_color_primary_darken">#CD9510</color>
+    <color name="theme_camphor_wood_color_primary_lighten">#FFD952</color>
     <color name="theme_camphor_wood_color_secondary">#EFB730</color>
     <color name="theme_camphor_wood_color_accent">#C2E3F4</color>
     <color name="theme_camphor_wood_color_text_primary">#030305</color>
