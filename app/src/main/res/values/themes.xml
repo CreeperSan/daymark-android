@@ -1,10 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- 默认主题（樟木 CamphorWood） -->
     <style name="Theme.MemorialDay" parent="Theme.MaterialComponents.Light.NoActionBar">
-        <item name="colorPrimaryDark">#F2F5F7</item>
+        <item name="md_color_bg_page">@color/theme_camphor_wood_color_background</item>
+        <item name="md_color_bg_card">@color/white</item>
+
+        <item name="md_color_primary">@color/theme_camphor_wood_color_primary</item>
+        <item name="md_color_primary_lighten">@color/theme_camphor_wood_color_primary</item>
+        <item name="md_color_primary_darken">@color/theme_camphor_wood_color_primary</item>
+        <item name="md_color_accent">@color/theme_camphor_wood_color_accent</item>
+
+        <item name="md_color_text_primary">@color/theme_camphor_wood_color_text_primary</item>
+        <item name="md_color_text_secondary">@color/theme_camphor_wood_color_text_secondary</item>
+        <item name="md_color_text_hint">@color/theme_camphor_wood_color_text_hint</item>
+        <item name="md_color_text_week">@color/theme_camphor_wood_color_text_week</item>
+        <item name="md_color_text_notice">#FF7400</item>
+        <item name="md_color_text_warming">#FF0000</item>
+
+        <item name="colorPrimaryDark">@color/theme_camphor_wood_color_background</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>
 
     <style name="Theme.MemorialDayCompose" parent="android:Theme.Material.Light.NoActionBar" />
+
 </resources>

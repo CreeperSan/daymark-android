@@ -18,4 +18,13 @@
     <color name="hint_warming">#FFEE7C06</color>
     <color name="hint_error">#FFFA384E</color>
 
+    <color name="theme_camphor_wood_color_background">#F2F4EF</color>
+    <color name="theme_camphor_wood_color_primary">#EFB730</color>
+    <color name="theme_camphor_wood_color_secondary">#EFB730</color>
+    <color name="theme_camphor_wood_color_accent">#C2E3F4</color>
+    <color name="theme_camphor_wood_color_text_primary">#030305</color>
+    <color name="theme_camphor_wood_color_text_secondary">#FF707070</color>
+    <color name="theme_camphor_wood_color_text_hint">#FFA0A0A0</color>
+    <color name="theme_camphor_wood_color_text_week">#FFC0C0C0</color>
+
 </resources>
