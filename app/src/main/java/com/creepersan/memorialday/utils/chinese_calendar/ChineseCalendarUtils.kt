@@ -291,6 +291,73 @@ object ChineseCalendarUtils {
     }
 
 
+    /**
+     * 获取指定日期的农历信息，如果不传入对应条件则不进行这个条件的筛选
+     */
+    fun getChineseCalendarWithParams(
+        year: Int? = null,
+        month: Int? = null,
+        day: Int? = null,
+        weekday: Int? = null,
+        lunarYear: Int? = null,
+        lunarMonth: Int? = null,
+        lunarDay: Int? = null,
+        isLeapMonth: Boolean? = null,
+        limit: Int? = null,
+        offset: Int? = null,
+    ): Observable<List<ChineseCalendar>> {
+        return Observable.just(Unit)
+            .observeOn(MemorialDayScheduler.database)
+            .map {
+                var sql = "SELECT $SQL_SELECTION_CALENDAR FROM $TABLE_NAME"
+                if (year != null || month != null || day != null || weekday != null || lunarYear != null || lunarMonth != null || lunarDay != null || isLeapMonth != null) {
+                    sql += " WHERE 1 = 1"
+                }
+                if (year != null) {
+                    sql += " AND $COL_YEAR = $year"
+                }
+                if (month != null) {
+                    sql += " AND $COL_MONTH = $month"
+                }
+                if (day != null) {
+                    sql += " AND $COL_DAY = $day"
+                }
+                if (weekday != null) {
+                    sql += " AND $COL_WEEKDAY = $weekday"
+                }
+                if (lunarYear != null) {
+                    sql += " AND $COL_LUNAR_YEAR = $lunarYear"
+                }
+                if (lunarMonth != null) {
+                    sql += " AND $COL_LUNAR_MONTH = $lunarMonth"
+                }
+                if (lunarDay != null) {
+                    sql += " AND $COL_LUNAR_DAY = $lunarDay"
+                }
+                if (isLeapMonth != null) {
+                    sql += " AND $COL_IS_LEAP_MONTH = ${if (isLeapMonth) 1 else 0}"
+                }
+                if (limit != null) {
+                    sql += " LIMIT $limit"
+                }
+                if (offset != null) {
+                    sql += " OFFSET $offset"
+                }
+                return@map sql
+            }
+            .map { sql ->
+                val cursor = database.rawQuery(sql, null)
+                val resultList = ArrayList<ChineseCalendar>()
+                while (cursor.moveToNext()) {
+                    resultList.add(cursor.convertFromSQLSelectionCalendar())
+                }
+                cursor.close()
+                return@map resultList.toList()
+            }
+            .observeOn(MemorialDayScheduler.ui)
+    }
+
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // 以下是一些内部使用的通用代码
 

@@ -33,25 +33,28 @@ class MainViewModel: ViewModel() {
             MemorialDayApplication.instance.databaseManager.memorialDatabase.memorialDayDao()
         }.map {  dao ->
             dao.getAll()
-        }.map { rawMemorialDayList ->
+        }.flatMap { databaseMemorialDayList ->
+            Observable.fromIterable(databaseMemorialDayList).concatMap { databaseMemorialDay ->
+                MemorialDayMainModel.fromMemorialDayObservable(databaseMemorialDay)
+            }.toList().toObservable()
+        }.map { mainModelList ->
             val todayList = ArrayList<MemorialDayMainModel>()
             val comingList = ArrayList<MemorialDayMainModel>()
             val passedList = ArrayList<MemorialDayMainModel>()
             val unknownList = ArrayList<MemorialDayMainModel>()
-            for (memorialDay in rawMemorialDayList) {
-                val memorialDayMainModel = MemorialDayMainModel.fromMemorialDay(memorialDay)
+            for (mainModel in mainModelList) {
                 when {
-                    memorialDayMainModel.dayLeft == MemorialDayMainModel.DAY_LEFT_UNKNOWN -> {
-                        unknownList.add(memorialDayMainModel)
+                    mainModel.dayLeft == MemorialDayMainModel.DAY_LEFT_UNKNOWN -> {
+                        unknownList.add(mainModel)
                     }
-                    memorialDayMainModel.dayLeft == 0 -> {
-                        todayList.add(memorialDayMainModel)
+                    mainModel.dayLeft == 0 -> {
+                        todayList.add(mainModel)
                     }
-                    memorialDayMainModel.dayLeft > 0 -> {
-                        comingList.add(memorialDayMainModel)
+                    mainModel.dayLeft > 0 -> {
+                        comingList.add(mainModel)
                     }
-                    memorialDayMainModel.dayLeft < 0 -> {
-                        passedList.add(memorialDayMainModel)
+                    mainModel.dayLeft < 0 -> {
+                        passedList.add(mainModel)
                     }
                 }
             }

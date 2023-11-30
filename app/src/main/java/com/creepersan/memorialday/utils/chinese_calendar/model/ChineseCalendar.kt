@@ -101,3 +101,7 @@ fun ChineseCalendar.getFullLunarDayString(): String {
     return resultStr
 }
 
+fun ChineseCalendar.getFullGregorianDayString(): String {
+    return "${year}年${month}月${day}日"
+}
+

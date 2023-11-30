@@ -8,7 +8,7 @@ import androidx.room.PrimaryKey
 data class MemorialDay (
     @PrimaryKey(autoGenerate = true) val id: Long,
     @ColumnInfo(name = "title") val title: String,
-    @ColumnInfo(name = "time") val time: Long,
+    @ColumnInfo(name = "time") val time: Long, /* 储存的公历日期时间戳 */
     @Deprecated("字段已废弃") @ColumnInfo(name = "lunar_time") val lunarTime: String = "", /* （已废弃，为空字符串）储存格式为：1901-*05-23 ，其中月份前面的*代表是闰月 */
     @ColumnInfo(name = "time_type") val timeType: Int,  // 时间类型
     @ColumnInfo(name = "loop") val loop: Int,

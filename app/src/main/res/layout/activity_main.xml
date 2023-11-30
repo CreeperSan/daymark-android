@@ -38,15 +38,16 @@
         android:layout_height="72dp"
         app:layout_constraintBottom_toBottomOf="parent" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <ImageView
+        android:background="@drawable/bg_floating_action_button_circle"
         android:layout_marginBottom="16dp"
         android:id="@+id/addButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:padding="12dp"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
         android:contentDescription="添加纪念日"
         android:src="@drawable/round_add_24_white"
         android:backgroundTint="?attr/md_color_primary"
-        android:tint="?attr/md_color_bg_card"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
