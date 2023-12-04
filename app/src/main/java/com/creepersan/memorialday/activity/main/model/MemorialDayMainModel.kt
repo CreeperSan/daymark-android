@@ -89,9 +89,16 @@ data class MemorialDayMainModel(
                     }
                     /* 【公历】每年 */
                     memorialDay.loop == MemorialDay.LOOP_YEARLY && memorialDay.timeType == MemorialDay.TIME_TYPE_GREGORIAN -> {
-                        ChineseCalendarUtils.getFromCalendar(
-                            memorialCalendar.year + 1, memorialCalendar.month, memorialCalendar.day
-                        ).map { it.get() }.map { targetCalendar ->
+                        Observable.just(Unit).concatMap {
+                            if (todayCalendar.id <= memorialCalendar.id) {
+                                // 本年的刚好是今天，或者还没到，那么就是本年的
+                                return@concatMap Observable.just(Optional.of(memorialCalendar))
+                            }
+                            // 本年的已经过了，那么就是下一年的
+                            return@concatMap ChineseCalendarUtils.getFromCalendar(
+                                memorialCalendar.year + 1, memorialCalendar.month, memorialCalendar.day
+                            )
+                        }.map { it.get() }.map { targetCalendar ->
                             MemorialDayMainModel(
                                 memorialDay = memorialDay,
                                 title = memorialDay.title,
@@ -103,7 +110,12 @@ data class MemorialDayMainModel(
                     /* 【农历】每年 */
                     memorialDay.loop == MemorialDay.LOOP_YEARLY && memorialDay.timeType == MemorialDay.TIME_TYPE_LUNAR -> {
                         Observable.just(Unit).concatMap {
-                            ChineseCalendarUtils.getChineseCalendarWithParams(
+                            if (todayCalendar.id <= memorialCalendar.id) {
+                                // 本年的刚好是今天，或者还没到，那么就是本年的
+                                return@concatMap Observable.just(listOf(memorialCalendar))
+                            }
+                            // 本年的已经过了，那么就是下一年的
+                            return@concatMap ChineseCalendarUtils.getChineseCalendarWithParams(
                                 lunarYear = memorialCalendar.year + 1,
                                 lunarMonth = memorialCalendar.month,
                                 lunarDay = memorialCalendar.day,
