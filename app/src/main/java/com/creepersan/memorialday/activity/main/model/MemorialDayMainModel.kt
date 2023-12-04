@@ -38,16 +38,12 @@ data class MemorialDayMainModel(
         ): Observable<MemorialDayMainModel> {
 
             return Observable.just(Unit).concatMap {
-                val tmpCalendar = Calendar.getInstance()
-                val todayYear = tmpCalendar.get(Calendar.YEAR)
-                val todayMonth = tmpCalendar.get(Calendar.MONTH) + 1
-                val todayDay = tmpCalendar.get(Calendar.DAY_OF_MONTH)
-                tmpCalendar.time = Date(memorialDay.time)
-                val memorialDayYear = tmpCalendar.get(Calendar.YEAR)
-                val memorialDayMonth = tmpCalendar.get(Calendar.MONTH) + 1
-                val memorialDayDay = tmpCalendar.get(Calendar.DAY_OF_MONTH)
-
                 val observableToday = if (todayChineseCalendar == null) {
+                    val todayJavaCalendar = Calendar.getInstance()
+                    todayJavaCalendar.time = Date(System.currentTimeMillis())
+                    val todayYear = todayJavaCalendar.get(Calendar.YEAR)
+                    val todayMonth = todayJavaCalendar.get(Calendar.MONTH) + 1
+                    val todayDay = todayJavaCalendar.get(Calendar.DAY_OF_MONTH)
                     ChineseCalendarUtils.getFromCalendar(todayYear, todayMonth, todayDay)
                         .map { it.get() }
                         .doOnError { e -> Log.e(TAG, "获取今日农历日期失败"); e.printStackTrace() }
@@ -55,13 +51,19 @@ data class MemorialDayMainModel(
                     Observable.just(todayChineseCalendar)
                 }
 
-                val observableMemorialDay = ChineseCalendarUtils.getFromCalendar(memorialDayYear, memorialDayMonth, memorialDayDay)
-                    .map { it.get() }
+                val observableMemorialDay = Observable.just(Unit).concatMap {
+                    val memorialDayJavaCalendar = Calendar.getInstance()
+                    memorialDayJavaCalendar.time = Date(memorialDay.time)
+                    val memorialDayYear = memorialDayJavaCalendar.get(Calendar.YEAR)
+                    val memorialDayMonth = memorialDayJavaCalendar.get(Calendar.MONTH) + 1
+                    val memorialDayDay = memorialDayJavaCalendar.get(Calendar.DAY_OF_MONTH)
+                    ChineseCalendarUtils.getFromCalendar(memorialDayYear, memorialDayMonth, memorialDayDay)
+                }.map { it.get() }
                     .doOnError { e -> Log.e(TAG, "获取纪念日农历日期失败"); e.printStackTrace() }
 
-                return@concatMap Observable.merge(listOf(
-                    observableToday, observableMemorialDay
-                )).toList().toObservable()
+                return@concatMap Observable.zip(observableToday, observableMemorialDay) { a, b ->
+                    return@zip listOf(a, b)
+                }
             }.concatMap { calendarList ->
                 val todayCalendar = calendarList[0]
                 val memorialCalendar = calendarList[1]
@@ -94,7 +96,7 @@ data class MemorialDayMainModel(
                                 memorialDay = memorialDay,
                                 title = memorialDay.title,
                                 time = FormatUtils.timestampToYYYYMMDD(memorialDay.time),
-                                dayLeft = memorialCalendar.id - todayCalendar.id,
+                                dayLeft = targetCalendar.id - todayCalendar.id,
                             )
                         }
                     }

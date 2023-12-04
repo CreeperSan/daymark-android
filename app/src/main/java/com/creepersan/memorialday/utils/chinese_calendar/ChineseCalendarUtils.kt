@@ -1,7 +1,9 @@
 package com.creepersan.memorialday.utils.chinese_calendar
 
+import android.annotation.SuppressLint
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
+import android.util.Log
 import com.creepersan.memorialday.application.MemorialDayApplication
 import com.creepersan.memorialday.constance.MemorialDayScheduler
 import com.creepersan.memorialday.utils.chinese_calendar.model.ChineseCalendar
@@ -153,6 +155,7 @@ object ChineseCalendarUtils {
             val sql = "SELECT $SQL_SELECTION_CALENDAR " +
                     "FROM $TABLE_NAME " +
                     "WHERE $COL_YEAR = ? AND $COL_MONTH = ? AND $COL_DAY = ? "
+            Log.e("日历打印","getFromCalendar: $sql".replace("?", "%s").format(year, month, day))
             database.rawQuery(sql, arrayOf(year.toString(), month.toString(), day.toString())).use { cursor ->
                 if (cursor.moveToNext()) {
                     val chineseCalendar = cursor.convertFromSQLSelectionCalendar()
@@ -361,20 +364,21 @@ object ChineseCalendarUtils {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // 以下是一些内部使用的通用代码
 
+    @SuppressLint("Range")
     private fun Cursor.convertFromSQLSelectionCalendar(): ChineseCalendar {
         return ChineseCalendar(
-            id = getInt(0),
-            year = getInt(1),
-            month = getInt(2),
-            day = getInt(3),
-            weekday = getInt(4),
-            lunarYear = getInt(5),
-            lunarMonth = getInt(6),
-            lunarDay = getInt(7),
-            isLeapMonth = getInt(8) == 1,
-            lunarYearName = getString(9) ?: "",
-            solarTerm = ChineseCalendarSolarTerm.fromInt(getInt(10)),
-            zodiac = ChineseCalendarZodiac.fromInt(getInt(11)),
+            id = getInt(getColumnIndex(COL_ID)),
+            year = getInt(getColumnIndex(COL_YEAR)),
+            month = getInt(getColumnIndex(COL_MONTH)),
+            day = getInt(getColumnIndex(COL_DAY)),
+            weekday = getInt(getColumnIndex(COL_WEEKDAY)),
+            lunarYear = getInt(getColumnIndex(COL_LUNAR_YEAR)),
+            lunarMonth = getInt(getColumnIndex(COL_LUNAR_MONTH)),
+            lunarDay = getInt(getColumnIndex(COL_LUNAR_DAY)),
+            isLeapMonth = getInt(getColumnIndex(COL_IS_LEAP_MONTH)) == 1,
+            lunarYearName = getString(getColumnIndex(COL_LUNAR_YEAR_NAME)) ?: "",
+            solarTerm = ChineseCalendarSolarTerm.fromInt(getInt(getColumnIndex(COL_SOLAR_TERM))),
+            zodiac = ChineseCalendarZodiac.fromInt(getInt(getColumnIndex(COL_ZODIAC))),
         )
     }
 

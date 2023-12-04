@@ -28,7 +28,13 @@ data class ChineseCalendar(
     val lunarYearName: String,
     val solarTerm: ChineseCalendarSolarTerm,
     val zodiac: ChineseCalendarZodiac,
-)
+) {
+
+    override fun toString(): String {
+        return "ChineseCalendar($year-$month-$day ($weekday), $lunarYear-$lunarMonth-$lunarDay ($isLeapMonth), $lunarYearName, $solarTerm, $zodiac)"
+    }
+
+}
 
 
 fun ChineseCalendar.lunarMonthToString(): String {
