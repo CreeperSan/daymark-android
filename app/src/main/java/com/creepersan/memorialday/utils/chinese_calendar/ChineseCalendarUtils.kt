@@ -5,7 +5,7 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.util.Log
 import com.creepersan.memorialday.application.MemorialDayApplication
-import com.creepersan.memorialday.constance.MemorialDayScheduler
+import com.creepersan.memorialday.constance.MDScheduler
 import com.creepersan.memorialday.utils.chinese_calendar.definition.NumberEqual
 import com.creepersan.memorialday.utils.chinese_calendar.definition.NumberLessThen
 import com.creepersan.memorialday.utils.chinese_calendar.definition.NumberLessThenOrEqual
@@ -88,7 +88,7 @@ object ChineseCalendarUtils {
      * @return 可以支持的年份列表
      */
     fun getAvailableYear(): Observable<ArrayList<ChineseCalendarYear>> {
-        return Observable.just(Unit).observeOn(MemorialDayScheduler.database).map {
+        return Observable.just(Unit).observeOn(MDScheduler.database).map {
             val cursor = database.rawQuery("SELECT DISTINCT $COL_LUNAR_YEAR, $COL_LUNAR_YEAR_NAME, $COL_ZODIAC FROM $TABLE_NAME", null)
             val yearList = ArrayList<ChineseCalendarYear>()
             while (cursor.moveToNext()) {
@@ -100,7 +100,7 @@ object ChineseCalendarUtils {
             }
             cursor.close()
             yearList
-        }.observeOn(MemorialDayScheduler.ui)
+        }.observeOn(MDScheduler.ui)
     }
 
 
@@ -110,7 +110,7 @@ object ChineseCalendarUtils {
      * @return 可以支持的月份列表
      */
     fun getAvailableMonth(year: Int): Observable<ArrayList<ChineseCalendarMonth>> {
-        return Observable.just(ArrayList<ChineseCalendarMonth>()).observeOn(MemorialDayScheduler.database).map {  resultList ->
+        return Observable.just(ArrayList<ChineseCalendarMonth>()).observeOn(MDScheduler.database).map { resultList ->
             database.rawQuery("SELECT DISTINCT $COL_LUNAR_MONTH, $COL_LUNAR_MONTH_NAME, $COL_IS_LEAP_MONTH FROM $TABLE_NAME WHERE $COL_LUNAR_YEAR = ?", arrayOf(year.toString())).use { cursor ->
                 while (cursor.moveToNext()) {
                     resultList.add(ChineseCalendarMonth(
@@ -122,7 +122,7 @@ object ChineseCalendarUtils {
                 }
             }
             resultList
-        }.observeOn(MemorialDayScheduler.ui)
+        }.observeOn(MDScheduler.ui)
     }
 
 
@@ -133,7 +133,7 @@ object ChineseCalendarUtils {
      * @param isLeapMonth 是否闰月
      */
     fun getAvailableDay(year: Int, month: Int, isLeapMonth: Boolean): Observable<ArrayList<ChineseCalendarDay>> {
-        return Observable.just(ArrayList<ChineseCalendarDay>()).observeOn(MemorialDayScheduler.database).map {  resultList ->
+        return Observable.just(ArrayList<ChineseCalendarDay>()).observeOn(MDScheduler.database).map { resultList ->
             database.rawQuery("SELECT $COL_DAY, $COL_LUNAR_DAY, $COL_LUNAR_DAY_NAME, $COL_SOLAR_TERM, $COL_SOLAR_TERM_NAME, $COL_ZODIAC, $COL_ZODIAC_NAME FROM $TABLE_NAME WHERE $COL_LUNAR_YEAR = ? AND $COL_LUNAR_MONTH = ? AND $COL_IS_LEAP_MONTH = ?", arrayOf(year.toString(), month.toString(), if (isLeapMonth) "1" else "0")).use { cursor ->
                 while (cursor.moveToNext()) {
                     resultList.add(ChineseCalendarDay(
@@ -147,7 +147,7 @@ object ChineseCalendarUtils {
                 }
             }
             resultList
-        }.observeOn(MemorialDayScheduler.ui)
+        }.observeOn(MDScheduler.ui)
     }
 
 
@@ -158,7 +158,7 @@ object ChineseCalendarUtils {
      * @param day 公历日
      */
     fun getFromCalendar(year: Int, month: Int, day: Int): Observable<Optional<ChineseCalendar>> {
-        return Observable.just(Unit).observeOn(MemorialDayScheduler.database).map {
+        return Observable.just(Unit).observeOn(MDScheduler.database).map {
             val sql = "SELECT $SQL_SELECTION_CALENDAR " +
                     "FROM $TABLE_NAME " +
                     "WHERE $COL_YEAR = ? AND $COL_MONTH = ? AND $COL_DAY = ? "
@@ -172,7 +172,7 @@ object ChineseCalendarUtils {
                 }
             }
 
-        }.observeOn(MemorialDayScheduler.ui)
+        }.observeOn(MDScheduler.ui)
     }
 
 
@@ -189,7 +189,7 @@ object ChineseCalendarUtils {
         lunarDay: Int,
         isLeapMonth: Boolean,
     ): Observable<Optional<ChineseCalendar>> {
-        return Observable.just(Unit).observeOn(MemorialDayScheduler.database).map {
+        return Observable.just(Unit).observeOn(MDScheduler.database).map {
             val sql = "SELECT $SQL_SELECTION_CALENDAR " +
                     "FROM $TABLE_NAME " +
                     "WHERE $COL_LUNAR_YEAR = ? AND $COL_LUNAR_MONTH = ? AND $COL_LUNAR_DAY = ? AND $COL_IS_LEAP_MONTH = ?"
@@ -201,7 +201,7 @@ object ChineseCalendarUtils {
                     Optional.empty()
                 }
             }
-        }.observeOn(MemorialDayScheduler.ui)
+        }.observeOn(MDScheduler.ui)
     }
 
 
@@ -218,7 +218,7 @@ object ChineseCalendarUtils {
         lunarDay2: Int,
         isLeapMonth2: Boolean,
     ): Observable<Int> {
-        return Observable.just(Unit).observeOn(MemorialDayScheduler.database).concatMap {
+        return Observable.just(Unit).observeOn(MDScheduler.database).concatMap {
             return@concatMap Observable.zip(
                 getFromChineseCalendar(lunarYear, lunarMonth, lunarDay, isLeapMonth),
                 getFromChineseCalendar(lunarYear2, lunarMonth2, lunarDay2, isLeapMonth2)
@@ -233,7 +233,7 @@ object ChineseCalendarUtils {
                 val calendar2 = calendarObj2.get()
                 return@zip calendar1.id - calendar2.id
             }
-        }.observeOn(MemorialDayScheduler.ui)
+        }.observeOn(MDScheduler.ui)
     }
 
 
@@ -245,7 +245,7 @@ object ChineseCalendarUtils {
      * @param isLeapMonth 是否闰月
      */
     fun getDayBetweenTodayAndChineseCalendar(lunarYear: Int, lunarMonth: Int, lunarDay: Int, isLeapMonth: Boolean): Observable<Int> {
-        return Observable.just(Unit).observeOn(MemorialDayScheduler.database).concatMap {
+        return Observable.just(Unit).observeOn(MDScheduler.database).concatMap {
             val calendar = Calendar.getInstance()
             val year = calendar.get(Calendar.YEAR)
             val month = calendar.get(Calendar.MONTH)
@@ -271,7 +271,7 @@ object ChineseCalendarUtils {
      * @param month 月份，1 代表 一月
      */
     fun getDaysFromSpecifyWithCount(year: Int, month:Int, day: Int, limitSize: Int): Observable<List<ChineseCalendar>> {
-        return Observable.just(Unit).observeOn(MemorialDayScheduler.database).map {
+        return Observable.just(Unit).observeOn(MDScheduler.database).map {
             val sql = "SELECT $COL_ID FROM $TABLE_NAME WHERE $COL_YEAR = ? AND $COL_MONTH = ? AND $COL_DAY = ? LIMIT 1"
             val cursor = database.rawQuery(sql, arrayOf(year.toString(), month.toString(), day.toString()))
             var idInDatabase = 0L
@@ -297,7 +297,7 @@ object ChineseCalendarUtils {
         }.onErrorResumeNext(Function { error ->
             error.printStackTrace()
              return@Function Observable.just(listOf<ChineseCalendar>())
-        }).observeOn(MemorialDayScheduler.ui)
+        }).observeOn(MDScheduler.ui)
     }
 
 
@@ -319,7 +319,7 @@ object ChineseCalendarUtils {
 
     ): Observable<List<ChineseCalendar>> {
         return Observable.just(Unit)
-            .observeOn(MemorialDayScheduler.database)
+            .observeOn(MDScheduler.database)
             .map {
                 var sql = "SELECT $SQL_SELECTION_CALENDAR FROM $TABLE_NAME"
                 if (year != null || month != null || day != null || weekday != null || lunarYear != null || lunarMonth != null || lunarDay != null || isLeapMonth != null) {
@@ -382,7 +382,7 @@ object ChineseCalendarUtils {
                 cursor.close()
                 return@map resultList.toList()
             }
-            .observeOn(MemorialDayScheduler.ui)
+            .observeOn(MDScheduler.ui)
     }
 
 

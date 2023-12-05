@@ -1,16 +1,13 @@
 package com.creepersan.memorialday.activity.main.viewmodel
 
-import android.icu.util.Calendar
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.creepersan.memorialday.activity.main.model.MemorialDayMainModel
 import com.creepersan.memorialday.application.MemorialDayApplication
-import com.creepersan.memorialday.constance.MemorialDayScheduler
-import com.creepersan.memorialday.database.model.MemorialDay
+import com.creepersan.memorialday.constance.MDScheduler
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.Disposable
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 
@@ -29,7 +26,7 @@ class MainViewModel: ViewModel() {
 
     @Suppress("KotlinConstantConditions")
     fun loadData() {
-        loadDataDisposable = Observable.just(Unit).observeOn(MemorialDayScheduler.database).map {
+        loadDataDisposable = Observable.just(Unit).observeOn(MDScheduler.database).map {
             MemorialDayApplication.instance.databaseManager.memorialDatabase.memorialDayDao()
         }.map {  dao ->
             dao.getAll()
@@ -63,7 +60,7 @@ class MainViewModel: ViewModel() {
             comingList.sortedBy { it.dayLeft } +
             passedList.sortedBy { Math.abs(it.dayLeft) } +
             unknownList
-        }.observeOn(MemorialDayScheduler.ui).subscribe({ memorialDayList ->
+        }.observeOn(MDScheduler.ui).subscribe({ memorialDayList ->
             viewModelScope.launch { memorialDayListChannel.send(memorialDayList) }
         }, { error ->
             error.printStackTrace()

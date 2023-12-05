@@ -6,7 +6,7 @@ import androidx.core.widget.addTextChangedListener
 import com.creepersan.memorialday.R
 import com.creepersan.memorialday.application.MemorialDayApplication
 import com.creepersan.memorialday.base.activity.BaseViewBindingActivity
-import com.creepersan.memorialday.constance.MemorialDayScheduler
+import com.creepersan.memorialday.constance.MDScheduler
 import com.creepersan.memorialday.database.model.MemorialDay
 import com.creepersan.memorialday.databinding.ActivityAddEditMemorialDayBinding
 import com.creepersan.memorialday.extension.disposeIfNeed
@@ -153,7 +153,7 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
             }
 
             databaseDisposable.disposeIfNeed()
-            databaseDisposable = Observable.just(Unit).observeOn(MemorialDayScheduler.database).map {
+            databaseDisposable = Observable.just(Unit).observeOn(MDScheduler.database).map {
                 MemorialDayApplication.instance.databaseManager.memorialDatabase.memorialDayDao()
             }.map { dao ->
                 if (isEdit) {
@@ -161,7 +161,7 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
                 } else {
                     dao.insert(memorialDayModel)
                 }
-            }.observeOn(MemorialDayScheduler.ui).subscribe({
+            }.observeOn(MDScheduler.ui).subscribe({
                 setResult(RESULT_OK)
                 finish()
             }, { error ->
@@ -181,11 +181,11 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
                 if (!confirm) {
                     throw InterruptedException("用户取消")
                 }
-            }.observeOn(MemorialDayScheduler.database).map {
+            }.observeOn(MDScheduler.database).map {
                 MemorialDayApplication.instance.databaseManager.memorialDatabase.memorialDayDao()
             }.map { dao ->
                 dao.delete(memorialDayModel)
-            }.observeOn(MemorialDayScheduler.ui).subscribe({
+            }.observeOn(MDScheduler.ui).subscribe({
                 setResult(RESULT_OK)
                 finish()
             }, { error ->
@@ -208,7 +208,7 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
     }
 
     private fun initData() {
-        databaseDisposable = Observable.just(Unit).observeOn(MemorialDayScheduler.database).map {
+        databaseDisposable = Observable.just(Unit).observeOn(MDScheduler.database).map {
             MemorialDayApplication.instance.databaseManager.memorialDatabase.memorialDayDao()
         }.map { dao ->
             if (isEdit) {
@@ -216,7 +216,7 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
             } else {
                 MemorialDay.empty()
             }
-        }.observeOn(MemorialDayScheduler.ui).subscribe({ model ->
+        }.observeOn(MDScheduler.ui).subscribe({ model ->
             memorialDayModel = model
             initUiAfterDataLoaded()
         }, { error ->
