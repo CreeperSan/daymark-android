@@ -39,8 +39,6 @@ open class BaseDialog(
     private val negativeButtonSize: Float? = null,
     @ColorInt private val negativeButtonColor: Int? = null,
     private val negativeButtonAction: (() -> Unit)? = null,
-    /* 自定义内容 */
-    private val customView: View? = null
 ) : Dialog(context, R.style.MemorialDayDialog) {
     protected lateinit var rootDialogBinding: DialogBaseBinding
 
@@ -113,8 +111,9 @@ open class BaseDialog(
         }
 
         /* 自定义内容 */
-        customView?.apply {
-            rootDialogBinding.customLayout.addView(this, 0, LinearLayout.LayoutParams(
+        val customView = getCustomView()
+        if (customView != null) {
+            rootDialogBinding.customLayout.addView(customView, 0, LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.MATCH_PARENT,
             ))
@@ -132,6 +131,9 @@ open class BaseDialog(
             }
         }
     }
+
+
+    open fun getCustomView(): View? = null
 
 }
 

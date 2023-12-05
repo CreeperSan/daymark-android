@@ -11,10 +11,11 @@ import com.creepersan.memorialday.database.model.MemorialDay
 import com.creepersan.memorialday.databinding.ActivityAddEditMemorialDayBinding
 import com.creepersan.memorialday.extension.disposeIfNeed
 import com.creepersan.memorialday.extension.setVisible
-import com.creepersan.memorialday.ui.dialog.DialogManager
+import com.creepersan.memorialday.ui.dialog.base.DialogAction
 import com.creepersan.memorialday.ui.system.StatusBarManager
 import com.creepersan.memorialday.ui.toast.ToastManager
 import com.creepersan.memorialday.ui.dialog.date_picker.DatePickerDialog
+import com.creepersan.memorialday.ui.dialog.message.MessageDialog
 import com.creepersan.memorialday.utils.chinese_calendar.ChineseCalendarUtils
 import com.creepersan.memorialday.utils.chinese_calendar.model.lunarDayToString
 import com.creepersan.memorialday.utils.chinese_calendar.model.lunarMonthToString
@@ -173,12 +174,14 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
 
         binding.delete.setOnClickListener {
             databaseDisposable.disposeIfNeed()
-            databaseDisposable = DialogManager.confirm(
+            databaseDisposable = MessageDialog(
                 context = this,
                 title = "确定要删除吗？",
                 message = "删除后将无法恢复",
-            ).map { confirm ->
-                if (!confirm) {
+                positiveButton = "确定",
+                negativeButton = "取消",
+            ).showObservable().map { action ->
+                if (action != DialogAction.Positive) {
                     throw InterruptedException("用户取消")
                 }
             }.observeOn(MDScheduler.database).map {
