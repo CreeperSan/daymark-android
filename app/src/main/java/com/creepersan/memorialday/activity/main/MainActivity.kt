@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.AbsoluteSizeSpan
+import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,6 +13,7 @@ import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.creepersan.memorialday.R
 import com.creepersan.memorialday.activity.MemorialDayRoute
 import com.creepersan.memorialday.activity.main.model.MemorialDayMainModel
 import com.creepersan.memorialday.activity.main.viewmodel.MainUIEvent
@@ -24,6 +26,7 @@ import com.creepersan.memorialday.extension.setVisible
 import com.creepersan.memorialday.extension.spi
 import com.creepersan.memorialday.ui.system.StatusBarManager
 import com.creepersan.memorialday.utils.chinese_calendar.ChineseCalendarUtils
+import com.google.android.material.color.MaterialColors
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
@@ -140,33 +143,46 @@ private class MemorialDayViewHolder(private val binding: ItemMainMemorialDayBind
 
     @Suppress("KotlinConstantConditions")
     fun bind(model: MemorialDayMainModel) {
+        val context = binding.root.context
+
         binding.title.text = model.title
         binding.time.text = model.time
 
-        binding.countDown.text = when {
+        when {
             model.dayLeft == 0 -> {
+                binding.countDown.setTextColor(MaterialColors.getColor(binding.root, R.attr.md_color_primary_darken))
                 val timeStr = "就在 今天"
-                SpannableString(timeStr).apply {
+                binding.countDown.text = SpannableString(timeStr).apply {
                     setSpan(AbsoluteSizeSpan(20.spi), 3, timeStr.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 }
             }
             model.dayLeft == MemorialDayMainModel.DAY_LEFT_UNKNOWN -> {
-                "未知"
+                binding.countDown.setTextColor(MaterialColors.getColor(binding.root, R.attr.md_color_text_week))
+                val timeStr = "未知"
+                binding.countDown.text = SpannableString(timeStr).apply {
+                    setSpan(AbsoluteSizeSpan(20.spi), 0, timeStr.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                }
             }
             model.dayLeft > 0 -> {
+                binding.countDown.setTextColor(MaterialColors.getColor(binding.root, R.attr.md_color_text_primary))
                 val timeStr = "还剩 ${model.dayLeft} 天"
-                SpannableString(timeStr).apply {
+                binding.countDown.text = SpannableString(timeStr).apply {
                     setSpan(AbsoluteSizeSpan(20.spi), 3, timeStr.length - 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 }
             }
             model.dayLeft < 0 -> {
+                binding.countDown.setTextColor(MaterialColors.getColor(binding.root, R.attr.md_color_text_week))
                 val timeStr = "已过 ${abs(model.dayLeft)} 天"
-                SpannableString(timeStr).apply {
+                binding.countDown.text = SpannableString(timeStr).apply {
                     setSpan(AbsoluteSizeSpan(20.spi), 3, timeStr.length - 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 }
             }
             else -> {
-                "未知"
+                binding.countDown.setTextColor(MaterialColors.getColor(binding.root, R.attr.md_color_text_week))
+                val timeStr = "未知"
+                binding.countDown.text = SpannableString(timeStr).apply {
+                    setSpan(AbsoluteSizeSpan(20.spi), 0, timeStr.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                }
             }
         }
 
