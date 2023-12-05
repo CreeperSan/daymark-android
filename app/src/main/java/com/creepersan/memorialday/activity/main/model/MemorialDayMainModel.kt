@@ -2,6 +2,9 @@ package com.creepersan.memorialday.activity.main.model
 
 import android.util.Log
 import com.creepersan.memorialday.database.model.MemorialDay
+import com.creepersan.memorialday.extension.setTime
+import com.creepersan.memorialday.utils.CompareResult
+import com.creepersan.memorialday.utils.CompareUtils
 import com.creepersan.memorialday.utils.FormatUtils
 import com.creepersan.memorialday.utils.chinese_calendar.ChineseCalendarUtils
 import com.creepersan.memorialday.utils.chinese_calendar.definition.NumberEqual
@@ -64,8 +67,8 @@ data class MemorialDayMainModel(
                 }.map { it.get() }
                     .doOnError { e -> Log.e(TAG, "获取纪念日农历日期失败"); e.printStackTrace() }
 
-                return@concatMap Observable.zip(observableToday, observableMemorialDay) { a, b ->
-                    return@zip listOf(a, b)
+                return@concatMap Observable.zip(observableToday, observableMemorialDay) { todayCalendar, memorialDayCalendar ->
+                    return@zip listOf(todayCalendar, memorialDayCalendar)
                 }
             }.concatMap { calendarList ->
                 val todayCalendar = calendarList[0]
@@ -92,64 +95,94 @@ data class MemorialDayMainModel(
                     }
                     /* 【公历】每年 */
                     memorialDay.loop == MemorialDay.LOOP_YEARLY && memorialDay.timeType == MemorialDay.TIME_TYPE_GREGORIAN -> {
-                        Observable.just(Unit).concatMap {
-                            // 本年的刚好是今天，或者还没到，那么就是本年的
-                            if (todayCalendar.id <= memorialCalendar.id) {
-                                return@concatMap Observable.just(Optional.of(memorialCalendar))
-                            }
-                            // 闰月的情况处理
-                            if (memorialCalendar.month == 2 && memorialCalendar.day == 29) {
-                                // 今年2月有29，则使用29。没有则使用 28 日
-                                val tmpCalendar = Calendar.getInstance()
-                                tmpCalendar.set(Calendar.YEAR, todayCalendar.year)
-                                tmpCalendar.set(Calendar.MONTH, memorialCalendar.month - 1)
-                                val tmpCalendarDayCountInMonth = tmpCalendar.getActualMaximum(Calendar.DAY_OF_MONTH)
-                                if (tmpCalendarDayCountInMonth < 29) {
-                                    return@concatMap ChineseCalendarUtils.getFromCalendar(
-                                        todayCalendar.year, memorialCalendar.month, 28
-                                    ).map { Optional.of(it.get()) }
-                                }
-                            }
-                            // 本年的已经过了，那么就是下一年的
-                            return@concatMap ChineseCalendarUtils.getFromCalendar(
-                                todayCalendar.year + 1, memorialCalendar.month, memorialCalendar.day
+                        return@concatMap Observable.just(Unit).concatMap {
+                            val compareResult = CompareUtils.compareCalendar(
+                                month1 = todayCalendar.month,
+                                day1 = todayCalendar.day,
+                                month2 = memorialCalendar.month,
+                                day2 = memorialCalendar.day,
                             )
-                        }.map { it.get() }.map { targetCalendar ->
-                            MemorialDayMainModel(
+                            return@concatMap when (compareResult) {
+                                CompareResult.Equal,
+                                CompareResult.Less -> {
+                                    /* 本年的还没有过，那么就是今年的 */
+                                    ChineseCalendarUtils.getChineseCalendarWithParams(
+                                        year = NumberEqual(todayCalendar.year),
+                                        month = NumberLessThenOrEqual(memorialCalendar.month),
+                                        day = NumberLessThenOrEqual(memorialCalendar.day),
+                                        sort = Sort.Desc,
+                                        limit = 3,
+                                    )
+                                }
+                                CompareResult.Greater -> {
+                                    /* 今年的已经过了，那么使用下一年的 */
+                                    ChineseCalendarUtils.getChineseCalendarWithParams(
+                                        year = NumberEqual(todayCalendar.year + 1),
+                                        month = NumberLessThenOrEqual(memorialCalendar.month),
+                                        day = NumberLessThenOrEqual(memorialCalendar.day),
+                                        sort = Sort.Desc,
+                                        limit = 3,
+                                    )
+                                }
+                                else -> throw Exception("获取目标事件发生异常，无法判断是否超过当天")
+                            }
+                        }.map { it.first() }.map { targetCalendar ->
+                            return@map MemorialDayMainModel(
                                 memorialDay = memorialDay,
                                 title = memorialDay.title,
                                 time = FormatUtils.timestampToYYYYMMDD(memorialDay.time),
                                 dayLeft = targetCalendar.id - todayCalendar.id,
                             )
+                        }.doOnError { error ->
+                            error.printStackTrace()
                         }
                     }
                     /* 【农历】每年 */
                     memorialDay.loop == MemorialDay.LOOP_YEARLY && memorialDay.timeType == MemorialDay.TIME_TYPE_LUNAR -> {
                         Observable.just(Unit).concatMap {
-                            if (todayCalendar.id <= memorialCalendar.id) {
-                                // 本年的刚好是今天，或者还没到，那么就是本年的
-                                return@concatMap Observable.just(listOf(memorialCalendar))
-                            }
-                            // 本年的已经过了，那么就是下一年的
-                            // 一般一年不会过两次生日。并且不会在闰月过生日。所以这里不需要处理闰月的问题
-                            return@concatMap ChineseCalendarUtils.getChineseCalendarWithParams(
-                                lunarYear = NumberEqual(todayCalendar.year + 1),
-                                lunarMonth = NumberEqual(memorialCalendar.month),
-                                lunarDay = NumberLessThenOrEqual(memorialCalendar.day),
-                                isLeapMonth = false,
-                                sort = Sort.Desc,
+                            val compareResult = CompareUtils.compareChineseCalendar(
+                                month1 = todayCalendar.lunarMonth,
+                                day1 = todayCalendar.lunarDay,
+                                isLeapMonth1 = todayCalendar.isLeapMonth,
+                                month2 = memorialCalendar.lunarMonth,
+                                day2 = memorialCalendar.lunarDay,
+                                isLeapMonth2 = memorialCalendar.isLeapMonth,
                             )
-                        }.map { resultList ->
-                            val targetCalendar = resultList.firstOrNull()
-                            if (targetCalendar == null) {
-                                throw Exception("获取下一个周期事件失败")
+                            return@concatMap when(compareResult) {
+                                CompareResult.Equal,
+                                CompareResult.Less -> {
+                                    /* 本年的还没有过，那么就是今年的 */
+                                    ChineseCalendarUtils.getChineseCalendarWithParams(
+                                        lunarYear = NumberEqual(todayCalendar.lunarYear),
+                                        lunarMonth = NumberLessThenOrEqual(memorialCalendar.lunarMonth),
+                                        lunarDay = NumberLessThenOrEqual(memorialCalendar.lunarDay),
+                                        isLeapMonth = false,
+                                        sort = Sort.Desc,
+                                        limit = 3,
+                                    )
+                                }
+                                CompareResult.Greater -> {
+                                    /* 今年的已经过了，那么使用下一年的 */
+                                    ChineseCalendarUtils.getChineseCalendarWithParams(
+                                        lunarYear = NumberEqual(todayCalendar.lunarYear + 1),
+                                        lunarMonth = NumberLessThenOrEqual(memorialCalendar.lunarMonth),
+                                        lunarDay = NumberLessThenOrEqual(memorialCalendar.lunarDay),
+                                        isLeapMonth = false,
+                                        sort = Sort.Desc,
+                                        limit = 3,
+                                    )
+                                }
+                                else -> throw Exception("获取目标事件发生异常，无法判断是否超过当天")
                             }
+                        }.map { it.first() }.map { targetCalendar ->
                             return@map MemorialDayMainModel(
                                 memorialDay = memorialDay,
                                 title = memorialDay.title,
                                 time = memorialCalendar.getFullLunarDayString(),
                                 dayLeft = targetCalendar.id - todayCalendar.id,
                             )
+                        }.doOnError { error ->
+                            error.printStackTrace()
                         }
                     }
                     else -> throw Exception("预料之外的获取下一个周期事件")

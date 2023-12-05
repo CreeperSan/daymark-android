@@ -323,15 +323,15 @@ object ChineseCalendarUtils {
             .map {
                 var sql = "SELECT $SQL_SELECTION_CALENDAR FROM $TABLE_NAME"
                 if (year != null || month != null || day != null || weekday != null || lunarYear != null || lunarMonth != null || lunarDay != null || isLeapMonth != null) {
-                    sql += " WHERE 1 = 1"
+                    sql += " WHERE 1 = 1 "
                 }
                 val numberLimitConvertToSQLPart: ((colName: String, limit: NumberLimit) -> String) = { colName, limit ->
                     when (limit) {
-                        is NumberEqual              -> "AND $colName = ${limit.number}"
-                        is NumberMoreThan           -> "AND $colName > ${limit.number}"
-                        is NumberMoreThanOrEqual    -> "AND $colName >= ${limit.number}"
-                        is NumberLessThen           -> "AND $colName < ${limit.number}"
-                        is NumberLessThenOrEqual    -> "AND $colName <= ${limit.number}"
+                        is NumberEqual              -> "AND $colName = ${limit.number} "
+                        is NumberMoreThan           -> "AND $colName > ${limit.number} "
+                        is NumberMoreThanOrEqual    -> "AND $colName >= ${limit.number} "
+                        is NumberLessThen           -> "AND $colName < ${limit.number} "
+                        is NumberLessThenOrEqual    -> "AND $colName <= ${limit.number} "
                         else -> ""
                     }
                 }
@@ -357,19 +357,20 @@ object ChineseCalendarUtils {
                     sql += numberLimitConvertToSQLPart(COL_LUNAR_DAY, lunarDay)
                 }
                 if (isLeapMonth != null) {
-                    sql += " AND $COL_IS_LEAP_MONTH = ${if (isLeapMonth) 1 else 0}"
+                    sql += "AND $COL_IS_LEAP_MONTH = ${if (isLeapMonth) 1 else 0} "
                 }
-                if (limit != null) {
-                    sql += " LIMIT $limit"
-                }
-                if (offset != null) {
-                    sql += " OFFSET $offset"
-                }
+                sql += "ORDER BY $COL_ID "
                 if (sort != null) {
                     sql += when (sort) {
-                        Sort.Asc -> " ORDER BY $COL_ID ASC"
-                        Sort.Desc -> " ORDER BY $COL_ID DESC"
+                        Sort.Asc -> "ASC "
+                        Sort.Desc -> "DESC "
                     }
+                }
+                if (limit != null) {
+                    sql += "LIMIT $limit "
+                }
+                if (offset != null) {
+                    sql += "OFFSET $offset "
                 }
                 return@map sql
             }

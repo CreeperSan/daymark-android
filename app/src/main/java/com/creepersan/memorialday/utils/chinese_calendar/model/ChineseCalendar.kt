@@ -35,14 +35,17 @@ data class ChineseCalendar(
     }
 
     override fun toString(): String {
-        return "ChineseCalendar($year-$month-$day ($weekday), $lunarYear-$lunarMonth-$lunarDay ($isLeapMonth), $lunarYearName, $solarTerm, $zodiac)"
+        return "ChineseCalendar(" +
+                "${year}年${month}月${day}日 周$weekday，" +
+                "$lunarYear${lunarYearName}年${if (isLeapMonth) "润" else ""}${lunarMonthToString()}${lunarDayToString()}" +
+                "${solarTerm.nameDisplay}, ${zodiac.nameDisplay})"
     }
 
 }
 
 
 fun ChineseCalendar.lunarMonthToString(): String {
-    var resultStr = when (month) {
+    var resultStr = when (lunarMonth) {
         1 -> "正月"
         2 -> "二月"
         3 -> "三月"
