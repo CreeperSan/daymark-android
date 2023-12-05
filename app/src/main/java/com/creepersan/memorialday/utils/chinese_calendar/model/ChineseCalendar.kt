@@ -30,6 +30,10 @@ data class ChineseCalendar(
     val zodiac: ChineseCalendarZodiac,
 ) {
 
+    override fun equals(other: Any?): Boolean {
+        return other is ChineseCalendar && other.id == id
+    }
+
     override fun toString(): String {
         return "ChineseCalendar($year-$month-$day ($weekday), $lunarYear-$lunarMonth-$lunarDay ($isLeapMonth), $lunarYearName, $solarTerm, $zodiac)"
     }

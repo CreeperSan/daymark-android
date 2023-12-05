@@ -6,6 +6,13 @@ import android.database.sqlite.SQLiteDatabase
 import android.util.Log
 import com.creepersan.memorialday.application.MemorialDayApplication
 import com.creepersan.memorialday.constance.MemorialDayScheduler
+import com.creepersan.memorialday.utils.chinese_calendar.definition.NumberEqual
+import com.creepersan.memorialday.utils.chinese_calendar.definition.NumberLessThen
+import com.creepersan.memorialday.utils.chinese_calendar.definition.NumberLessThenOrEqual
+import com.creepersan.memorialday.utils.chinese_calendar.definition.NumberLimit
+import com.creepersan.memorialday.utils.chinese_calendar.definition.NumberMoreThan
+import com.creepersan.memorialday.utils.chinese_calendar.definition.NumberMoreThanOrEqual
+import com.creepersan.memorialday.utils.chinese_calendar.definition.Sort
 import com.creepersan.memorialday.utils.chinese_calendar.model.ChineseCalendar
 import com.creepersan.memorialday.utils.chinese_calendar.model.ChineseCalendarDay
 import com.creepersan.memorialday.utils.chinese_calendar.model.ChineseCalendarMonth
@@ -298,16 +305,18 @@ object ChineseCalendarUtils {
      * 获取指定日期的农历信息，如果不传入对应条件则不进行这个条件的筛选
      */
     fun getChineseCalendarWithParams(
-        year: Int? = null,
-        month: Int? = null,
-        day: Int? = null,
-        weekday: Int? = null,
-        lunarYear: Int? = null,
-        lunarMonth: Int? = null,
-        lunarDay: Int? = null,
+        year: NumberLimit? = null,
+        month: NumberLimit? = null,
+        day: NumberLimit? = null,
+        weekday: NumberLimit? = null,
+        lunarYear: NumberLimit? = null,
+        lunarMonth: NumberLimit? = null,
+        lunarDay: NumberLimit? = null,
         isLeapMonth: Boolean? = null,
         limit: Int? = null,
         offset: Int? = null,
+        sort: Sort? = Sort.Asc,
+
     ): Observable<List<ChineseCalendar>> {
         return Observable.just(Unit)
             .observeOn(MemorialDayScheduler.database)
@@ -316,26 +325,36 @@ object ChineseCalendarUtils {
                 if (year != null || month != null || day != null || weekday != null || lunarYear != null || lunarMonth != null || lunarDay != null || isLeapMonth != null) {
                     sql += " WHERE 1 = 1"
                 }
+                val numberLimitConvertToSQLPart: ((colName: String, limit: NumberLimit) -> String) = { colName, limit ->
+                    when (limit) {
+                        is NumberEqual              -> "AND $colName = ${limit.number}"
+                        is NumberMoreThan           -> "AND $colName > ${limit.number}"
+                        is NumberMoreThanOrEqual    -> "AND $colName >= ${limit.number}"
+                        is NumberLessThen           -> "AND $colName < ${limit.number}"
+                        is NumberLessThenOrEqual    -> "AND $colName <= ${limit.number}"
+                        else -> ""
+                    }
+                }
                 if (year != null) {
-                    sql += " AND $COL_YEAR = $year"
+                    sql += numberLimitConvertToSQLPart(COL_YEAR, year)
                 }
                 if (month != null) {
-                    sql += " AND $COL_MONTH = $month"
+                    sql += numberLimitConvertToSQLPart(COL_MONTH, month)
                 }
                 if (day != null) {
-                    sql += " AND $COL_DAY = $day"
+                    sql += numberLimitConvertToSQLPart(COL_DAY, day)
                 }
                 if (weekday != null) {
-                    sql += " AND $COL_WEEKDAY = $weekday"
+                    sql += numberLimitConvertToSQLPart(COL_WEEKDAY, weekday)
                 }
                 if (lunarYear != null) {
-                    sql += " AND $COL_LUNAR_YEAR = $lunarYear"
+                    sql += numberLimitConvertToSQLPart(COL_LUNAR_YEAR, lunarYear)
                 }
                 if (lunarMonth != null) {
-                    sql += " AND $COL_LUNAR_MONTH = $lunarMonth"
+                    sql += numberLimitConvertToSQLPart(COL_LUNAR_MONTH, lunarMonth)
                 }
                 if (lunarDay != null) {
-                    sql += " AND $COL_LUNAR_DAY = $lunarDay"
+                    sql += numberLimitConvertToSQLPart(COL_LUNAR_DAY, lunarDay)
                 }
                 if (isLeapMonth != null) {
                     sql += " AND $COL_IS_LEAP_MONTH = ${if (isLeapMonth) 1 else 0}"
@@ -345,6 +364,12 @@ object ChineseCalendarUtils {
                 }
                 if (offset != null) {
                     sql += " OFFSET $offset"
+                }
+                if (sort != null) {
+                    sql += when (sort) {
+                        Sort.Asc -> " ORDER BY $COL_ID ASC"
+                        Sort.Desc -> " ORDER BY $COL_ID DESC"
+                    }
                 }
                 return@map sql
             }

@@ -4,6 +4,9 @@ import android.util.Log
 import com.creepersan.memorialday.database.model.MemorialDay
 import com.creepersan.memorialday.utils.FormatUtils
 import com.creepersan.memorialday.utils.chinese_calendar.ChineseCalendarUtils
+import com.creepersan.memorialday.utils.chinese_calendar.definition.NumberEqual
+import com.creepersan.memorialday.utils.chinese_calendar.definition.NumberLessThenOrEqual
+import com.creepersan.memorialday.utils.chinese_calendar.definition.Sort
 import com.creepersan.memorialday.utils.chinese_calendar.model.ChineseCalendar
 import com.creepersan.memorialday.utils.chinese_calendar.model.getFullGregorianDayString
 import com.creepersan.memorialday.utils.chinese_calendar.model.getFullLunarDayString
@@ -90,13 +93,26 @@ data class MemorialDayMainModel(
                     /* 【公历】每年 */
                     memorialDay.loop == MemorialDay.LOOP_YEARLY && memorialDay.timeType == MemorialDay.TIME_TYPE_GREGORIAN -> {
                         Observable.just(Unit).concatMap {
+                            // 本年的刚好是今天，或者还没到，那么就是本年的
                             if (todayCalendar.id <= memorialCalendar.id) {
-                                // 本年的刚好是今天，或者还没到，那么就是本年的
                                 return@concatMap Observable.just(Optional.of(memorialCalendar))
+                            }
+                            // 闰月的情况处理
+                            if (memorialCalendar.month == 2 && memorialCalendar.day == 29) {
+                                // 今年2月有29，则使用29。没有则使用 28 日
+                                val tmpCalendar = Calendar.getInstance()
+                                tmpCalendar.set(Calendar.YEAR, todayCalendar.year)
+                                tmpCalendar.set(Calendar.MONTH, memorialCalendar.month - 1)
+                                val tmpCalendarDayCountInMonth = tmpCalendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+                                if (tmpCalendarDayCountInMonth < 29) {
+                                    return@concatMap ChineseCalendarUtils.getFromCalendar(
+                                        todayCalendar.year, memorialCalendar.month, 28
+                                    ).map { Optional.of(it.get()) }
+                                }
                             }
                             // 本年的已经过了，那么就是下一年的
                             return@concatMap ChineseCalendarUtils.getFromCalendar(
-                                memorialCalendar.year + 1, memorialCalendar.month, memorialCalendar.day
+                                todayCalendar.year + 1, memorialCalendar.month, memorialCalendar.day
                             )
                         }.map { it.get() }.map { targetCalendar ->
                             MemorialDayMainModel(
@@ -115,22 +131,24 @@ data class MemorialDayMainModel(
                                 return@concatMap Observable.just(listOf(memorialCalendar))
                             }
                             // 本年的已经过了，那么就是下一年的
+                            // 一般一年不会过两次生日。并且不会在闰月过生日。所以这里不需要处理闰月的问题
                             return@concatMap ChineseCalendarUtils.getChineseCalendarWithParams(
-                                lunarYear = memorialCalendar.year + 1,
-                                lunarMonth = memorialCalendar.month,
-                                lunarDay = memorialCalendar.day,
+                                lunarYear = NumberEqual(todayCalendar.year + 1),
+                                lunarMonth = NumberEqual(memorialCalendar.month),
+                                lunarDay = NumberLessThenOrEqual(memorialCalendar.day),
+                                isLeapMonth = false,
+                                sort = Sort.Desc,
                             )
                         }.map { resultList ->
                             val targetCalendar = resultList.firstOrNull()
                             if (targetCalendar == null) {
                                 throw Exception("获取下一个周期事件失败")
                             }
-                            // FIXME 还需要处理闰月的问题
-                            MemorialDayMainModel(
+                            return@map MemorialDayMainModel(
                                 memorialDay = memorialDay,
                                 title = memorialDay.title,
                                 time = memorialCalendar.getFullLunarDayString(),
-                                dayLeft = targetCalendar.id - memorialCalendar.id,
+                                dayLeft = targetCalendar.id - todayCalendar.id,
                             )
                         }
                     }
