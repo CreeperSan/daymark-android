@@ -17,51 +17,63 @@
         app:layout_constraintStart_toStartOf="@id/calendarMonthView"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/yearText"
-        app:layout_constraintBottom_toTopOf="@id/lunarText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
-        android:textColor="@color/text_primary"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toStartOf="@id/monthText"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintHorizontal_chainStyle="packed"
-        app:layout_constraintVertical_chainStyle="packed"
-        app:layout_constraintVertical_bias="0.5"
-        app:layout_constraintStart_toEndOf="@id/leftArrow"
-        app:layout_constraintTop_toTopOf="@id/leftArrow"
-        tools:text="2023年" />
-
-    <TextView
-        android:id="@+id/monthText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
-        android:textColor="@color/text_primary"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="@id/yearText"
-        app:layout_constraintEnd_toStartOf="@id/rightArrow"
-        app:layout_constraintStart_toEndOf="@id/yearText"
-        app:layout_constraintTop_toTopOf="@id/yearText"
-        tools:text="12月" />
-
-    <TextView
-        app:layout_constraintStart_toEndOf="@id/leftArrow"
-        app:layout_constraintEnd_toStartOf="@id/rightArrow"
-        android:textAlignment="center"
-        app:layout_constraintTop_toBottomOf="@id/yearText"
-        app:layout_constraintBottom_toBottomOf="@id/leftArrow"
-        android:text="xx年xx月"
-        android:textSize="11sp"
-        android:id="@+id/lunarText"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/timeClickZone"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"/>
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@id/leftArrow"
+        app:layout_constraintEnd_toStartOf="@id/rightArrow"
+        app:layout_constraintStart_toEndOf="@id/leftArrow"
+        app:layout_constraintTop_toTopOf="@id/leftArrow">
+
+
+        <TextView
+            android:id="@+id/yearText"
+            app:layout_constraintBottom_toTopOf="@id/lunarText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:textColor="@color/text_primary"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@id/monthText"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintVertical_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="2023年" />
+
+        <TextView
+            android:id="@+id/monthText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:textColor="@color/text_primary"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@id/yearText"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/yearText"
+            app:layout_constraintTop_toTopOf="@id/yearText"
+            tools:text="12月" />
+
+        <TextView
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:textAlignment="center"
+            app:layout_constraintTop_toBottomOf="@id/yearText"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:text="xx年xx月"
+            android:textSize="11sp"
+            android:id="@+id/lunarText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <ImageView
         android:id="@+id/rightArrow"
@@ -80,7 +92,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:barrierDirection="bottom"
-        app:constraint_referenced_ids="leftArrow,yearText,monthText,rightArrow" />
+        app:constraint_referenced_ids="leftArrow,timeClickZone,rightArrow" />
 
     <com.creepersan.memorialday.ui.widget.calendar_view.CalendarMonthView
         app:layout_constraintTop_toBottomOf="@id/barrier"
@@ -101,6 +113,49 @@
         app:layout_constraintTop_toTopOf="@id/calendarMonthView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/pickerLayout"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#FFFFFF"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/calendarMonthView"
+        app:layout_constraintTop_toTopOf="@id/calendarMonthView"
+        app:layout_constraintStart_toStartOf="@id/calendarMonthView"
+        app:layout_constraintEnd_toEndOf="@id/calendarMonthView"
+        tools:background="#99FFFFFF"
+        tools:visibility="visible">
+
+        <NumberPicker
+            android:id="@+id/pickerYear"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toTopOf="@id/btnDatePickerConfirm"
+            app:layout_constraintEnd_toStartOf="@id/pickerMonth"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <NumberPicker
+            android:id="@+id/pickerMonth"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toTopOf="@id/btnDatePickerConfirm"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/pickerYear"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/btnDatePickerConfirm"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="确定"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

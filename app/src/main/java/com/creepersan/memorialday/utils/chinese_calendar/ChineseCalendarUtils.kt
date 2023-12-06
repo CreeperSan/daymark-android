@@ -13,6 +13,8 @@ import com.creepersan.memorialday.utils.chinese_calendar.definition.NumberLimit
 import com.creepersan.memorialday.utils.chinese_calendar.definition.NumberMoreThan
 import com.creepersan.memorialday.utils.chinese_calendar.definition.NumberMoreThanOrEqual
 import com.creepersan.memorialday.utils.chinese_calendar.definition.Sort
+import com.creepersan.memorialday.utils.chinese_calendar.model.CalendarMonth
+import com.creepersan.memorialday.utils.chinese_calendar.model.CalendarYear
 import com.creepersan.memorialday.utils.chinese_calendar.model.ChineseCalendar
 import com.creepersan.memorialday.utils.chinese_calendar.model.ChineseCalendarDay
 import com.creepersan.memorialday.utils.chinese_calendar.model.ChineseCalendarMonth
@@ -87,7 +89,28 @@ object ChineseCalendarUtils {
      * 获取可以支持的年份
      * @return 可以支持的年份列表
      */
-    fun getAvailableYear(): Observable<ArrayList<ChineseCalendarYear>> {
+    fun getAvailableYear(): Observable<ArrayList<CalendarYear>> {
+        return Observable.just(Unit).observeOn(MDScheduler.database).map {
+            val cursor = database.rawQuery("SELECT DISTINCT $COL_YEAR FROM $TABLE_NAME", null)
+            val yearList = ArrayList<CalendarYear>()
+            while (cursor.moveToNext()) {
+                val cursorYear = cursor.getInt(0)
+                yearList.add(CalendarYear(
+                    year = cursorYear,
+                    name = "${cursorYear}年",
+                ))
+            }
+            cursor.close()
+            yearList
+        }.observeOn(MDScheduler.ui)
+    }
+
+
+    /**
+     * 获取可以支持的年份
+     * @return 可以支持的年份列表
+     */
+    fun getAvailableChineseYear(): Observable<ArrayList<ChineseCalendarYear>> {
         return Observable.just(Unit).observeOn(MDScheduler.database).map {
             val cursor = database.rawQuery("SELECT DISTINCT $COL_LUNAR_YEAR, $COL_LUNAR_YEAR_NAME, $COL_ZODIAC FROM $TABLE_NAME", null)
             val yearList = ArrayList<ChineseCalendarYear>()
@@ -105,11 +128,33 @@ object ChineseCalendarUtils {
 
 
     /**
-     * 获取可以支持的月份
+     * 获取可以支持的公历月份
+     * @param year 公历
+     * @return 可以支持的月份列表
+     */
+    fun getAvailableMonth(year: Int): Observable<ArrayList<CalendarMonth>> {
+        return Observable.just(ArrayList<CalendarMonth>()).observeOn(MDScheduler.database).map { resultList ->
+            database.rawQuery("SELECT DISTINCT $COL_MONTH FROM $TABLE_NAME WHERE $COL_YEAR = ?", arrayOf(year.toString())).use { cursor ->
+                while (cursor.moveToNext()) {
+                    val cursorMonth = cursor.getInt(0)
+                    resultList.add(CalendarMonth(
+                        year = year,
+                        month = cursorMonth,
+                        name = "${cursorMonth}月",
+                    ))
+                }
+            }
+            resultList
+        }.observeOn(MDScheduler.ui)
+    }
+
+
+    /**
+     * 获取可以支持的农历月份
      * @param year 农历年份
      * @return 可以支持的月份列表
      */
-    fun getAvailableMonth(year: Int): Observable<ArrayList<ChineseCalendarMonth>> {
+    fun getAvailableChineseMonth(year: Int): Observable<ArrayList<ChineseCalendarMonth>> {
         return Observable.just(ArrayList<ChineseCalendarMonth>()).observeOn(MDScheduler.database).map { resultList ->
             database.rawQuery("SELECT DISTINCT $COL_LUNAR_MONTH, $COL_LUNAR_MONTH_NAME, $COL_IS_LEAP_MONTH FROM $TABLE_NAME WHERE $COL_LUNAR_YEAR = ?", arrayOf(year.toString())).use { cursor ->
                 while (cursor.moveToNext()) {

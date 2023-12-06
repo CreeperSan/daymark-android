@@ -1,7 +1,6 @@
 package com.creepersan.memorialday.ui.widget.calendar_view
 
 import android.content.Context
-import android.graphics.Color
 import android.util.AttributeSet
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isInvisible
@@ -11,9 +10,14 @@ import com.creepersan.memorialday.extension.disposeIfNeed
 import com.creepersan.memorialday.extension.safeGet
 import com.creepersan.memorialday.extension.setVisible
 import com.creepersan.memorialday.utils.chinese_calendar.ChineseCalendarUtils
+import com.creepersan.memorialday.utils.chinese_calendar.model.CalendarMonth
+import com.creepersan.memorialday.utils.chinese_calendar.model.CalendarYear
 import com.creepersan.memorialday.utils.chinese_calendar.model.ChineseCalendar
+import com.creepersan.memorialday.utils.chinese_calendar.model.ChineseCalendarMonth
+import com.creepersan.memorialday.utils.chinese_calendar.model.ChineseCalendarYear
 import com.creepersan.memorialday.utils.chinese_calendar.model.lunarDayToString
 import com.creepersan.memorialday.utils.chinese_calendar.model.lunarMonthToString
+import com.google.android.material.color.MaterialColors
 import io.reactivex.rxjava3.disposables.Disposable
 import java.util.Calendar
 
@@ -55,6 +59,78 @@ class CalendarView : ConstraintLayout {
             loadCalendar(year=currentYear, month=currentMonth, showLoading = false)
         }
 
+        // 日期区域
+        binding.timeClickZone.setOnClickListener {
+            binding.pickerLayout.setVisible(true)
+            initializePicker()
+        }
+
+
+        // 日期选择确认按钮
+        binding.btnDatePickerConfirm.setOnClickListener {
+            binding.pickerLayout.setVisible(false)
+            loadCalendar(cacheYear, cacheMonth)
+        }
+
+    }
+
+
+    var disposableYear: Disposable? = null
+    var disposableMonth: Disposable? = null
+    var cacheYear = 0
+    var cacheMonth = 0
+    private fun initializePicker() {
+        cacheYear = currentYear
+        cacheMonth = currentMonth
+
+        val dataYearList = ArrayList<CalendarYear>() // 年列表
+        val dataMonthList = ArrayList<CalendarMonth>() // 月列表
+
+        fun loadMonth() {
+            disposableMonth.disposeIfNeed()
+            disposableMonth = ChineseCalendarUtils.getAvailableMonth(cacheYear).subscribe { monthList ->
+                if (monthList.isEmpty()) {
+                    return@subscribe
+                }
+                dataMonthList.clear()
+                dataMonthList.addAll(monthList)
+                binding.pickerMonth.minValue = 0
+                binding.pickerMonth.maxValue = monthList.size - 1
+                binding.pickerMonth.displayedValues = monthList.map { it.month.toString() }.toTypedArray()
+                binding.pickerMonth.value = monthList.indexOfFirst { it.month == cacheMonth }
+            }
+        }
+
+        fun loadYear() {
+            disposableYear.disposeIfNeed()
+            disposableYear = ChineseCalendarUtils.getAvailableYear().subscribe { yearList ->
+                if (yearList.isEmpty()) {
+                    return@subscribe
+                }
+                dataYearList.clear()
+                dataYearList.addAll(yearList)
+
+                binding.pickerYear.minValue = 0
+                binding.pickerYear.maxValue = yearList.size - 1
+                binding.pickerYear.displayedValues = yearList.map { it.year.toString() }.toTypedArray()
+                binding.pickerYear.value = yearList.indexOfFirst { it.year == cacheYear }
+
+                loadMonth()
+            }
+        }
+
+        // 选择器数据事件初始化
+        binding.pickerYear.setOnValueChangedListener { picker, oldVal, newVal ->
+            val selectYear = dataYearList.safeGet(newVal)?.year ?: return@setOnValueChangedListener
+            cacheYear = selectYear
+            loadYear()
+        }
+        binding.pickerMonth.setOnValueChangedListener { picker, oldVal, newVal ->
+            val selectMonth = dataMonthList.safeGet(newVal)?.month ?: return@setOnValueChangedListener
+            cacheMonth = selectMonth
+        }
+
+        loadYear()
     }
 
 
@@ -169,10 +245,12 @@ class CalendarView : ConstraintLayout {
                 }
                 // 第二行
                 if (calendar.lunarDay == 1) {
-                    dayView.setDescriptionTextColor(Color.RED)
+                    val descriptionColor = MaterialColors.getColor(dayView, R.attr.md_color_primary_darken)
+                    dayView.setDescriptionTextColor(descriptionColor)
                     dayView.setDescription(calendar.lunarMonthToString())
                 } else {
-                    dayView.setDescriptionTextColor(Color.BLACK)
+                    val descriptionColor = MaterialColors.getColor(dayView, R.attr.md_color_text_primary)
+                    dayView.setDescriptionTextColor(descriptionColor)
                     dayView.setDescription(calendar.lunarDayToString())
                 }
                 // 点击事件

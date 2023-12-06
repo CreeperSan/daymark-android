@@ -14,3 +14,17 @@ data class ChineseCalendarMonth(
     val name: String,
     val isLeap: Boolean,
 )
+
+/**
+ * 公历月份信息
+ * @param year 年份
+ * @param month 月份
+ * @param name 月份名称
+ */
+data class CalendarMonth(
+    val year: Int,
+    val month: Int,
+    val name: String,
+)
+
+
