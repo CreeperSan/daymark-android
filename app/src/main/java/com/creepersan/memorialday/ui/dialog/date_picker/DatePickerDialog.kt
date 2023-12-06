@@ -57,15 +57,23 @@ class DatePickerDialog(
         binding.btnClear.setVisible(false)
 
         binding.btnConfirm.setOnClickListener {
-            val currentChineseCalendar = currentSelectChineseCalendar
-            if (currentChineseCalendar != null){
-                onDayConfirmListener?.invoke(currentChineseCalendar, useLunar)
+            if (binding.calendarView.isShowDatePickerLayout()) {
+                binding.calendarView.confirmDatePickerValue()
+            } else {
+                val currentChineseCalendar = currentSelectChineseCalendar
+                if (currentChineseCalendar != null){
+                    onDayConfirmListener?.invoke(currentChineseCalendar, useLunar)
+                }
+                dismiss()
             }
-            dismiss()
         }
 
         binding.btnCancel.setOnClickListener {
-            dismiss()
+            if (binding.calendarView.isShowDatePickerLayout()) {
+                binding.calendarView.toggleShowDatePicker()
+            } else {
+                dismiss()
+            }
         }
 
     }

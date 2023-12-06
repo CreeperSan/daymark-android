@@ -1,5 +1,6 @@
 package com.creepersan.memorialday.ui.widget.calendar_view
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.util.AttributeSet
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -13,8 +14,6 @@ import com.creepersan.memorialday.utils.chinese_calendar.ChineseCalendarUtils
 import com.creepersan.memorialday.utils.chinese_calendar.model.CalendarMonth
 import com.creepersan.memorialday.utils.chinese_calendar.model.CalendarYear
 import com.creepersan.memorialday.utils.chinese_calendar.model.ChineseCalendar
-import com.creepersan.memorialday.utils.chinese_calendar.model.ChineseCalendarMonth
-import com.creepersan.memorialday.utils.chinese_calendar.model.ChineseCalendarYear
 import com.creepersan.memorialday.utils.chinese_calendar.model.lunarDayToString
 import com.creepersan.memorialday.utils.chinese_calendar.model.lunarMonthToString
 import com.google.android.material.color.MaterialColors
@@ -61,18 +60,53 @@ class CalendarView : ConstraintLayout {
 
         // 日期区域
         binding.timeClickZone.setOnClickListener {
-            binding.pickerLayout.setVisible(true)
+            toggleShowDatePicker()
             initializePicker()
         }
 
+        // 日期区域动画
+        animateDatePicker.duration = 300
+        animateDatePicker.addUpdateListener {
+            val progress = it.animatedValue as Float
+            binding.pickerLayout.alpha = progress
+            binding.pickerLayout.translationY = (-1 + progress) * binding.pickerLayout.height
+            binding.pickerLayout.setVisible(progress > 0)
+            binding.datePickerIndicator.rotation = progress * 180
+        }
 
         // 日期选择确认按钮
         binding.btnDatePickerConfirm.setOnClickListener {
-            binding.pickerLayout.setVisible(false)
-            loadCalendar(cacheYear, cacheMonth)
+            confirmDatePickerValue()
         }
 
     }
+
+
+    fun confirmDatePickerValue() {
+        if (isShowDatePickerLayout()) {
+            toggleShowDatePicker()
+            loadCalendar(cacheYear, cacheMonth)
+        }
+    }
+
+
+    private val animateDatePicker = ValueAnimator.ofFloat(0f, 1f)
+    private var isShowingDatePickerLayout = false;
+    fun toggleShowDatePicker() {
+        if (animateDatePicker.isRunning) {
+            animateDatePicker.cancel()
+        }
+
+        if (isShowingDatePickerLayout) { // 正在展示，需要取消展示
+            animateDatePicker.reverse()
+        } else { // 没有展示，需要展示
+            animateDatePicker.start()
+        }
+
+        isShowingDatePickerLayout = !isShowingDatePickerLayout
+    }
+
+    fun isShowDatePickerLayout() = isShowingDatePickerLayout
 
 
     var disposableYear: Disposable? = null
@@ -107,6 +141,9 @@ class CalendarView : ConstraintLayout {
                 if (yearList.isEmpty()) {
                     return@subscribe
                 }
+
+                yearList.removeIf { it.year < 1910 || it.year > 2090 }
+
                 dataYearList.clear()
                 dataYearList.addAll(yearList)
 
@@ -120,11 +157,13 @@ class CalendarView : ConstraintLayout {
         }
 
         // 选择器数据事件初始化
+        binding.pickerYear.wrapSelectorWheel = false
         binding.pickerYear.setOnValueChangedListener { picker, oldVal, newVal ->
             val selectYear = dataYearList.safeGet(newVal)?.year ?: return@setOnValueChangedListener
             cacheYear = selectYear
             loadYear()
         }
+        binding.pickerMonth.wrapSelectorWheel = false
         binding.pickerMonth.setOnValueChangedListener { picker, oldVal, newVal ->
             val selectMonth = dataMonthList.safeGet(newVal)?.month ?: return@setOnValueChangedListener
             cacheMonth = selectMonth
@@ -186,7 +225,18 @@ class CalendarView : ConstraintLayout {
         val loadYear = year ?: currentYear
         val loadMonth = month ?: currentMonth
 
-        if (loadYear >= 2100 || loadYear <= 1900) {
+        val enableRight = loadYear < 2090 || (loadYear == 2090 && loadMonth < 12)
+        val enableLeft = loadYear > 1910 || (loadYear == 1910 && loadMonth > 1)
+
+        binding.rightArrow.isInvisible = !enableRight
+
+        binding.leftArrow.isInvisible = !enableLeft
+
+        if (loadYear >= 2100 || (loadYear == 2099 && loadMonth == 12)) {
+            return
+        }
+
+        if (loadYear <= 1900 || (loadYear == 1901 && loadMonth == 1)) {
             return
         }
 

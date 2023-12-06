@@ -32,8 +32,8 @@
             app:layout_constraintBottom_toTopOf="@id/lunarText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
             android:textColor="@color/text_primary"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -50,16 +50,29 @@
             android:id="@+id/monthText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
             android:textColor="@color/text_primary"
             android:textSize="20sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="@id/yearText"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/datePickerIndicator"
             app:layout_constraintStart_toEndOf="@id/yearText"
             app:layout_constraintTop_toTopOf="@id/yearText"
             tools:text="12月" />
+
+        <ImageView
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:src="@drawable/ic_arrow_bottom_black_24"
+            app:layout_constraintStart_toEndOf="@id/monthText"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/yearText"
+            app:layout_constraintBottom_toBottomOf="@id/yearText"
+            android:id="@+id/datePickerIndicator"
+            app:tint="?attr/md_color_text_secondary"
+            android:layout_width="24dp"
+            android:layout_height="wrap_content"/>
 
         <TextView
             app:layout_constraintStart_toStartOf="parent"
@@ -129,6 +142,7 @@
         tools:visibility="visible">
 
         <NumberPicker
+            android:background="@null"
             android:id="@+id/pickerYear"
             android:layout_width="0dp"
             android:layout_height="0dp"
@@ -147,6 +161,8 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <Button
+            android:background="@android:color/transparent"
+            android:textColor="?attr/md_color_primary_darken"
             android:id="@+id/btnDatePickerConfirm"
             android:layout_width="0dp"
             android:layout_height="wrap_content"

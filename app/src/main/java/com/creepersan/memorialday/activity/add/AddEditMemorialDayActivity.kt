@@ -80,6 +80,20 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
             )
         }
 
+        binding.sectionTimeText.setOnClickListener {
+            when (memorialDayModel.timeType) {
+                MemorialDay.TIME_TYPE_GREGORIAN -> {
+                    binding.sectionTimePickGregorian.performClick()
+                }
+                MemorialDay.TIME_TYPE_LUNAR -> {
+                    binding.sectionTimePickLunar.performClick()
+                }
+                else -> {
+                    binding.sectionTimePickGregorian.performClick()
+                }
+            }
+        }
+
         binding.sectionTimePickGregorian.setOnClickListener {
 
             val memorialDayCalendar = Calendar.getInstance()

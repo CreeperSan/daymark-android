@@ -111,7 +111,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toStartOf="@id/sectionTimePickerDivider"
                 android:textSize="14sp"
-                android:hint="选择公历"
+                android:hint="选择公历日期"
                 android:textAlignment="center"
                 android:textColorHint="?attr/md_color_text_hint"
                 android:layout_height="wrap_content"/>
@@ -140,7 +140,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@id/sectionTimePickerDivider"
                 android:textSize="14sp"
-                android:hint="选择农历"
+                android:hint="选择农历日期"
                 android:textAlignment="center"
                 android:textColorHint="?attr/md_color_text_hint"
                 android:layout_height="wrap_content"/>
