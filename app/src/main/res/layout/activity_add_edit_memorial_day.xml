@@ -1,234 +1,242 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="?attr/md_color_bg_page"
+    android:orientation="vertical"
     android:layout_height="match_parent">
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingBottom="36dp">
+        android:layout_height="wrap_content"/>
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-        <TextView
-            android:layout_marginTop="52dp"
-            android:id="@+id/pageTitle"
+        <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:text="添加纪念日"
-            android:textColor="?attr/md_color_text_primary"
-            android:textSize="36sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:text="名称"
-            android:drawablePadding="8dp"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginTop="72dp"
-            android:textStyle="bold"
-            android:textSize="22sp"
-            android:textColor="?attr/md_color_text_secondary"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-
-        <EditText
-            android:id="@+id/title"
-            android:layout_marginTop="8dp"
-            style="@style/MDTextField"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:hint="请输入纪念日名称"
-            android:textSize="18sp" />
-
-
-        <TextView
-            android:text="时间"
-            android:drawablePadding="8dp"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginTop="32dp"
-            android:textStyle="bold"
-            android:textSize="22sp"
-            android:textColor="?attr/md_color_text_secondary"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/sectionTime"
-            android:layout_marginTop="8dp"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:background="@drawable/bg_md_section"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:orientation="vertical"
+            android:paddingBottom="36dp">
 
             <TextView
-                android:id="@+id/sectionTimeText"
-                android:layout_width="0dp"
-                android:paddingStart="20dp"
-                android:paddingEnd="20dp"
-                android:paddingTop="12dp"
-                android:paddingBottom="8dp"
-                android:textSize="18sp"
-                android:textColorHint="?attr/md_color_text_hint"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginTop="52dp"
+                android:id="@+id/pageTitle"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="设置一个公历或农历" />
-
-            <View
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/sectionTimeText"
-                android:background="?attr/md_text_field_color_stroke"
-                android:id="@+id/sectionTimeTextDivider"
-                android:layout_width="0dp"
-                android:layout_height="2dp"/>
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:text="添加纪念日"
+                android:textColor="?attr/md_color_text_primary"
+                android:textSize="36sp"
+                android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/sectionTimePickGregorian"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:paddingTop="6dp"
-                android:paddingBottom="6dp"
-                android:layout_width="0dp"
-                android:drawableEnd="@drawable/ic_arrow_right_black_24"
-                android:drawableTint="?attr/md_color_text_hint"
-                app:layout_constraintTop_toBottomOf="@id/sectionTimeTextDivider"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/sectionTimePickerDivider"
-                android:textSize="14sp"
-                android:hint="选择公历日期"
-                android:textAlignment="center"
-                android:textColorHint="?attr/md_color_text_hint"
+                android:text="名称"
+                android:drawablePadding="8dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="72dp"
+                android:textStyle="bold"
+                android:textSize="22sp"
+                android:textColor="?attr/md_color_text_secondary"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
 
-            <View
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/sectionTimeTextDivider"
-                app:layout_constraintBottom_toBottomOf="parent"
-                android:background="?attr/md_text_field_color_stroke"
-                android:id="@+id/sectionTimePickerDivider"
-                android:layout_width="2dp"
-                android:layout_height="0dp"/>
+            <EditText
+                android:id="@+id/title"
+                android:layout_marginTop="8dp"
+                style="@style/MDTextField"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:hint="请输入纪念日名称"
+                android:textSize="18sp" />
+
 
             <TextView
-                android:id="@+id/sectionTimePickLunar"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:paddingTop="6dp"
-                android:paddingBottom="6dp"
-                android:layout_width="0dp"
-                android:drawableEnd="@drawable/ic_arrow_right_black_24"
-                android:drawableTint="?attr/md_color_text_hint"
-                app:layout_constraintTop_toBottomOf="@id/sectionTimeTextDivider"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@id/sectionTimePickerDivider"
-                android:textSize="14sp"
-                android:hint="选择农历日期"
-                android:textAlignment="center"
-                android:textColorHint="?attr/md_color_text_hint"
+                android:text="时间"
+                android:drawablePadding="8dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="32dp"
+                android:textStyle="bold"
+                android:textSize="22sp"
+                android:textColor="?attr/md_color_text_secondary"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-        <TextView
-            android:text="倒计时循环"
-            android:drawablePadding="8dp"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginTop="32dp"
-            android:textStyle="bold"
-            android:textSize="22sp"
-            android:textColor="?attr/md_color_text_secondary"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-
-        <HorizontalScrollView
-            android:layout_marginTop="16dp"
-            android:id="@+id/sectionLoop"
-            android:layout_width="match_parent"
-            android:layout_height="48dp">
-
-            <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent">
-                <View android:layout_width="16dp" android:layout_height="0dp"/>
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/sectionTime"
+                android:layout_marginTop="8dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/bg_md_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
                 <TextView
-                    android:id="@+id/sectionLoopYear"
-                    android:background="@drawable/bg_md_selection_inactive"
-                    android:text="每年"
-                    android:textColor="?attr/md_color_text_secondary"
+                    android:id="@+id/sectionTimeText"
+                    android:layout_width="0dp"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="8dp"
                     android:textSize="18sp"
-                    android:gravity="center"
-                    android:layout_width="96dp"
-                    android:layout_height="match_parent"/>
+                    android:textColorHint="?attr/md_color_text_hint"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:layout_height="wrap_content"
+                    android:hint="设置一个公历或农历" />
 
-                <View android:layout_width="16dp" android:layout_height="0dp"/>
+                <View
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/sectionTimeText"
+                    android:background="?attr/md_text_field_color_stroke"
+                    android:id="@+id/sectionTimeTextDivider"
+                    android:layout_width="0dp"
+                    android:layout_height="2dp"/>
 
                 <TextView
-                    android:id="@+id/sectionLoopOnce"
-                    android:background="@drawable/bg_md_selection_inactive"
-                    android:text="单次"
-                    android:textColor="?attr/md_color_text_secondary"
-                    android:textSize="18sp"
-                    android:gravity="center"
-                    android:layout_width="96dp"
-                    android:layout_height="match_parent"/>
+                    android:id="@+id/sectionTimePickGregorian"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp"
+                    android:layout_width="0dp"
+                    android:drawableEnd="@drawable/ic_arrow_right_black_24"
+                    android:drawableTint="?attr/md_color_text_hint"
+                    app:layout_constraintTop_toBottomOf="@id/sectionTimeTextDivider"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/sectionTimePickerDivider"
+                    android:textSize="14sp"
+                    android:hint="选择公历日期"
+                    android:textAlignment="center"
+                    android:textColorHint="?attr/md_color_text_hint"
+                    android:layout_height="wrap_content"/>
 
-                <View android:layout_width="16dp" android:layout_height="0dp"/>
-            </LinearLayout>
+                <View
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/sectionTimeTextDivider"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:background="?attr/md_text_field_color_stroke"
+                    android:id="@+id/sectionTimePickerDivider"
+                    android:layout_width="2dp"
+                    android:layout_height="0dp"/>
+
+                <TextView
+                    android:id="@+id/sectionTimePickLunar"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp"
+                    android:layout_width="0dp"
+                    android:drawableEnd="@drawable/ic_arrow_right_black_24"
+                    android:drawableTint="?attr/md_color_text_hint"
+                    app:layout_constraintTop_toBottomOf="@id/sectionTimeTextDivider"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/sectionTimePickerDivider"
+                    android:textSize="14sp"
+                    android:hint="选择农历日期"
+                    android:textAlignment="center"
+                    android:textColorHint="?attr/md_color_text_hint"
+                    android:layout_height="wrap_content"/>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
 
-        </HorizontalScrollView>
+            <TextView
+                android:text="倒计时循环"
+                android:drawablePadding="8dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="32dp"
+                android:textStyle="bold"
+                android:textSize="22sp"
+                android:textColor="?attr/md_color_text_secondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/save"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="68dp"
-            android:layout_marginEnd="16dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="12dp"
-            style="?android:attr/borderlessButtonStyle"
-            android:background="@drawable/bg_md_button"
-            android:textColor="@color/white"
-            android:text="保存"
-            android:textSize="18sp" />
+            <HorizontalScrollView
+                android:layout_marginTop="16dp"
+                android:id="@+id/sectionLoop"
+                android:layout_width="match_parent"
+                android:layout_height="48dp">
 
-        <TextView
-            android:id="@+id/delete"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="16dp"
-            android:paddingTop="8dp"
-            android:textAlignment="center"
-            android:paddingBottom="12dp"
-            android:textColor="?attr/md_color_text_warming"
-            android:text="删除"
-            android:textSize="18sp" />
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent">
+                    <View android:layout_width="16dp" android:layout_height="0dp"/>
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
+                    <TextView
+                        android:id="@+id/sectionLoopYear"
+                        android:background="@drawable/bg_md_selection_inactive"
+                        android:text="每年"
+                        android:textColor="?attr/md_color_text_secondary"
+                        android:textSize="18sp"
+                        android:gravity="center"
+                        android:layout_width="96dp"
+                        android:layout_height="match_parent"/>
 
-</ScrollView>
+                    <View android:layout_width="16dp" android:layout_height="0dp"/>
+
+                    <TextView
+                        android:id="@+id/sectionLoopOnce"
+                        android:background="@drawable/bg_md_selection_inactive"
+                        android:text="单次"
+                        android:textColor="?attr/md_color_text_secondary"
+                        android:textSize="18sp"
+                        android:gravity="center"
+                        android:layout_width="96dp"
+                        android:layout_height="match_parent"/>
+
+                    <View android:layout_width="16dp" android:layout_height="0dp"/>
+                </LinearLayout>
+
+
+            </HorizontalScrollView>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/save"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="68dp"
+                android:layout_marginEnd="16dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="12dp"
+                style="?android:attr/borderlessButtonStyle"
+                android:background="@drawable/bg_md_button"
+                android:textColor="@color/white"
+                android:text="保存"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/delete"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:paddingTop="8dp"
+                android:textAlignment="center"
+                android:paddingBottom="12dp"
+                android:textColor="?attr/md_color_text_warming"
+                android:text="删除"
+                android:textSize="18sp" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+    </ScrollView>
+
+
+</LinearLayout>
