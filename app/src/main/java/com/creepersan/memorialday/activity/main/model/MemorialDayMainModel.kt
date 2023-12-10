@@ -143,10 +143,10 @@ data class MemorialDayMainModel(
                             val compareResult = CompareUtils.compareChineseCalendar(
                                 month1 = todayCalendar.lunarMonth,
                                 day1 = todayCalendar.lunarDay,
-                                isLeapMonth1 = todayCalendar.isLeapMonth,
+//                                isLeapMonth1 = todayCalendar.isLeapMonth, // 闰月不用比较，因为通常不会在闰月的时候过节
                                 month2 = memorialCalendar.lunarMonth,
                                 day2 = memorialCalendar.lunarDay,
-                                isLeapMonth2 = memorialCalendar.isLeapMonth,
+//                                isLeapMonth2 = memorialCalendar.isLeapMonth, // 闰月不用比较，因为通常不会在闰月的时候过节
                             )
                             return@concatMap when(compareResult) {
                                 CompareResult.Equal,

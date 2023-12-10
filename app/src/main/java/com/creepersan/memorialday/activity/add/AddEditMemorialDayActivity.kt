@@ -17,6 +17,7 @@ import com.creepersan.memorialday.ui.toast.ToastManager
 import com.creepersan.memorialday.ui.dialog.date_picker.DatePickerDialog
 import com.creepersan.memorialday.ui.dialog.message.MessageDialog
 import com.creepersan.memorialday.utils.chinese_calendar.ChineseCalendarUtils
+import com.creepersan.memorialday.utils.chinese_calendar.model.getFullLunarDayString
 import com.creepersan.memorialday.utils.chinese_calendar.model.lunarDayToString
 import com.creepersan.memorialday.utils.chinese_calendar.model.lunarMonthToString
 import io.reactivex.rxjava3.core.Observable
@@ -162,10 +163,7 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
                 return@setOnClickListener
             }
 
-            if (memorialDayModel.time <= 0) {
-                ToastManager.message(this, "请选择时间")
-                return@setOnClickListener
-            }
+            // 如果是 1970 年以前，毫秒级时间戳是负数。这是正常的，因为毫秒级事件戳以 1970 年为基准，1970 年以前的时间戳是负数
 
             databaseDisposable.disposeIfNeed()
             databaseDisposable = Observable.just(Unit).observeOn(MDScheduler.database).map {
@@ -279,11 +277,7 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
                 val disposable = ChineseCalendarUtils.getFromCalendar(year = tmpYear, month = tmpMonth, day = tmpDay).subscribe({ calendarOptional ->
                     if (calendarOptional.isPresent) {
                         val calendar = calendarOptional.get()
-                        var displayStr = ""
-                        displayStr += "${calendar.lunarYearName}年"
-                        displayStr += "${calendar.lunarMonthToString()}"
-                        displayStr += "${calendar.lunarDayToString()}"
-                        binding.sectionTimeText.text = displayStr
+                        binding.sectionTimeText.text = calendar.getFullLunarDayString()
                     }
                 }, { error ->
                     error.printStackTrace()

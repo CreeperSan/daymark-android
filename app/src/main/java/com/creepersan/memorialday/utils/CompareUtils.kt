@@ -30,7 +30,7 @@ object CompareUtils {
         isLeapMonth2: Boolean = false,
     ): CompareResult {
         val num1 = day1 + month1 * 100L + (if (isLeapMonth1) 10000L else 0L) + year1 * 100000L
-        val num2 = day2 + month2 * 100L + (if (isLeapMonth2) 10000L else 0L) + year2 * 10000L
+        val num2 = day2 + month2 * 100L + (if (isLeapMonth2) 10000L else 0L) + year2 * 100000L
         return when {
             num1 > num2 -> CompareResult.Greater
             num1 < num2 -> CompareResult.Less
