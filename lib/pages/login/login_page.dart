@@ -1,12 +1,13 @@
+import 'package:daymark/pages/login/controller/login_page_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class LoginPage extends StatelessWidget {
-  final TextEditingController usernameController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.put(LoginPageController());
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -48,7 +49,7 @@ class LoginPage extends StatelessWidget {
                 ),
                 SizedBox(height: 32),
                 TextField(
-                  controller: usernameController,
+                  controller: controller.usernameTextEditController,
                   decoration: InputDecoration(
                     labelText: '账号',
                     prefixIcon: Icon(Icons.person_outline),
@@ -59,7 +60,7 @@ class LoginPage extends StatelessWidget {
                 ),
                 SizedBox(height: 20),
                 TextField(
-                  controller: passwordController,
+                  controller: controller.passwordTextEditController,
                   obscureText: true,
                   decoration: InputDecoration(
                     labelText: '密码',
@@ -80,10 +81,12 @@ class LoginPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    onPressed: () {
-                      // TODO 登录逻辑
-                    },
-                    child: Text('登录', style: TextStyle(fontSize: 18)),
+                    onPressed: () => controller.onClickLogin(),
+                    child: Obx(() {
+                      return Text(controller.isLoggingIn ? '正在登录中...' : '登录',
+                        style: TextStyle(fontSize: 18),
+                      );
+                    }),
                   ),
                 ),
                 SizedBox(height: 12),

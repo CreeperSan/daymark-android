@@ -14,7 +14,7 @@ class DaymarkApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      initialRoute: DaymarkRouter.registerPage.name,
+      initialRoute: DaymarkRouter.loginPage.name,
       getPages: [
         DaymarkRouter.loginPage,
         DaymarkRouter.homePage,

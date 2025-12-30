@@ -7,7 +7,33 @@ class NetworkManager {
 
   final Dio dio = Dio();
 
+  /// 基础地址
   String baseUrl = '';
+
+  /// 全局请求头
+  Map<String, dynamic> headers = <String, dynamic>{};
+
+
+  /// 设置基础地址
+  /// [url] 基础地址
+  void setBaseUrl(String url) {
+    baseUrl = url;
+  }
+
+
+  /// 设置全局请求头
+  /// [key] 请求头键
+  /// [value] 请求头值
+  void setHeader(String key, dynamic value) {
+    headers[key] = value;
+  }
+
+
+  /// 移除全局请求头
+  /// [key] 请求头键
+  void removeHeader(String key) {
+    headers.remove(key);
+  }
 
 
   /// request
@@ -25,12 +51,24 @@ class NetworkManager {
     Duration? sendTimeout,
     Duration? receiveTimeout,
   }) {
-    return dio.request(path,
+    // 合并请求地址
+    String requestUrl = path;
+    if (!path.startsWith('http://') && !path.startsWith('https://')) {
+      requestUrl = baseUrl + path;
+    }
+    // 合并请求头
+    final mergedHeaders = <String, dynamic>{};
+    mergedHeaders.addAll(this.headers);
+    if (headers != null) {
+      mergedHeaders.addAll(headers);
+    }
+    // 网络请求
+    return dio.request(requestUrl,
       queryParameters: query,
       data: data,
       options: Options(
         method: requestMethod.method,
-        headers: headers,
+        headers: mergedHeaders,
         responseType: responseType,
         contentType: contentType?.toString(),
         sendTimeout: sendTimeout,
