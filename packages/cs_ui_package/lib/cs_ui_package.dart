@@ -5,9 +5,13 @@
 // platforms in the `pubspec.yaml` at
 // https://flutter.dev/to/pubspec-plugin-platforms.
 
+export 'package:cs_ui_package/toast/cs_toast.dart';
+
 import 'cs_ui_package_platform_interface.dart';
 
-class CsUiPackage {
+class CSUIPackage {
+
+
   Future<String?> getPlatformVersion() {
     return CsUiPackagePlatform.instance.getPlatformVersion();
   }
