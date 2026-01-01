@@ -48,6 +48,20 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  cs_device_package:
+    dependency: "direct main"
+    description:
+      path: "packages/cs_device_package"
+      relative: true
+    source: path
+    version: "0.0.1"
+  cs_extensions_package:
+    dependency: "direct main"
+    description:
+      path: "packages/cs_extensions_package"
+      relative: true
+    source: path
+    version: "0.0.1"
   cs_kv_storage_package:
     dependency: "direct main"
     description:

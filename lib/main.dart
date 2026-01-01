@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cs_account_package/cs_account_package.dart';
+import 'package:cs_ui_package/cs_ui_package.dart';
 import 'package:daymark/app/daymark_app.dart';
 import 'package:daymark/module/account_module.dart';
 import 'package:daymark/module/device_module.dart';
@@ -18,7 +19,10 @@ void main() {
   Get.put(ThemeModule());
   Get.put(DeviceModule());
   Get.put(AccountModule());
-  Get.put(CSAccountManager('daymark'));
+  Get.put(CSAccountManager('daymark')..setBaseUrl('http://account.test.com:8080/'));
+
+  // 组件库初始化
+  CSToast.init(DaymarkApp.navigatorKey);
 
   // 未处理的 Dart 异常捕获
   runZonedGuarded(() {

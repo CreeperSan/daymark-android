@@ -20,6 +20,10 @@ dependencies:
     path: ./packages/cs_network_package
   cs_ui_package:
     path: ./packages/cs_ui_package
+  cs_extensions_package:
+    path: ./packages/cs_extensions_package
+  cs_device_package:
+    path: ./packages/cs_device_package
 
 dev_dependencies:
   flutter_test:

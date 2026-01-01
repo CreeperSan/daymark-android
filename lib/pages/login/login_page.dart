@@ -1,3 +1,4 @@
+import 'package:cs_ui_package/cs_ui_package.dart';
 import 'package:daymark/pages/login/controller/login_page_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -31,8 +32,7 @@ class LoginPage extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  'Daymark',
+                Text('Daymark',
                   style: TextStyle(
                     fontSize: 32,
                     color: Colors.blue,
@@ -40,14 +40,15 @@ class LoginPage extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 8),
-                Text(
-                  '欢迎使用 Daymark App',
+
+                Text('欢迎使用 Daymark App',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey[600],
                   ),
                 ),
                 SizedBox(height: 32),
+
                 TextField(
                   controller: controller.usernameTextEditController,
                   decoration: InputDecoration(
@@ -59,6 +60,7 @@ class LoginPage extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 20),
+
                 TextField(
                   controller: controller.passwordTextEditController,
                   obscureText: true,
@@ -71,6 +73,7 @@ class LoginPage extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 28),
+
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -90,23 +93,21 @@ class LoginPage extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 12),
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     TextButton(
-                      onPressed: () {
-                        // TODO 跳转注册页
-                      },
+                      onPressed: () => controller.onClickRegister(),
                       child: Text('注册账号'),
                     ),
                     TextButton(
-                      onPressed: () {
-                        // TODO 跳转忘记密码页
-                      },
+                      onPressed: () => controller.onClickForgotPassword(),
                       child: Text('忘记密码？'),
                     ),
                   ],
                 ),
+
               ],
             ),
           ),
