@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daymark · 设计规范</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://sfile.chatglm.cn/workspace/file/39/392a106e8f.css">
+  <style>
+    /* ============================================
+       设计规范页样式 — 展示用
+       ============================================ */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--fg);
+      line-height: var(--leading-normal);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* --- 页面结构 --- */
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: var(--space-12) var(--space-6);
+    }
+
+    @media (min-width: 768px) {
+      .page { padding: var(--space-20) var(--space-8); }
+    }
+
+    /* --- 头部 --- */
+    .header {
+      padding-bottom: var(--space-8);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: var(--space-12);
+    }
+
+    .header-eyebrow {
+      font-size: var(--text-caption);
+      font-weight: var(--weight-medium);
+      color: var(--accent);
+      letter-spacing: var(--tracking-wider);
+      text-transform: uppercase;
+      margin-bottom: var(--space-3);
+    }
+
+    .header-title {
+      font-size: var(--text-4xl);
+      font-weight: var(--weight-bold);
+      letter-spacing: var(--tracking-tight);
+      line-height: var(--leading-tight);
+      color: var(--fg);
+      margin-bottom: var(--space-4);
+    }
+
+    .header-subtitle {
+      font-size: var(--text-lg);
+      color: var(--fg-secondary);
+      max-width: 600px;
+      line-height: var(--leading-relaxed);
+    }
+
+    .header-meta {
+      display: flex;
+      gap: var(--space-6);
+      margin-top: var(--space-6);
+      padding-top: var(--space-6);
+      border-top: 1px solid var(--border);
+    }
+
+    .header-meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .header-meta-label {
+      font-size: var(--text-caption);
+      color: var(--fg-muted);
+      letter-spacing: var(--tracking-wide);
+      text-transform: uppercase;
+    }
+
+    .header-meta-value {
+      font-size: var(--text-sm);
+      color: var(--fg);
+      font-weight: var(--weight-medium);
+    }
+
+    /* --- 区块 --- */
+    .section {
+      margin-bottom: var(--space-20);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-3);
+      margin-bottom: var(--space-6);
+      padding-bottom: var(--space-3);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-number {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--accent);
+      font-weight: var(--weight-medium);
+    }
+
+    .section-title {
+      font-size: var(--text-2xl);
+      font-weight: var(--weight-semibold);
+      letter-spacing: var(--tracking-tight);
+      color: var(--fg);
+    }
+
+    .section-description {
+      font-size: var(--text-sm);
+      color: var(--fg-muted);
+      margin-left: auto;
+    }
+
+    /* --- 色彩 --- */
+    .color-group {
+      margin-bottom: var(--space-8);
+    }
+
+    .color-group-title {
+      font-size: var(--text-lg);
+      font-weight: var(--weight-semibold);
+      color: var(--fg);
+      margin-bottom: var(--space-2);
+    }
+
+    .color-group-desc {
+      font-size: var(--text-sm);
+      color: var(--fg-muted);
+      margin-bottom: var(--space-4);
+      line-height: var(--leading-relaxed);
+    }
+
+    .color-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1px;
+      background: var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    @media (min-width: 640px) {
+      .color-row { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+    }
+
+    .color-swatch {
+      background: var(--surface);
+      padding: var(--space-4);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      min-height: 120px;
+      transition: transform var(--duration-fast) var(--ease-standard);
+    }
+
+    .color-swatch:hover {
+      transform: translateY(-2px);
+    }
+
+    .color-chip {
+      width: 100%;
+      height: 48px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(42, 36, 29, 0.06);
+    }
+
+    .color-name {
+      font-size: var(--text-caption);
+      font-weight: var(--weight-medium);
+      color: var(--fg-secondary);
+    }
+
+    .color-value {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--fg-muted);
+    }
+
+    /* --- 语义色 --- */
+    .semantic-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-3);
+    }
+
+    @media (min-width: 640px) {
+      .semantic-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .semantic-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-4);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+    }
+
+    .semantic-color {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      flex-shrink: 0;
+    }
+
+    .semantic-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .semantic-name {
+      font-size: var(--text-sm);
+      font-weight: var(--weight-medium);
+      color: var(--fg);
+    }
+
+    .semantic-value {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--fg-muted);
+    }
+
+    /* --- 字体 --- */
+    .type-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+
+    .type-item {
+      padding: var(--space-5) var(--space-5);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: var(--space-4);
+      align-items: baseline;
+    }
+
+    @media (min-width: 768px) {
+      .type-item { grid-template-columns: 200px 1fr auto; }
+    }
+
+    .type-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .type-meta-name {
+      font-size: var(--text-sm);
+      font-weight: var(--weight-semibold);
+      color: var(--fg);
+    }
+
+    .type-meta-spec {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--fg-muted);
+    }
+
+    .type-sample {
+      color: var(--fg);
+    }
+
+    .type-code {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--fg-muted);
+      text-align: right;
+    }
+
+    /* --- 间距 --- */
+    .spacing-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      padding: var(--space-5);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+    }
+
+    .spacing-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      padding: 6px 0;
+    }
+
+    .spacing-label {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--fg-muted);
+      width: 80px;
+      flex-shrink: 0;
+    }
+
+    .spacing-value {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--fg-secondary);
+      width: 60px;
+      flex-shrink: 0;
+    }
+
+    .spacing-bar {
+      height: 12px;
+      background: var(--accent);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .spacing-desc {
+      font-size: var(--text-caption);
+      color: var(--fg-muted);
+    }
+
+    /* --- 圆角 --- */
+    .radius-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: var(--space-4);
+    }
+
+    .radius-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-4);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+    }
+
+    .radius-box {
+      width: 56px;
+      height: 56px;
+      background: var(--accent-soft);
+      border: 1.5px solid var(--accent);
+    }
+
+    .radius-name {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--fg-secondary);
+      font-weight: var(--weight-medium);
+    }
+
+    .radius-value {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--fg-muted);
+    }
+
+    /* --- 阴影 --- */
+    .shadow-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: var(--space-5);
+    }
+
+    .shadow-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-5) var(--space-4);
+    }
+
+    .shadow-box {
+      width: 80px;
+      height: 80px;
+      background: var(--surface);
+      border-radius: var(--radius-md);
+    }
+
+    .shadow-name {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--fg-secondary);
+      font-weight: var(--weight-medium);
+    }
+
+    .shadow-value {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--fg-muted);
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    /* --- 图标 --- */
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: var(--space-3);
+      padding: var(--space-5);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+    }
+
+    .icon-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border-radius: var(--radius-sm);
+      transition: background var(--duration-fast) var(--ease-standard);
+    }
+
+    .icon-item:hover {
+      background: var(--bg-subtle);
+    }
+
+    .icon-item svg {
+      width: 24px;
+      height: 24px;
+      stroke: var(--fg);
+      stroke-width: 1.75;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
+    .icon-name {
+      font-size: 10px;
+      color: var(--fg-muted);
+      font-family: var(--font-mono);
+    }
+
+    /* --- 动效 --- */
+    .motion-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .motion-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: var(--space-4);
+      padding: var(--space-4) var(--space-5);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      align-items: center;
+    }
+
+    .motion-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .motion-name {
+      font-size: var(--text-sm);
+      font-weight: var(--weight-medium);
+      color: var(--fg);
+    }
+
+    .motion-value {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--fg-muted);
+    }
+
+    .motion-demo {
+      width: 120px;
+      height: 36px;
+      background: var(--bg-subtle);
+      border-radius: var(--radius-sm);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .motion-demo-ball {
+      width: 20px;
+      height: 20px;
+      background: var(--accent);
+      border-radius: 50%;
+      position: absolute;
+      top: 8px;
+      left: 8px;
+    }
+
+    /* --- 布局 --- */
+    .layout-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-4);
+    }
+
+    @media (min-width: 640px) {
+      .layout-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .layout-item {
+      padding: var(--space-5);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+    }
+
+    .layout-name {
+      font-size: var(--text-sm);
+      font-weight: var(--weight-semibold);
+      color: var(--fg);
+      margin-bottom: var(--space-3);
+    }
+
+    .layout-diagram {
+      width: 100%;
+      height: 120px;
+      background: var(--bg-subtle);
+      border-radius: var(--radius-sm);
+      position: relative;
+      margin-bottom: var(--space-3);
+    }
+
+    .layout-diagram-inner {
+      position: absolute;
+      background: var(--accent-soft);
+      border: 1px solid var(--accent);
+      border-radius: 4px;
+    }
+
+    .layout-spec {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--fg-muted);
+      line-height: 1.6;
+    }
+
+    /* --- 底部 --- */
+    .footer {
+      margin-top: var(--space-20);
+      padding-top: var(--space-8);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: var(--text-caption);
+      color: var(--fg-muted);
+    }
+
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    /* --- 代码块 --- */
+    .code-block {
+      background: var(--color-neutral-900);
+      color: var(--color-neutral-50);
+      padding: var(--space-4) var(--space-5);
+      border-radius: var(--radius-md);
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      line-height: 1.6;
+      overflow-x: auto;
+      margin-top: var(--space-4);
+    }
+
+    .code-block .token-keyword { color: #E57A4A; }
+    .code-block .token-string { color: #A8C2AC; }
+    .code-block .token-comment { color: #7A6F62; }
+    .code-block .token-number { color: #ED9A68; }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- ============================================
+       头部
+       ============================================ -->
+  <header class="header">
+    <div class="header-eyebrow">Daymark Design System</div>
+    <h1 class="header-title">纪念日应用设计规范</h1>
+    <p class="header-subtitle">
+      一套面向多端（Android / iOS / Windows / macOS / Web）的纪念日应用设计系统。
+      以「晨间记事本」为视觉隐喻——阳光洒在书桌上翻开的日记本，温暖、安静、精致。
+    </p>
+    <div class="header-meta">
+      <div class="header-meta-item">
+        <span class="header-meta-label">版本</span>
+        <span class="header-meta-value">1.0.0</span>
+      </div>
+      <div class="header-meta-item">
+        <span class="header-meta-label">模数</span>
+        <span class="header-meta-value">4px</span>
+      </div>
+      <div class="header-meta-item">
+        <span class="header-meta-label">主色</span>
+        <span class="header-meta-value">Terracotta #D9622E</span>
+      </div>
+      <div class="header-meta-item">
+        <span class="header-meta-label">字体</span>
+        <span class="header-meta-value">Inter + Noto Sans SC</span>
+      </div>
+      <div class="header-meta-item">
+        <span class="header-meta-label">兼容</span>
+        <span class="header-meta-value">5 平台 · 3 设备</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================
+       1. 色彩系统
+       ============================================ -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-number">01</span>
+      <h2 class="section-title">色彩系统</h2>
+      <span class="section-description">70% 中性 · 10% 主色 · 5% 辅助 · 5% 语义</span>
+    </div>
+
+    <!-- 主色调 -->
+    <div class="color-group">
+      <h3 class="color-group-title">主色调 · Terracotta</h3>
+      <p class="color-group-desc">
+        取自陶土与夕阳光泽的暖橙红。不刺眼、不甜腻，带着手工质感。
+        仅用于主 CTA、激活态、每屏一处高亮——克制是它的力量。
+      </p>
+      <div class="color-row">
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #FDF4EE"></div>
+          <span class="color-name">primary-50</span>
+          <span class="color-value">#FDF4EE</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #FAE0D2"></div>
+          <span class="color-name">primary-100</span>
+          <span class="color-value">#FAE0D2</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #F4BD9D"></div>
+          <span class="color-name">primary-200</span>
+          <span class="color-value">#F4BD9D</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #ED9A68"></div>
+          <span class="color-name">primary-300</span>
+          <span class="color-value">#ED9A68</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #E57A4A"></div>
+          <span class="color-name">primary-400</span>
+          <span class="color-value">#E57A4A</span>
+        </div>
+        <div class="color-swatch" style="background: var(--accent-soft);">
+          <div class="color-chip" style="background: #D9622E"></div>
+          <span class="color-name" style="font-weight:600;color:#9D4218">primary-500 ★</span>
+          <span class="color-value">#D9622E</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #C0521F"></div>
+          <span class="color-name">primary-600</span>
+          <span class="color-value">#C0521F</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #9D4218"></div>
+          <span class="color-name">primary-700</span>
+          <span class="color-value">#9D4218</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #7A3412"></div>
+          <span class="color-name">primary-800</span>
+          <span class="color-value">#7A3412</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #5C2810"></div>
+          <span class="color-name">primary-900</span>
+          <span class="color-value">#5C2810</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 辅助色 -->
+    <div class="color-group">
+      <h3 class="color-group-title">辅助色 · Sage Green</h3>
+      <p class="color-group-desc">
+        鼠尾草绿，取自然草木之意。用于分类标签、次级强调、积极状态。
+        与主色形成互补的冷暖关系，保持画面平衡。
+      </p>
+      <div class="color-row">
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #EEF3EE"></div>
+          <span class="color-name">secondary-50</span>
+          <span class="color-value">#EEF3EE</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #D0DFD2"></div>
+          <span class="color-name">secondary-100</span>
+          <span class="color-value">#D0DFD2</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #A8C2AC"></div>
+          <span class="color-name">secondary-200</span>
+          <span class="color-value">#A8C2AC</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #7AA57F"></div>
+          <span class="color-name">secondary-300</span>
+          <span class="color-value">#7AA57F</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #5E8C64"></div>
+          <span class="color-name">secondary-400</span>
+          <span class="color-value">#5E8C64</span>
+        </div>
+        <div class="color-swatch" style="background:#EEF3EE">
+          <div class="color-chip" style="background: #4A7A51"></div>
+          <span class="color-name" style="font-weight:600;color:#2D5032">secondary-500 ★</span>
+          <span class="color-value">#4A7A51</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #3B6641"></div>
+          <span class="color-name">secondary-600</span>
+          <span class="color-value">#3B6641</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #2D5032"></div>
+          <span class="color-name">secondary-700</span>
+          <span class="color-value">#2D5032</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #1F3B23"></div>
+          <span class="color-name">secondary-800</span>
+          <span class="color-value">#1F3B23</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #122615"></div>
+          <span class="color-name">secondary-900</span>
+          <span class="color-value">#122615</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 中性色 -->
+    <div class="color-group">
+      <h3 class="color-group-title">中性色 · Warm Gray</h3>
+      <p class="color-group-desc">
+        偏暖的米灰阶，不用纯黑纯白。背景是纸的质感，文字是墨的温度。
+        从背景到标题，10 级灰阶覆盖全场景。
+      </p>
+      <div class="color-row">
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #FFFFFF; border-color: #E5DBD0"></div>
+          <span class="color-name">neutral-0</span>
+          <span class="color-value">#FFFFFF</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #FAF6F1"></div>
+          <span class="color-name">neutral-50 ★</span>
+          <span class="color-value">#FAF6F1</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #F2EBE3"></div>
+          <span class="color-name">neutral-100</span>
+          <span class="color-value">#F2EBE3</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #E5DBD0"></div>
+          <span class="color-name">neutral-200</span>
+          <span class="color-value">#E5DBD0</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #D0C3B5"></div>
+          <span class="color-name">neutral-300</span>
+          <span class="color-value">#D0C3B5</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #B8AB9B"></div>
+          <span class="color-name">neutral-400</span>
+          <span class="color-value">#B8AB9B</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #9B8E80"></div>
+          <span class="color-name">neutral-500</span>
+          <span class="color-value">#9B8E80</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #7A6F62"></div>
+          <span class="color-name">neutral-600</span>
+          <span class="color-value">#7A6F62</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #5C5347"></div>
+          <span class="color-name">neutral-700</span>
+          <span class="color-value">#5C5347</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #3D362E"></div>
+          <span class="color-name">neutral-800</span>
+          <span class="color-value">#3D362E</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #2A241D"></div>
+          <span class="color-name">neutral-900 ★</span>
+          <span class="color-value">#2A241D</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 语义化颜色 -->
+    <div class="color-group">
+      <h3 class="color-group-title">语义化颜色</h3>
+      <p class="color-group-desc">
+        用于状态反馈。同样保持柔和——不刺眼的成功绿、不焦躁的警告黄、
+        不冰冷的错误红。文字色与背景色配对使用，确保 WCAG AA 对比度。
+      </p>
+      <div class="semantic-grid">
+        <div class="semantic-item">
+          <div class="semantic-color" style="background: #E8F0E6; border:1px solid #A8C2AC"></div>
+          <div class="semantic-info">
+            <span class="semantic-name">Success · 成功</span>
+            <span class="semantic-value">bg #E8F0E6 · text #4A7A51</span>
+          </div>
+        </div>
+        <div class="semantic-item">
+          <div class="semantic-color" style="background: #FBF0DD; border:1px solid #E5C97D"></div>
+          <div class="semantic-info">
+            <span class="semantic-name">Warning · 警告</span>
+            <span class="semantic-value">bg #FBF0DD · text #8B5E14</span>
+          </div>
+        </div>
+        <div class="semantic-item">
+          <div class="semantic-color" style="background: #F8E4DD; border:1px solid #E5A99A"></div>
+          <div class="semantic-info">
+            <span class="semantic-name">Danger · 错误</span>
+            <span class="semantic-value">bg #F8E4DD · text #B5432A</span>
+          </div>
+        </div>
+        <div class="semantic-item">
+          <div class="semantic-color" style="background: #E4EDF2; border:1px solid #9BBFD4"></div>
+          <div class="semantic-info">
+            <span class="semantic-name">Info · 提示</span>
+            <span class="semantic-value">bg #E4EDF2 · text #3B6B85</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 分类色 -->
+    <div class="color-group">
+      <h3 class="color-group-title">分类色 · Category Colors</h3>
+      <p class="color-group-desc" style="margin-bottom:var(--space-4)">
+        为不同纪念日类型赋予独立性格。每个分类色 7 级渐变，配 50 底色。
+        卡片色条、图标底色、数字色均从分类色取值，营造层次与惊喜。
+      </p>
+      <div class="color-swatches">
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #FDF1EE"></div>
+          <span class="color-name">rose-50</span>
+          <span class="color-value">#FDF1EE</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #FADED7"></div>
+          <span class="color-name">rose-100</span>
+          <span class="color-value">#FADED7</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #E8675A"></div>
+          <span class="color-name">rose-500</span>
+          <span class="color-value">#E8675A</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #C95248"></div>
+          <span class="color-name">rose-600</span>
+          <span class="color-value">#C95248</span>
+        </div>
+      </div>
+      <div class="color-swatches" style="margin-top:var(--space-2)">
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #FDF6E8"></div>
+          <span class="color-name">amber-50</span>
+          <span class="color-value">#FDF6E8</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #FAEBC8"></div>
+          <span class="color-name">amber-100</span>
+          <span class="color-value">#FAEBC8</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #E8A838"></div>
+          <span class="color-name">amber-500</span>
+          <span class="color-value">#E8A838</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #C98A1F"></div>
+          <span class="color-name">amber-600</span>
+          <span class="color-value">#C98A1F</span>
+        </div>
+      </div>
+      <div class="color-swatches" style="margin-top:var(--space-2)">
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #E8F4F4"></div>
+          <span class="color-name">teal-50</span>
+          <span class="color-value">#E8F4F4</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #C5E5E6"></div>
+          <span class="color-name">teal-100</span>
+          <span class="color-value">#C5E5E6</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #3B8B8E"></div>
+          <span class="color-name">teal-500</span>
+          <span class="color-value">#3B8B8E</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #1F6568"></div>
+          <span class="color-name">teal-600</span>
+          <span class="color-value">#1F6568</span>
+        </div>
+      </div>
+      <div class="color-swatches" style="margin-top:var(--space-2)">
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #F3F0F8"></div>
+          <span class="color-name">lavender-50</span>
+          <span class="color-value">#F3F0F8</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #E4DDED"></div>
+          <span class="color-name">lavender-100</span>
+          <span class="color-value">#E4DDED</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #8B76B5"></div>
+          <span class="color-name">lavender-500</span>
+          <span class="color-value">#8B76B5</span>
+        </div>
+        <div class="color-swatch">
+          <div class="color-chip" style="background: #6B5A93"></div>
+          <span class="color-name">lavender-600</span>
+          <span class="color-value">#6B5A93</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 渐变系统 -->
+    <div class="color-group">
+      <h3 class="color-group-title">渐变系统 · Gradients</h3>
+      <p class="color-group-desc" style="margin-bottom:var(--space-4)">
+        暖色调渐变，用于英雄区、Featured 卡片、庆祝态。克制使用，每屏最多一处。
+      </p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:var(--space-3)">
+        <div style="height:64px;border-radius:var(--radius-md);background:linear-gradient(135deg,#D9622E 0%,#E8A838 100%)"></div>
+        <div style="height:64px;border-radius:var(--radius-md);background:linear-gradient(135deg,#E8675A 0%,#E8A838 100%)"></div>
+        <div style="height:64px;border-radius:var(--radius-md);background:linear-gradient(135deg,#E8A838 0%,#D9622E 100%)"></div>
+        <div style="height:64px;border-radius:var(--radius-md);background:linear-gradient(180deg,#FAF6F1 0%,#F5EDE3 100%)"></div>
+      </div>
+      <div class="code-block" style="margin-top:var(--space-3)">
+<span class="token-keyword">--gradient-warm</span>:        linear-gradient(135deg, #D9622E, #E8A838)
+<span class="token-keyword">--gradient-rose</span>:        linear-gradient(135deg, #E8675A, #E8A838)
+<span class="token-keyword">--gradient-celebration</span>: linear-gradient(135deg, #E8A838, #D9622E)
+<span class="token-keyword">--gradient-dawn</span>:         linear-gradient(180deg, #FAF6F1, #F5EDE3)
+      </div>
+    </div>
+
+    <!-- 柔和边框 -->
+    <div class="color-group">
+      <h3 class="color-group-title">柔和边框 · Soft Borders</h3>
+      <p class="color-group-desc" style="margin-bottom:var(--space-4)">
+        用极低透明度的暖色线条替代生硬边框。优先用阴影分层，边框仅作为辅助。
+      </p>
+      <div class="code-block">
+<span class="token-keyword">--border-soft</span>:   1px solid rgba(42,36,29, 0.06)
+<span class="token-keyword">--border-medium</span>: 1px solid rgba(42,36,29, 0.10)
+<span class="token-keyword">--border-focus</span>:  1px solid rgba(42,36,29, 0.14)
+      </div>
+    </div>
+
+    <!-- 色彩使用规则 -->
+    <div class="color-group">
+      <h3 class="color-group-title">使用规则</h3>
+      <div class="code-block">
+<span class="token-comment">/* 每屏最多 2 处可见主色 */</span>
+<span class="token-comment">/* 典型配对：1 个 eyebrow/chip + 1 个主 CTA */</span>
+<span class="token-comment">/* 链接算主色；若同屏已有 CTA，链接降为 fg 下划线 */</span>
+
+<span class="token-comment">/* 背景层级 */</span>
+<span class="token-keyword">--bg</span>:          <span class="token-string">var(--color-neutral-50)</span>;   <span class="token-comment">/* 页面背景 */</span>
+<span class="token-keyword">--bg-elevated</span>:  <span class="token-string">var(--color-neutral-0)</span>;    <span class="token-comment">/* 卡片表面 */</span>
+<span class="token-keyword">--bg-subtle</span>:    <span class="token-string">var(--color-neutral-100)</span>; <span class="token-comment">/* 次级背景 */</span>
+
+<span class="token-comment">/* 对比度门禁 */</span>
+<span class="token-comment">/* 正文 ≤16px on bg  → 4.5:1 */</span>
+<span class="token-comment">/* 大字 >18px        → 3:1 */</span>
+<span class="token-comment">/* UI 组件 vs 相邻面 → 3:1 */</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       2. 字体排印
+       ============================================ -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-number">02</span>
+      <h2 class="section-title">字体排印</h2>
+      <span class="section-description">12 级字号 · 4 级字重 · 5 级行高</span>
+    </div>
+
+    <!-- 字体家族 -->
+    <div class="color-group">
+      <h3 class="color-group-title">字体家族</h3>
+      <p class="color-group-desc">
+        Inter 作为拉丁字体，现代、易读、中性，不抢戏。
+        Noto Sans SC 作为中文字体，与 Inter 视觉气质一致、字重覆盖完整。
+        两者搭配，中英混排自然、编号与数字清晰。
+      </p>
+      <div class="code-block">
+<span class="token-comment">/* 字体栈 — 中文优先以确保标点与全角符号正确 */</span>
+<span class="token-keyword">--font-sans</span>: <span class="token-string">"Inter", "Noto Sans SC", "PingFang SC",
+             "HarmonyOS Sans SC", "Microsoft YaHei UI",
+             system-ui, -apple-system, sans-serif</span>;
+
+<span class="token-keyword">--font-mono</span>:  <span class="token-string">"JetBrains Mono", "SF Mono", ui-monospace, monospace</span>;
+<span class="token-keyword">--font-num</span>:   <span class="token-string">"Inter", "Noto Sans SC", system-ui, sans-serif</span>;
+      </div>
+    </div>
+
+    <!-- 字号层级 -->
+    <div class="color-group">
+      <h3 class="color-group-title">字号层级</h3>
+      <p class="color-group-desc">
+        4px 模数贯穿全系统。标题与正文拉开 2 倍以上跨度，让中文方块字在大字号下释放张力。
+      </p>
+      <div class="type-list">
+        <div class="type-item">
+          <div class="type-meta">
+            <span class="type-meta-name">Display</span>
+            <span class="type-meta-spec">48px / 700 / 1.2</span>
+          </div>
+          <span class="type-sample" style="font-size:48px;font-weight:700;line-height:1.2;letter-spacing:-0.02em">还有 365 天</span>
+          <span class="type-code">--text-5xl</span>
+        </div>
+        <div class="type-item">
+          <div class="type-meta">
+            <span class="type-meta-name">H1 · 页面标题</span>
+            <span class="type-meta-spec">36px / 700 / 1.2</span>
+          </div>
+          <span class="type-sample" style="font-size:36px;font-weight:700;line-height:1.2;letter-spacing:-0.02em">我的纪念日</span>
+          <span class="type-code">--text-4xl</span>
+        </div>
+        <div class="type-item">
+          <div class="type-meta">
+            <span class="type-meta-name">H2 · 区块标题</span>
+            <span class="type-meta-spec">30px / 600 / 1.2</span>
+          </div>
+          <span class="type-sample" style="font-size:30px;font-weight:600;line-height:1.2">近期纪念日</span>
+          <span class="type-code">--text-3xl</span>
+        </div>
+        <div class="type-item">
+          <div class="type-meta">
+            <span class="type-meta-name">H3 · 卡片标题</span>
+            <span class="type-meta-spec">24px / 600 / 1.35</span>
+          </div>
+          <span class="type-sample" style="font-size:24px;font-weight:600;line-height:1.35">恋爱三周年</span>
+          <span class="type-code">--text-2xl</span>
+        </div>
+        <div class="type-item">
+          <div class="type-meta">
+            <span class="type-meta-name">H4 · 小标题</span>
+            <span class="type-meta-spec">20px / 600 / 1.35</span>
+          </div>
+          <span class="type-sample" style="font-size:20px;font-weight:600;line-height:1.35">分类管理</span>
+          <span class="type-code">--text-xl</span>
+        </div>
+        <div class="type-item">
+          <div class="type-meta">
+            <span class="type-meta-name">H5 · 列表标题</span>
+            <span class="type-meta-spec">18px / 500 / 1.35</span>
+          </div>
+          <span class="type-sample" style="font-size:18px;font-weight:500;line-height:1.35">妈妈生日</span>
+          <span class="type-code">--text-lg</span>
+        </div>
+        <div class="type-item">
+          <div class="type-meta">
+            <span class="type-meta-name">Body · 重要正文</span>
+            <span class="type-meta-spec">16px / 400 / 1.5</span>
+          </div>
+          <span class="type-sample" style="font-size:16px;font-weight:400;line-height:1.5">距离你的恋爱纪念日还有 365 天</span>
+          <span class="type-code">--text-md</span>
+        </div>
+        <div class="type-item">
+          <div class="type-meta">
+            <span class="type-meta-name">Body · 正文</span>
+            <span class="type-meta-spec">15px / 400 / 1.5</span>
+          </div>
+          <span class="type-sample" style="font-size:15px;font-weight:400;line-height:1.5">记录并庆祝生活中的每一个重要瞬间</span>
+          <span class="type-code">--text-base</span>
+        </div>
+        <div class="type-item">
+          <div class="type-meta">
+            <span class="type-meta-name">Body · 次要</span>
+            <span class="type-meta-spec">14px / 400 / 1.5</span>
+          </div>
+          <span class="type-sample" style="font-size:14px;font-weight:400;line-height:1.5;color:var(--fg-secondary)">点击编辑纪念日信息</span>
+          <span class="type-code">--text-sm</span>
+        </div>
+        <div class="type-item">
+          <div class="type-meta">
+            <span class="type-meta-name">Caption · 辅助</span>
+            <span class="type-meta-spec">13px / 400 / 1.6</span>
+          </div>
+          <span class="type-sample" style="font-size:13px;font-weight:400;line-height:1.6;color:var(--fg-muted)">创建于 2024 年 1 月 15 日</span>
+          <span class="type-code">--text-xs</span>
+        </div>
+        <div class="type-item">
+          <div class="type-meta">
+            <span class="type-meta-name">Caption · 图注</span>
+            <span class="type-meta-spec">12px / 400 / 1.6</span>
+          </div>
+          <span class="type-sample" style="font-size:12px;font-weight:400;line-height:1.6;color:var(--fg-muted)">每年同日提醒</span>
+          <span class="type-code">--text-caption</span>
+        </div>
+        <div class="type-item">
+          <div class="type-meta">
+            <span class="type-meta-name">Label · 标签</span>
+            <span class="type-meta-spec">12px / 500 / 1.35</span>
+          </div>
+          <span class="type-sample" style="font-size:12px;font-weight:500;line-height:1.35;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent)">ANNIVERSARY</span>
+          <span class="type-code">--text-caption</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       3. 间距系统
+       ============================================ -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-number">03</span>
+      <h2 class="section-title">间距系统</h2>
+      <span class="section-description">基础模数 4px · 12 级间距</span>
+    </div>
+
+    <p class="color-group-desc" style="margin-bottom:var(--space-6)">
+      所有间距都是 4px 的整数倍。从图标内距（4px）到页面间距（96px），
+      12 级间距覆盖从微观到宏观的全部场景。统一模数让秩序看得见、看不见地存在。
+    </p>
+
+    <div class="spacing-list">
+      <div class="spacing-item">
+        <span class="spacing-label">--space-1</span>
+        <span class="spacing-value">4px</span>
+        <div class="spacing-bar" style="width:4px"></div>
+        <span class="spacing-desc">图标内距、最小间距</span>
+      </div>
+      <div class="spacing-item">
+        <span class="spacing-label">--space-2</span>
+        <span class="spacing-value">8px</span>
+        <div class="spacing-bar" style="width:8px"></div>
+        <span class="spacing-desc">紧凑元素间距</span>
+      </div>
+      <div class="spacing-item">
+        <span class="spacing-label">--space-3</span>
+        <span class="spacing-value">12px</span>
+        <div class="spacing-bar" style="width:12px"></div>
+        <span class="spacing-desc">卡片内距、小间距</span>
+      </div>
+      <div class="spacing-item">
+        <span class="spacing-label">--space-4</span>
+        <span class="spacing-value">16px</span>
+        <div class="spacing-bar" style="width:16px"></div>
+        <span class="spacing-desc">基础间距、页面边距、段落</span>
+      </div>
+      <div class="spacing-item">
+        <span class="spacing-label">--space-5</span>
+        <span class="spacing-value">20px</span>
+        <div class="spacing-bar" style="width:20px"></div>
+        <span class="spacing-desc">卡片间距</span>
+      </div>
+      <div class="spacing-item">
+        <span class="spacing-label">--space-6</span>
+        <span class="spacing-value">24px</span>
+        <div class="spacing-bar" style="width:24px"></div>
+        <span class="spacing-desc">区块间距</span>
+      </div>
+      <div class="spacing-item">
+        <span class="spacing-label">--space-8</span>
+        <span class="spacing-value">32px</span>
+        <div class="spacing-bar" style="width:32px"></div>
+        <span class="spacing-desc">大区块间距</span>
+      </div>
+      <div class="spacing-item">
+        <span class="spacing-label">--space-10</span>
+        <span class="spacing-value">40px</span>
+        <div class="spacing-bar" style="width:40px"></div>
+        <span class="spacing-desc">区块间距</span>
+      </div>
+      <div class="spacing-item">
+        <span class="spacing-label">--space-12</span>
+        <span class="spacing-value">48px</span>
+        <div class="spacing-bar" style="width:48px"></div>
+        <span class="spacing-desc">页面顶部间距</span>
+      </div>
+      <div class="spacing-item">
+        <span class="spacing-label">--space-16</span>
+        <span class="spacing-value">64px</span>
+        <div class="spacing-bar" style="width:64px"></div>
+        <span class="spacing-desc">大区块间距</span>
+      </div>
+      <div class="spacing-item">
+        <span class="spacing-label">--space-20</span>
+        <span class="spacing-value">80px</span>
+        <div class="spacing-bar" style="width:80px"></div>
+        <span class="spacing-desc">大区块间距</span>
+      </div>
+      <div class="spacing-item">
+        <span class="spacing-label">--space-24</span>
+        <span class="spacing-value">96px</span>
+        <div class="spacing-bar" style="width:96px"></div>
+        <span class="spacing-desc">页面间距</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       4. 圆角系统
+       ============================================ -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-number">04</span>
+      <h2 class="section-title">圆角系统</h2>
+      <span class="section-description">克制的现代感 · 7 级圆角</span>
+    </div>
+
+    <p class="color-group-desc" style="margin-bottom:var(--space-6)">
+      统一的圆角策略：交互元素 6-10px，卡片 10-16px，模态 20px。
+      不使用超过 28px 的圆角，也不使用低于 4px 的圆角——克制的现代感。
+    </p>
+
+    <div class="radius-grid">
+      <div class="radius-item">
+        <div class="radius-box" style="border-radius:0"></div>
+        <span class="radius-name">none</span>
+        <span class="radius-value">0</span>
+      </div>
+      <div class="radius-item">
+        <div class="radius-box" style="border-radius:4px"></div>
+        <span class="radius-name">xs</span>
+        <span class="radius-value">4px</span>
+      </div>
+      <div class="radius-item">
+        <div class="radius-box" style="border-radius:6px"></div>
+        <span class="radius-name">sm</span>
+        <span class="radius-value">6px</span>
+      </div>
+      <div class="radius-item">
+        <div class="radius-box" style="border-radius:10px"></div>
+        <span class="radius-name">md</span>
+        <span class="radius-value">10px</span>
+      </div>
+      <div class="radius-item">
+        <div class="radius-box" style="border-radius:16px"></div>
+        <span class="radius-name">lg</span>
+        <span class="radius-value">16px</span>
+      </div>
+      <div class="radius-item">
+        <div class="radius-box" style="border-radius:20px"></div>
+        <span class="radius-name">xl</span>
+        <span class="radius-value">20px</span>
+      </div>
+      <div class="radius-item">
+        <div class="radius-box" style="border-radius:28px"></div>
+        <span class="radius-name">2xl</span>
+        <span class="radius-value">28px</span>
+      </div>
+      <div class="radius-item">
+        <div class="radius-box" style="border-radius:9999px"></div>
+        <span class="radius-name">full</span>
+        <span class="radius-value">9999px</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       5. 阴影系统
+       ============================================ -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-number">05</span>
+      <h2 class="section-title">阴影系统</h2>
+      <span class="section-description">纸张质感 · 柔和扩散</span>
+    </div>
+
+    <p class="color-group-desc" style="margin-bottom:var(--space-6)">
+      阴影取「纸面浮起」的意象：柔和、扩散、不刺眼。
+      基于暖色 rgb(42,36,29) 调色，不用纯黑，避免冷硬感。
+      两级高度：Flat（默认无阴影）+ Raised（悬停/浮起），不过度堆砌层级。
+    </p>
+
+    <div class="shadow-grid" style="background:var(--bg-subtle);padding:var(--space-8);border-radius:var(--radius-lg)">
+      <div class="shadow-item">
+        <div class="shadow-box" style="box-shadow: none"></div>
+        <span class="shadow-name">none</span>
+        <span class="shadow-value">flat</span>
+      </div>
+      <div class="shadow-item">
+        <div class="shadow-box" style="box-shadow: 0 1px 2px 0 rgba(42,36,29,0.04)"></div>
+        <span class="shadow-name">xs</span>
+        <span class="shadow-value">0 1px 2px<br>rgba(42,36,29,.04)</span>
+      </div>
+      <div class="shadow-item">
+        <div class="shadow-box" style="box-shadow: 0 2px 8px -2px rgba(42,36,29,0.06), 0 1px 3px 0 rgba(42,36,29,0.04)"></div>
+        <span class="shadow-name">sm</span>
+        <span class="shadow-value">0 2px 8px<br>rgba(42,36,29,.06)</span>
+      </div>
+      <div class="shadow-item">
+        <div class="shadow-box" style="box-shadow: 0 4px 16px -4px rgba(42,36,29,0.08), 0 2px 6px -2px rgba(42,36,29,0.05)"></div>
+        <span class="shadow-name">md</span>
+        <span class="shadow-value">0 4px 16px<br>rgba(42,36,29,.08)</span>
+      </div>
+      <div class="shadow-item">
+        <div class="shadow-box" style="box-shadow: 0 8px 32px -8px rgba(42,36,29,0.10), 0 4px 12px -4px rgba(42,36,29,0.06)"></div>
+        <span class="shadow-name">lg</span>
+        <span class="shadow-value">0 8px 32px<br>rgba(42,36,29,.10)</span>
+      </div>
+      <div class="shadow-item">
+        <div class="shadow-box" style="box-shadow: 0 16px 48px -12px rgba(42,36,29,0.12), 0 8px 24px -8px rgba(42,36,29,0.08)"></div>
+        <span class="shadow-name">xl</span>
+        <span class="shadow-value">0 16px 48px<br>rgba(42,36,29,.12)</span>
+      </div>
+      <div class="shadow-item">
+        <div class="shadow-box" style="box-shadow: 0 8px 24px -8px rgba(217,98,46,0.25)"></div>
+        <span class="shadow-name">accent</span>
+        <span class="shadow-value">主色阴影<br>CTA 专用</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       6. 图标系统
+       ============================================ -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-number">06</span>
+      <h2 class="section-title">图标系统</h2>
+      <span class="section-description">Lucide 风格 · 24px 网格 · 1.75px 描边</span>
+    </div>
+
+    <p class="color-group-desc" style="margin-bottom:var(--space-6)">
+      统一使用 Lucide 风格线性图标：24×24 网格、1.75px 描边、圆角端点。
+      不混用线性和填充图标，不用 emoji 替代功能图标。
+      仅在导航、操作、状态、空状态场景使用，不为装饰而加图标。
+    </p>
+
+    <div class="icon-grid">
+      <div class="icon-item">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+        <span class="icon-name">calendar</span>
+      </div>
+      <div class="icon-item">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span class="icon-name">clock</span>
+      </div>
+      <div class="icon-item">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <span class="icon-name">check</span>
+      </div>
+      <div class="icon-item">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3 7h7l-5.5 4.5 2 7L12 16l-6.5 4.5 2-7L2 9h7z"/></svg>
+        <span class="icon-name">star</span>
+      </div>
+      <div class="icon-item">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+        <span class="icon-name">heart</span>
+      </div>
+      <div class="icon-item">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="icon-name">users</span>
+      </div>
+      <div class="icon-item">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v6"/><path d="M12 22v-6"/><path d="M9 8h6"/><path d="M9 16h6"/><circle cx="12" cy="12" r="3"/></svg>
+        <span class="icon-name">cake</span>
+      </div>
+      <div class="icon-item">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/></svg>
+        <span class="icon-name">gift</span>
+      </div>
+      <div class="icon-item">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        <span class="icon-name">chevron-down</span>
+      </div>
+      <div class="icon-item">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+        <span class="icon-name">chevron-right</span>
+      </div>
+      <div class="icon-item">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+        <span class="icon-name">x</span>
+      </div>
+      <div class="icon-item">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+        <span class="icon-name">plus</span>
+      </div>
+      <div class="icon-item">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        <span class="icon-name">trash</span>
+      </div>
+      <div class="icon-item">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        <span class="icon-name">edit</span>
+      </div>
+      <div class="icon-item">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="icon-name">settings</span>
+      </div>
+      <div class="icon-item">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+        <span class="icon-name">share</span>
+      </div>
+      <div class="icon-item">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6.002 6.002 0 0 0-4-5.659V5a2 2 0 1 0-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m5 0v1a3 3 0 1 1-6 0v-1m6 0H9"/></svg>
+        <span class="icon-name">bell</span>
+      </div>
+      <div class="icon-item">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <span class="icon-name">mail</span>
+      </div>
+    </div>
+
+    <div class="code-block" style="margin-top:var(--space-5)">
+<span class="token-comment">/* 图标规格 */</span>
+<span class="token-keyword">viewBox</span>: <span class="token-string">"0 0 24 24"</span>
+<span class="token-keyword">stroke</span>: <span class="token-string">currentColor</span>  <span class="token-comment">/* 继承文字色 */</span>
+<span class="token-keyword">stroke-width</span>: <span class="token-number">1.75</span>
+<span class="token-keyword">stroke-linecap</span>: <span class="token-string">round</span>
+<span class="token-keyword">stroke-linejoin</span>: <span class="token-string">round</span>
+<span class="token-keyword">fill</span>: <span class="token-string">none</span>
+
+<span class="token-comment">/* 尺寸 */</span>
+<span class="token-keyword">--icon-size-sm</span>: <span class="token-number">20px</span>  <span class="token-comment">/* 行内 */</span>
+<span class="token-keyword">--icon-size-md</span>: <span class="token-number">24px</span>  <span class="token-comment">/* 默认 */</span>
+<span class="token-keyword">--icon-size-lg</span>: <span class="token-number">32px</span>  <span class="token-comment">/* 空状态 */</span>
+    </div>
+  </section>
+
+  <!-- ============================================
+       7. 动效系统
+       ============================================ -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-number">07</span>
+      <h2 class="section-title">动效系统</h2>
+      <span class="section-description">像翻页一样自然 · 5 级缓动 · 4 级时长</span>
+    </div>
+
+    <p class="color-group-desc" style="margin-bottom:var(--space-6)">
+      动效性格：温和、有节奏感，像翻书页一样自然。
+      不用弹跳物理效果、不用视差滚动、不在每处都加淡入。
+      一个页面对应一个有目的的动效——触觉反馈、结果揭示、状态过渡。
+      始终支持 reduced-motion。
+    </p>
+
+    <div class="motion-list">
+      <div class="motion-item">
+        <div class="motion-info">
+          <span class="motion-name">标准减速 · Standard</span>
+          <span class="motion-value">cubic-bezier(0.4, 0, 0.2, 1) · 250ms</span>
+        </div>
+        <div class="motion-demo">
+          <div class="motion-demo-ball" style="animation: motion-slide 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite"></div>
+        </div>
+      </div>
+      <div class="motion-item">
+        <div class="motion-info">
+          <span class="motion-name">强调入场 · Emphasized</span>
+          <span class="motion-value">cubic-bezier(0.2, 0, 0, 1) · 400ms</span>
+        </div>
+        <div class="motion-demo">
+          <div class="motion-demo-ball" style="animation: motion-slide 2.5s cubic-bezier(0.2, 0, 0, 1) infinite"></div>
+        </div>
+      </div>
+      <div class="motion-item">
+        <div class="motion-info">
+          <span class="motion-name">减速 · Decelerated</span>
+          <span class="motion-value">cubic-bezier(0, 0, 0.2, 1) · 250ms</span>
+        </div>
+        <div class="motion-demo">
+          <div class="motion-demo-ball" style="animation: motion-slide 2.5s cubic-bezier(0, 0, 0.2, 1) infinite"></div>
+        </div>
+      </div>
+      <div class="motion-item">
+        <div class="motion-info">
+          <span class="motion-name">加速退场 · Accelerated</span>
+          <span class="motion-value">cubic-bezier(0.4, 0, 1, 1) · 150ms</span>
+        </div>
+        <div class="motion-demo">
+          <div class="motion-demo-ball" style="animation: motion-slide 2.5s cubic-bezier(0.4, 0, 1, 1) infinite"></div>
+        </div>
+      </div>
+      <div class="motion-item">
+        <div class="motion-info">
+          <span class="motion-name">弹性 · Spring（仅用于触觉反馈）</span>
+          <span class="motion-value">cubic-bezier(0.34, 1.56, 0.64, 1) · 400ms</span>
+        </div>
+        <div class="motion-demo">
+          <div class="motion-demo-ball" style="animation: motion-slide-spring 2.5s cubic-bezier(0.34, 1.56, 0.64, 1) infinite"></div>
+        </div>
+      </div>
+    </div>
+
+    <style>
+      @keyframes motion-slide {
+        0% { left: 8px; }
+        40% { left: 92px; }
+        100% { left: 8px; }
+      }
+      @keyframes motion-slide-spring {
+        0% { left: 8px; }
+        40% { left: 92px; }
+        100% { left: 8px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .motion-demo-ball { animation: none !important; }
+      }
+    </style>
+  </section>
+
+  <!-- ============================================
+       8. 布局系统
+       ============================================ -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-number">08</span>
+      <h2 class="section-title">布局系统</h2>
+      <span class="section-description">3 级断点 · 响应式适配</span>
+    </div>
+
+    <p class="color-group-desc" style="margin-bottom:var(--space-6)">
+      移动优先设计，375px 为基准画布。平板 768px、桌面 1024px 依次展开。
+      手机竖屏单列布局 + 浮岛药丸导航，平板双列，桌面三列或侧栏布局。
+      页面边距随设备递增：16px → 24px → 32px。
+    </p>
+
+    <div class="layout-grid">
+      <div class="layout-item">
+        <div class="layout-name">手机 · 375×812</div>
+        <div class="layout-diagram" style="height:160px">
+          <div class="layout-diagram-inner" style="top:16px;left:16px;right:16px;bottom:68px"></div>
+          <div class="layout-diagram-inner" style="bottom:16px;left:32px;right:32px;height:52px;background:var(--color-primary-50);border-color:var(--color-primary-200);border-radius:9999px"></div>
+        </div>
+        <div class="layout-spec">
+          page-margin: 16px<br>
+          pill-nav: 52px floating<br>
+          single column
+        </div>
+      </div>
+      <div class="layout-item">
+        <div class="layout-name">平板 · 768×1024</div>
+        <div class="layout-diagram" style="height:160px">
+          <div class="layout-diagram-inner" style="top:24px;left:24px;right:24px;bottom:24px"></div>
+        </div>
+        <div class="layout-spec">
+          page-margin: 24px<br>
+          2-column grid<br>
+          48px gutter
+        </div>
+      </div>
+      <div class="layout-item">
+        <div class="layout-name">桌面 · 1440×900</div>
+        <div class="layout-diagram" style="height:160px">
+          <div class="layout-diagram-inner" style="top:32px;left:32px;width:180px;bottom:32px;background:var(--surface);border-color:var(--border)"></div>
+          <div class="layout-diagram-inner" style="top:32px;left:228px;right:32px;bottom:32px"></div>
+        </div>
+        <div class="layout-spec">
+          page-margin: 32px<br>
+          sidebar + content<br>
+          max-content: 1200px
+        </div>
+      </div>
+      <div class="layout-item">
+        <div class="layout-name">触控热区</div>
+        <div class="layout-diagram" style="height:160px;display:flex;align-items:center;justify-content:center">
+          <div style="width:44px;height:44px;background:var(--accent-soft);border:1.5px solid var(--accent);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center">
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--accent)">44</span>
+          </div>
+        </div>
+        <div class="layout-spec">
+          min touch target: 44px<br>
+          input height: 48px<br>
+          button height: 48px
+        </div>
+      </div>
+    </div>
+
+    <div class="code-block" style="margin-top:var(--space-5)">
+<span class="token-comment">/* 断点 */</span>
+<span class="token-keyword">--breakpoint-sm</span>: <span class="token-number">375px</span>   <span class="token-comment">/* 手机 */</span>
+<span class="token-keyword">--breakpoint-md</span>: <span class="token-number">768px</span>   <span class="token-comment">/* 平板 */</span>
+<span class="token-keyword">--breakpoint-lg</span>: <span class="token-number">1024px</span>  <span class="token-comment">/* 桌面 */</span>
+<span class="token-keyword">--breakpoint-xl</span>: <span class="token-number">1440px</span>  <span class="token-comment">/* 大桌面 */</span>
+
+<span class="token-comment">/* 组件尺寸 */</span>
+<span class="token-keyword">--nav-bar-height</span>:   <span class="token-number">44px</span>
+<span class="token-keyword">--input-height</span>:     <span class="token-number">48px</span>
+<span class="token-keyword">--button-height</span>:    <span class="token-number">48px</span>
+<span class="token-keyword">--touch-target-min</span>: <span class="token-number">44px</span>
+
+<span class="token-comment">/* 浮岛药丸导航 Floating Pill */</span>
+<span class="token-keyword">--pill-height</span>:        <span class="token-number">52px</span>
+<span class="token-keyword">--pill-margin-x</span>:      <span class="token-number">32px</span>
+<span class="token-keyword">--pill-margin-bottom</span>: <span class="token-number">16px</span>
+<span class="token-keyword">--pill-bg</span>:           rgba(250,246,241,<span class="token-number">0.82</span>)
+<span class="token-keyword">--pill-bg-blur</span>:      blur(<span class="token-number">20px</span>)
+<span class="token-keyword">--pill-center-size</span>:  <span class="token-number">44px</span>
+<span class="token-keyword">--pill-center-bg</span>:    var(--color-primary-500)
+
+<span class="token-comment">/* z-index 层级 */</span>
+<span class="token-keyword">--z-base</span>:          <span class="token-number">0</span>
+<span class="token-keyword">--z-dropdown</span>:    <span class="token-number">100</span>
+<span class="token-keyword">--z-sticky</span>:      <span class="token-number">200</span>
+<span class="token-keyword">--z-fixed</span>:       <span class="token-number">300</span>
+<span class="token-keyword">--z-floating-nav</span>: <span class="token-number">350</span>
+<span class="token-keyword">--z-modal-backdrop</span>: <span class="token-number">400</span>
+<span class="token-keyword">--z-modal</span>:       <span class="token-number">500</span>
+<span class="token-keyword">--z-toast</span>:       <span class="token-number">600</span>
+    </div>
+  </section>
+
+  <!-- ============================================
+       底部
+       ============================================ -->
+  <footer class="footer">
+    <span>Daymark Design System v1.0.0 · 2026</span>
+    <span>https://sfile.chatglm.cn/workspace/file/39/392a106e8f.css · 全局 CSS 变量定义</span>
+  </footer>
+
+</div>
+
+</body>
+</html>

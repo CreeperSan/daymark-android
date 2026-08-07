@@ -98,6 +98,7 @@ dependencies {
     // 网络框架：Retrofit 3.0.0 与 OkHttp 4.12.0 均为稳定版本。
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
     implementation("com.squareup.retrofit2:retrofit:3.0.0")
     implementation("com.squareup.retrofit2:converter-gson:3.0.0")
     implementation("com.squareup.retrofit2:converter-protobuf:3.0.0")
@@ -112,7 +113,7 @@ tasks.register("verifyNetworkLayerBoundaries") {
     group = "verification"
     description = "校验网络基础设施不依赖 RxJava 或 Android UI。"
     doLast {
-        val networkSources = fileTree("src/main/java/com/creepersan/memorialday/network") {
+        val networkSources = fileTree("src/main/java/com/creepersan/memorialday/module/network") {
             include("**/*.kt")
         }
         val forbiddenImports = listOf("io.reactivex", "android.view", "androidx.compose", "android.widget")

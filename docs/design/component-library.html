@@ -1,0 +1,2349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daymark · 公共组件库 v2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://sfile.chatglm.cn/workspace/file/39/392a106e8f.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--gradient-dawn);
+      color: var(--fg);
+      line-height: var(--leading-normal);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      min-height: 100vh;
+    }
+
+    /* ============================================
+       页面框架
+       ============================================ */
+    .layout {
+      display: flex;
+      gap: var(--space-8);
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: var(--space-8) var(--space-6);
+    }
+
+    .sidebar {
+      width: 200px;
+      flex-shrink: 0;
+      position: sticky;
+      top: var(--space-8);
+      align-self: flex-start;
+      max-height: calc(100vh - var(--space-16));
+      overflow-y: auto;
+    }
+
+    .sidebar-title {
+      font-size: var(--text-caption);
+      font-weight: var(--weight-semibold);
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-wide);
+      color: var(--fg-muted);
+      margin-bottom: var(--space-3);
+    }
+
+    .sidebar-group {
+      margin-bottom: var(--space-5);
+    }
+
+    .sidebar-link {
+      display: block;
+      padding: var(--space-1) var(--space-3);
+      font-size: var(--text-sm);
+      color: var(--fg-secondary);
+      text-decoration: none;
+      border-radius: var(--radius-md);
+      transition: all var(--duration-fast) var(--ease-out);
+      border-left: 2px solid transparent;
+      margin-bottom: 2px;
+    }
+
+    .sidebar-link:hover {
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .sidebar-link.active {
+      color: var(--accent);
+      font-weight: var(--weight-medium);
+      background: var(--accent-soft);
+      border-left-color: var(--accent);
+    }
+
+    @media (max-width: 768px) {
+      .layout { flex-direction: column; padding: var(--space-4); }
+      .sidebar { position: relative; width: 100%; max-height: none; }
+      .sidebar-link { display: inline-block; margin-right: var(--space-1); }
+    }
+
+    /* ============================================
+       主内容区
+       ============================================ */
+    .content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .page-header {
+      margin-bottom: var(--space-12);
+    }
+
+    .page-eyebrow {
+      font-size: var(--text-caption);
+      font-weight: var(--weight-semibold);
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-wide);
+      color: var(--accent);
+      margin-bottom: var(--space-2);
+    }
+
+    .page-title {
+      font-size: var(--text-4xl);
+      font-weight: var(--weight-bold);
+      letter-spacing: var(--tracking-tight);
+      line-height: var(--leading-tight);
+      color: var(--fg);
+      margin-bottom: var(--space-3);
+    }
+
+    .page-subtitle {
+      font-size: var(--text-lg);
+      color: var(--fg-secondary);
+      max-width: 600px;
+      line-height: var(--leading-relaxed);
+    }
+
+    .page-meta {
+      display: flex;
+      gap: var(--space-4);
+      margin-top: var(--space-4);
+      flex-wrap: wrap;
+    }
+
+    .meta-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+      padding: var(--space-1) var(--space-3);
+      background: var(--surface);
+      border-radius: var(--radius-full);
+      font-size: var(--text-caption);
+      color: var(--fg-secondary);
+    }
+
+    .meta-chip-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    /* ============================================
+       组件章节
+       ============================================ */
+    .comp-section {
+      margin-bottom: var(--space-16);
+      scroll-margin-top: var(--space-8);
+    }
+
+    .comp-header {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-3);
+      margin-bottom: var(--space-5);
+    }
+
+    .comp-number {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--accent);
+      font-weight: var(--weight-medium);
+    }
+
+    .comp-title {
+      font-size: var(--text-2xl);
+      font-weight: var(--weight-semibold);
+      color: var(--fg);
+      letter-spacing: var(--tracking-tight);
+    }
+
+    .comp-desc {
+      font-size: var(--text-sm);
+      color: var(--fg-secondary);
+      margin-bottom: var(--space-6);
+      max-width: 560px;
+    }
+
+    /* ============================================
+       展示面板 — 手机优先画框
+       ============================================ */
+    .demo-row {
+      display: flex;
+      gap: var(--space-6);
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+
+    .demo-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .demo-label {
+      font-size: var(--text-caption);
+      font-weight: var(--weight-semibold);
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-wide);
+      color: var(--fg-muted);
+    }
+
+    .demo-row-items {
+      display: flex;
+      gap: var(--space-3);
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    /* ============================================
+       手机画框 (375px)
+       ============================================ */
+    .phone-frame {
+      width: 375px;
+      max-width: 100%;
+      background: var(--surface);
+      border-radius: var(--radius-2xl);
+      overflow: hidden;
+      position: relative;
+      box-shadow: 
+        0 4px 6px -1px rgba(42, 36, 29, 0.04),
+        0 10px 30px -10px rgba(42, 36, 29, 0.08),
+        0 1px 2px rgba(42, 36, 29, 0.03);
+    }
+
+    .phone-frame-compact {
+      padding: var(--space-4);
+    }
+
+    .phone-frame-label {
+      position: absolute;
+      top: var(--space-2);
+      right: var(--space-3);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--fg-muted);
+      z-index: 10;
+    }
+
+    /* ============================================
+       1. 文本组件
+       ============================================ */
+    .text-demo {
+      padding: var(--space-5);
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+
+    .text-row {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-4);
+    }
+
+    .text-row-info {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--fg-muted);
+      min-width: 120px;
+      flex-shrink: 0;
+    }
+
+    /* ============================================
+       2. 按钮
+       ============================================ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      height: var(--button-height);
+      padding: 0 var(--space-6);
+      font-family: var(--font-sans);
+      font-size: var(--text-base);
+      font-weight: var(--weight-medium);
+      border: none;
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      transition: all var(--duration-normal) cubic-bezier(0.22, 1, 0.36, 1);
+      position: relative;
+      overflow: hidden;
+      letter-spacing: var(--tracking-tight);
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    /* 主按钮 — 渐变 + 光泽 */
+    .btn-primary {
+      background: linear-gradient(135deg, #D9622E 0%, #E07A3E 100%);
+      color: var(--color-neutral-0);
+      box-shadow: 
+        0 2px 8px -2px rgba(217, 98, 46, 0.35),
+        0 1px 2px rgba(42, 36, 29, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 50%);
+      pointer-events: none;
+      border-radius: inherit;
+    }
+
+    .btn-primary:hover {
+      box-shadow: 
+        0 4px 16px -2px rgba(217, 98, 46, 0.4),
+        0 2px 4px rgba(42, 36, 29, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+
+    /* 次级按钮 — 柔和底色 */
+    .btn-secondary {
+      background: var(--accent-soft);
+      color: var(--color-primary-600);
+    }
+
+    .btn-secondary:hover {
+      background: var(--color-primary-100);
+    }
+
+    /* 幽灵按钮 — 无边框 */
+    .btn-ghost {
+      background: transparent;
+      color: var(--fg-secondary);
+    }
+
+    .btn-ghost:hover {
+      background: rgba(42, 36, 29, 0.04);
+      color: var(--fg);
+    }
+
+    /* 文字按钮 */
+    .btn-text {
+      background: transparent;
+      color: var(--color-primary-600);
+      padding: 0 var(--space-2);
+      height: auto;
+    }
+
+    .btn-text:hover {
+      color: var(--color-primary-700);
+    }
+
+    /* 危险按钮 */
+    .btn-danger {
+      background: var(--color-danger-bg);
+      color: var(--color-danger-text);
+    }
+
+    .btn-danger:hover {
+      background: rgba(220, 53, 34, 0.12);
+    }
+
+    /* 禁用 */
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    /* 加载 */
+    .btn-loading .btn-text-content { opacity: 0; }
+    .btn-loading::after {
+      content: '';
+      position: absolute;
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* 小尺寸 */
+    .btn-sm {
+      height: var(--button-height-sm);
+      font-size: var(--text-sm);
+      padding: 0 var(--space-4);
+      border-radius: var(--radius-md);
+    }
+
+    /* 图标按钮 */
+    .btn-icon {
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      border-radius: var(--radius-lg);
+      background: rgba(42, 36, 29, 0.04);
+      color: var(--fg-secondary);
+    }
+
+    .btn-icon:hover {
+      background: rgba(42, 36, 29, 0.08);
+      color: var(--fg);
+    }
+
+    /* 圆形图标按钮 */
+    .btn-icon-circle {
+      border-radius: var(--radius-full);
+    }
+
+    /* ============================================
+       3. 输入框
+       ============================================ */
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      width: 100%;
+    }
+
+    .input-label {
+      font-size: var(--text-sm);
+      font-weight: var(--weight-medium);
+      color: var(--fg);
+      padding-left: var(--space-1);
+    }
+
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input {
+      width: 100%;
+      height: var(--input-height);
+      padding: 0 var(--space-4);
+      font-family: var(--font-sans);
+      font-size: var(--text-base);
+      color: var(--fg);
+      background: rgba(42, 36, 29, 0.03);
+      border: 1.5px solid transparent;
+      border-radius: var(--radius-lg);
+      transition: all var(--duration-normal) var(--ease-out);
+      outline: none;
+    }
+
+    .input::placeholder {
+      color: var(--fg-muted);
+    }
+
+    .input:hover {
+      background: rgba(42, 36, 29, 0.05);
+    }
+
+    .input:focus {
+      background: var(--color-neutral-0);
+      border-color: var(--color-primary-300);
+      box-shadow: 0 0 0 4px rgba(217, 98, 46, 0.08);
+    }
+
+    .input-error {
+      background: rgba(220, 53, 34, 0.04);
+    }
+
+    .input-error:focus {
+      border-color: var(--color-danger);
+      box-shadow: 0 0 0 4px rgba(220, 53, 34, 0.08);
+    }
+
+    .input-icon-left {
+      position: absolute;
+      left: var(--space-3);
+      width: 20px; height: 20px;
+      color: var(--fg-muted);
+      pointer-events: none;
+    }
+
+    .input-icon-right {
+      position: absolute;
+      right: var(--space-3);
+      width: 20px; height: 20px;
+      color: var(--fg-muted);
+      cursor: pointer;
+      transition: color var(--duration-fast);
+    }
+
+    .input-icon-right:hover { color: var(--fg); }
+
+    .input-has-icon-left { padding-left: var(--space-10); }
+    .input-has-icon-right { padding-right: var(--space-10); }
+
+    .input-help {
+      font-size: var(--text-caption);
+      color: var(--fg-muted);
+      padding-left: var(--space-1);
+    }
+
+    .input-error-text {
+      font-size: var(--text-caption);
+      color: var(--color-danger);
+      padding-left: var(--space-1);
+    }
+
+    /* ============================================
+       4. OTP 验证码框
+       ============================================ */
+    .otp-container {
+      display: flex;
+      gap: var(--space-2);
+      justify-content: center;
+    }
+
+    .otp-box {
+      width: 48px;
+      height: 56px;
+      text-align: center;
+      font-size: var(--text-xl);
+      font-weight: var(--weight-semibold);
+      font-family: var(--font-num);
+      color: var(--fg);
+      background: rgba(42, 36, 29, 0.03);
+      border: 1.5px solid transparent;
+      border-radius: var(--radius-md);
+      outline: none;
+      transition: all var(--duration-normal) var(--ease-out);
+    }
+
+    .otp-box:focus {
+      background: var(--color-neutral-0);
+      border-color: var(--color-primary-300);
+      box-shadow: 0 0 0 4px rgba(217, 98, 46, 0.08);
+      transform: translateY(-2px);
+    }
+
+    .otp-box.filled {
+      background: var(--accent-soft);
+      border-color: var(--color-primary-200);
+      color: var(--color-primary-600);
+    }
+
+    /* ============================================
+       5. 开关 Switch
+       ============================================ */
+    .switch {
+      position: relative;
+      width: 48px;
+      height: 28px;
+      background: rgba(42, 36, 29, 0.12);
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      transition: all var(--duration-normal) var(--ease-spring);
+      border: none;
+    }
+
+    .switch-on {
+      background: linear-gradient(135deg, #D9622E 0%, #E07A3E 100%);
+      box-shadow: 0 2px 8px -2px rgba(217, 98, 46, 0.3);
+    }
+
+    .switch-thumb {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 22px;
+      height: 22px;
+      background: white;
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(42, 36, 29, 0.15);
+      transition: all var(--duration-normal) var(--ease-spring);
+    }
+
+    .switch-on .switch-thumb {
+      transform: translateX(20px);
+    }
+
+    /* ============================================
+       6. 单选/复选
+       ============================================ */
+    .radio {
+      width: 22px;
+      height: 22px;
+      border: 2px solid rgba(42, 36, 29, 0.15);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all var(--duration-fast) var(--ease-out);
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .radio-checked {
+      border-color: var(--color-primary-500);
+      background: radial-gradient(circle, var(--color-primary-500) 40%, transparent 42%);
+    }
+
+    .checkbox {
+      width: 22px;
+      height: 22px;
+      border: 2px solid rgba(42, 36, 29, 0.15);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all var(--duration-fast) var(--ease-out);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .checkbox-checked {
+      background: linear-gradient(135deg, #D9622E 0%, #E07A3E 100%);
+      border-color: transparent;
+    }
+
+    .checkbox-checked::after {
+      content: '';
+      width: 6px; height: 10px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg) translateY(-1px);
+    }
+
+    /* ============================================
+       7. 卡片 — 多种变体
+       ============================================ */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius-xl);
+      padding: var(--space-5);
+      transition: all var(--duration-normal) var(--ease-out);
+      box-shadow: 
+        0 1px 3px rgba(42, 36, 29, 0.04),
+        0 4px 12px -4px rgba(42, 36, 29, 0.04);
+    }
+
+    .card-interactive:hover {
+      transform: translateY(-2px);
+      box-shadow: 
+        0 2px 6px rgba(42, 36, 29, 0.06),
+        0 12px 28px -6px rgba(42, 36, 29, 0.08);
+    }
+
+    /* 纪念日卡片 — 带分类色 */
+    .card-anniversary {
+      position: relative;
+      overflow: hidden;
+      padding: var(--space-5);
+      background: var(--surface);
+      border-radius: var(--radius-xl);
+      box-shadow: 
+        0 1px 3px rgba(42, 36, 29, 0.04),
+        0 8px 20px -6px rgba(42, 36, 29, 0.06);
+      transition: all var(--duration-normal) cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .card-anniversary:hover {
+      transform: translateY(-3px);
+      box-shadow: 
+        0 2px 8px rgba(42, 36, 29, 0.06),
+        0 16px 36px -8px rgba(42, 36, 29, 0.1);
+    }
+
+    .card-anniversary::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    }
+
+    .card-anniversary-rose::before { background: linear-gradient(90deg, #E8675A, #E8A838); }
+    .card-anniversary-amber::before { background: linear-gradient(90deg, #E8A838, #EDC55A); }
+    .card-anniversary-teal::before { background: linear-gradient(90deg, #3B8B8E, #5DB5B8); }
+    .card-anniversary-lavender::before { background: linear-gradient(90deg, #8B76B5, #AE99C8); }
+
+    .card-anniversary-body {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+    }
+
+    .card-anniversary-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .card-anniversary-icon-rose { background: var(--color-rose-50); color: var(--color-rose-500); }
+    .card-anniversary-icon-amber { background: var(--color-amber-50); color: var(--color-amber-600); }
+    .card-anniversary-icon-teal { background: var(--color-teal-50); color: var(--color-teal-500); }
+    .card-anniversary-icon-lavender { background: var(--color-lavender-50); color: var(--color-lavender-500); }
+
+    .card-anniversary-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .card-anniversary-title {
+      font-size: var(--text-base);
+      font-weight: var(--weight-semibold);
+      color: var(--fg);
+      margin-bottom: 2px;
+    }
+
+    .card-anniversary-sub {
+      font-size: var(--text-caption);
+      color: var(--fg-secondary);
+    }
+
+    .card-anniversary-num {
+      font-family: var(--font-num);
+      font-size: var(--text-2xl);
+      font-weight: var(--weight-bold);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: var(--tracking-tight);
+    }
+
+    .card-anniversary-num-rose { color: var(--color-rose-500); }
+    .card-anniversary-num-amber { color: var(--color-amber-600); }
+    .card-anniversary-num-teal { color: var(--color-teal-500); }
+    .card-anniversary-num-lavender { color: var(--color-lavender-500); }
+
+    /* Featured 卡片 — 渐变背景 */
+    .card-featured {
+      background: linear-gradient(135deg, #D9622E 0%, #E8A838 100%);
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-featured::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 50%);
+      pointer-events: none;
+    }
+
+    .card-featured-title {
+      font-size: var(--text-sm);
+      opacity: 0.85;
+      margin-bottom: var(--space-1);
+    }
+
+    .card-featured-num {
+      font-family: var(--font-num);
+      font-size: 3rem;
+      font-weight: var(--weight-bold);
+      line-height: 1;
+      margin-bottom: var(--space-1);
+    }
+
+    .card-featured-label {
+      font-size: var(--text-caption);
+      opacity: 0.7;
+    }
+
+    /* ============================================
+       8. 列表
+       ============================================ */
+    .list-section {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .list-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-4);
+      transition: background var(--duration-fast) var(--ease-out);
+      cursor: pointer;
+    }
+
+    .list-item:hover {
+      background: rgba(42, 36, 29, 0.03);
+    }
+
+    .list-item + .list-item {
+      border-top: 1px solid rgba(42, 36, 29, 0.04);
+    }
+
+    .list-item-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-md);
+      background: rgba(42, 36, 29, 0.04);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--fg-secondary);
+    }
+
+    .list-item-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .list-item-title {
+      font-size: var(--text-sm);
+      font-weight: var(--weight-medium);
+      color: var(--fg);
+    }
+
+    .list-item-sub {
+      font-size: var(--text-caption);
+      color: var(--fg-muted);
+    }
+
+    .list-item-value {
+      font-size: var(--text-sm);
+      color: var(--fg-secondary);
+    }
+
+    .list-item-chevron {
+      color: var(--fg-muted);
+      flex-shrink: 0;
+    }
+
+    /* ============================================
+       9. 标题栏 — 标准 + 沉浸式
+       ============================================ */
+    .nav-demo {
+      width: 375px;
+      max-width: 100%;
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      position: relative;
+      box-shadow: 
+        0 4px 6px -1px rgba(42, 36, 29, 0.04),
+        0 10px 30px -10px rgba(42, 36, 29, 0.08);
+    }
+
+    .nav-standard {
+      height: 44px;
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 var(--space-4);
+    }
+
+    .nav-title {
+      font-size: var(--text-base);
+      font-weight: var(--weight-semibold);
+      color: var(--fg);
+    }
+
+    .nav-btn {
+      width: 32px; height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-md);
+      color: var(--fg);
+      cursor: pointer;
+      transition: background var(--duration-fast);
+    }
+
+    .nav-btn:hover { background: rgba(42, 36, 29, 0.05); }
+
+    /* 沉浸式标题栏 — 透明 + 配图 */
+    .nav-immersive-demo {
+      height: 280px;
+      background: linear-gradient(135deg, #C0521F 0%, #E8A838 60%, #EDC55A 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .nav-immersive-demo::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: 
+        radial-gradient(ellipse at 70% 20%, rgba(255,255,255,0.2) 0%, transparent 50%),
+        radial-gradient(ellipse at 20% 80%, rgba(255,255,255,0.08) 0%, transparent 40%);
+      pointer-events: none;
+    }
+
+    .nav-immersive {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 44px;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 var(--space-4);
+      z-index: 2;
+    }
+
+    .nav-immersive .nav-title,
+    .nav-immersive .nav-btn {
+      color: white;
+    }
+
+    .nav-immersive .nav-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .nav-immersive-content {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: var(--space-6);
+      color: white;
+      z-index: 1;
+    }
+
+    .nav-immersive-eyebrow {
+      font-size: var(--text-caption);
+      opacity: 0.8;
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-wide);
+      margin-bottom: var(--space-1);
+    }
+
+    .nav-immersive-title {
+      font-size: var(--text-2xl);
+      font-weight: var(--weight-bold);
+      margin-bottom: var(--space-2);
+    }
+
+    .nav-immersive-sub {
+      font-size: var(--text-sm);
+      opacity: 0.85;
+    }
+
+    /* 滚动后状态 */
+    .nav-scrolled-demo {
+      height: 44px;
+      background: rgba(250, 246, 241, 0.85);
+      backdrop-filter: blur(20px) saturate(1.8);
+      -webkit-backdrop-filter: blur(20px) saturate(1.8);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 var(--space-4);
+      box-shadow: 0 1px 3px rgba(42, 36, 29, 0.04);
+    }
+
+    /* ============================================
+       10. 进度条
+       ============================================ */
+    .progress-linear {
+      width: 100%;
+      height: 6px;
+      background: rgba(42, 36, 29, 0.06);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #D9622E, #E8A838);
+      border-radius: var(--radius-full);
+      transition: width var(--duration-slow) var(--ease-out);
+    }
+
+    .progress-circular {
+      width: 64px;
+      height: 64px;
+      position: relative;
+    }
+
+    .progress-circular svg {
+      transform: rotate(-90deg);
+    }
+
+    .progress-circular-track {
+      fill: none;
+      stroke: rgba(42, 36, 29, 0.06);
+      stroke-width: 6;
+    }
+
+    .progress-circular-fill {
+      fill: none;
+      stroke: url(#progressGrad);
+      stroke-width: 6;
+      stroke-linecap: round;
+      transition: stroke-dashoffset var(--duration-slow) var(--ease-out);
+    }
+
+    .progress-circular-text {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: var(--font-num);
+      font-size: var(--text-sm);
+      font-weight: var(--weight-semibold);
+      color: var(--fg);
+    }
+
+    /* ============================================
+       11. 分割线
+       ============================================ */
+    .divider {
+      height: 1px;
+      background: rgba(42, 36, 29, 0.06);
+      border: none;
+    }
+
+    .divider-dashed {
+      height: 1px;
+      border-top: 1px dashed rgba(42, 36, 29, 0.10);
+      background: none;
+    }
+
+    .divider-text {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      color: var(--fg-muted);
+      font-size: var(--text-caption);
+    }
+
+    .divider-text::before,
+    .divider-text::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(42, 36, 29, 0.06);
+    }
+
+    /* ============================================
+       12. Toast
+       ============================================ */
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-lg);
+      font-size: var(--text-sm);
+      font-weight: var(--weight-medium);
+      box-shadow: 
+        0 4px 16px -4px rgba(42, 36, 29, 0.12),
+        0 1px 3px rgba(42, 36, 29, 0.06);
+      max-width: 320px;
+    }
+
+    .toast-success {
+      background: linear-gradient(135deg, #4A7A51 0%, #5E8C64 100%);
+      color: white;
+    }
+
+    .toast-warning {
+      background: linear-gradient(135deg, #D97706 0%, #EDC55A 100%);
+      color: white;
+    }
+
+    .toast-error {
+      background: linear-gradient(135deg, #C95248 0%, #E77D6E 100%);
+      color: white;
+    }
+
+    .toast-info {
+      background: var(--surface);
+      color: var(--fg);
+      border: 1px solid rgba(42, 36, 29, 0.06);
+    }
+
+    /* ============================================
+       13. 模态框
+       ============================================ */
+    .modal-demo {
+      width: 375px;
+      max-width: 100%;
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: 
+        0 8px 32px -8px rgba(42, 36, 29, 0.12),
+        0 2px 8px rgba(42, 36, 29, 0.06);
+    }
+
+    .modal-header {
+      padding: var(--space-5) var(--space-5) var(--space-3);
+      text-align: center;
+    }
+
+    .modal-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto var(--space-3);
+      border-radius: var(--radius-full);
+      background: var(--accent-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+    }
+
+    .modal-title {
+      font-size: var(--text-lg);
+      font-weight: var(--weight-semibold);
+      color: var(--fg);
+      margin-bottom: var(--space-1);
+    }
+
+    .modal-desc {
+      font-size: var(--text-sm);
+      color: var(--fg-secondary);
+      line-height: var(--leading-relaxed);
+    }
+
+    .modal-body {
+      padding: var(--space-3) var(--space-5);
+    }
+
+    .modal-footer {
+      padding: var(--space-3) var(--space-5) var(--space-5);
+      display: flex;
+      gap: var(--space-3);
+    }
+
+    .modal-footer .btn { flex: 1; }
+
+    /* 底部抽屉 */
+    .sheet-demo {
+      width: 375px;
+      max-width: 100%;
+      background: var(--surface);
+      border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+      padding: var(--space-5);
+      box-shadow: 0 -4px 20px -4px rgba(42, 36, 29, 0.08);
+    }
+
+    .sheet-handle {
+      width: 36px;
+      height: 4px;
+      background: rgba(42, 36, 29, 0.15);
+      border-radius: var(--radius-full);
+      margin: 0 auto var(--space-4);
+    }
+
+    /* ============================================
+       14. 加载
+       ============================================ */
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 2.5px solid rgba(217, 98, 46, 0.15);
+      border-top-color: var(--color-primary-500);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    .spinner-lg {
+      width: 40px;
+      height: 40px;
+      border-width: 3px;
+    }
+
+    .spinner-sm {
+      width: 16px;
+      height: 16px;
+      border-width: 2px;
+    }
+
+    .dots {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .dots span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--color-primary-400);
+      animation: dotBounce 1.2s ease-in-out infinite;
+    }
+
+    .dots span:nth-child(2) { animation-delay: 0.15s; }
+    .dots span:nth-child(3) { animation-delay: 0.3s; }
+
+    @keyframes dotBounce {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+      30% { transform: translateY(-6px); opacity: 1; }
+    }
+
+    /* ============================================
+       15. 通知
+       ============================================ */
+    .notification {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-3);
+      padding: var(--space-4);
+      border-radius: var(--radius-lg);
+      background: var(--surface);
+      box-shadow: 0 2px 8px -2px rgba(42, 36, 29, 0.06);
+      max-width: 375px;
+    }
+
+    .notification-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .notification-body {
+      flex: 1;
+    }
+
+    .notification-title {
+      font-size: var(--text-sm);
+      font-weight: var(--weight-semibold);
+      color: var(--fg);
+      margin-bottom: 2px;
+    }
+
+    .notification-text {
+      font-size: var(--text-caption);
+      color: var(--fg-secondary);
+      line-height: var(--leading-tight);
+    }
+
+    .notification-close {
+      color: var(--fg-muted);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    /* ============================================
+       16. 浮岛药丸
+       ============================================ */
+    .pill-nav-demo {
+      width: 375px;
+      max-width: 100%;
+      height: 400px;
+      background: var(--gradient-dawn);
+      border-radius: var(--radius-xl);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 
+        0 4px 6px -1px rgba(42, 36, 29, 0.04),
+        0 10px 30px -10px rgba(42, 36, 29, 0.08);
+    }
+
+    .pill-nav-content {
+      padding: var(--space-4);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .pill-nav {
+      position: absolute;
+      bottom: 16px;
+      left: 32px;
+      right: 32px;
+      height: 52px;
+      background: rgba(250, 246, 241, 0.82);
+      backdrop-filter: blur(20px) saturate(1.8);
+      -webkit-backdrop-filter: blur(20px) saturate(1.8);
+      border: 1px solid rgba(229, 219, 208, 0.5);
+      border-radius: var(--radius-full);
+      box-shadow: 
+        0 4px 24px -6px rgba(42, 36, 29, 0.12),
+        0 1px 4px rgba(42, 36, 29, 0.04),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 var(--space-2);
+    }
+
+    .pill-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      min-width: 44px;
+      padding: 8px 10px;
+      border-radius: var(--radius-full);
+      transition: all var(--duration-fast) var(--ease-out);
+      color: var(--color-neutral-500);
+    }
+
+    .pill-item svg {
+      width: 22px;
+      height: 22px;
+      stroke-width: 1.75;
+      fill: none;
+      stroke: currentColor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .pill-item span {
+      font-size: 9px;
+      font-weight: var(--weight-medium);
+      margin-top: 1px;
+    }
+
+    .pill-item.active {
+      background: var(--color-primary-50);
+      color: var(--color-primary-600);
+    }
+
+    .pill-center {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #D9622E 0%, #E07A3E 100%);
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 
+        0 4px 16px -4px rgba(217, 98, 46, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: all var(--duration-normal) var(--ease-spring);
+    }
+
+    .pill-center:hover {
+      transform: scale(1.05);
+      box-shadow: 
+        0 6px 20px -4px rgba(217, 98, 46, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    }
+
+    .pill-center:active {
+      transform: scale(0.92);
+    }
+
+    .pill-center svg {
+      width: 20px;
+      height: 20px;
+      stroke: white;
+      stroke-width: 2.5;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* ============================================
+       17. 骨架屏
+       ============================================ */
+    .skeleton {
+      background: linear-gradient(
+        90deg,
+        rgba(42, 36, 29, 0.04) 0%,
+        rgba(42, 36, 29, 0.08) 50%,
+        rgba(42, 36, 29, 0.04) 100%
+      );
+      background-size: 200% 100%;
+      animation: shimmer 1.8s ease-in-out infinite;
+      border-radius: var(--radius-md);
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .skeleton-text {
+      height: 14px;
+      margin-bottom: 8px;
+    }
+
+    .skeleton-title {
+      height: 20px;
+      margin-bottom: 12px;
+      width: 60%;
+    }
+
+    .skeleton-circle {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .skeleton-card {
+      padding: var(--space-4);
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    /* ============================================
+       18-19. 空状态 / 错误状态
+       ============================================ */
+    .empty-state {
+      padding: var(--space-10) var(--space-6);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .empty-illust {
+      width: 120px;
+      height: 120px;
+      margin-bottom: var(--space-2);
+    }
+
+    .empty-title {
+      font-size: var(--text-lg);
+      font-weight: var(--weight-semibold);
+      color: var(--fg);
+    }
+
+    .empty-text {
+      font-size: var(--text-sm);
+      color: var(--fg-secondary);
+      max-width: 260px;
+      line-height: var(--leading-relaxed);
+    }
+
+    /* ============================================
+       20. 轮播图
+       ============================================ */
+    .carousel {
+      width: 375px;
+      max-width: 100%;
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 4px 16px -4px rgba(42, 36, 29, 0.08);
+    }
+
+    .carousel-track {
+      display: flex;
+      transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .carousel-slide {
+      min-width: 100%;
+      height: 160px;
+      padding: var(--space-5);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      color: white;
+      position: relative;
+    }
+
+    .carousel-slide::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.3) 100%);
+      pointer-events: none;
+    }
+
+    .carousel-slide-1 { background: linear-gradient(135deg, #E8675A 0%, #E8A838 100%); }
+    .carousel-slide-2 { background: linear-gradient(135deg, #3B8B8E 0%, #5DB5B8 100%); }
+    .carousel-slide-3 { background: linear-gradient(135deg, #8B76B5 0%, #AE99C8 100%); }
+
+    .carousel-slide-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .carousel-slide-title {
+      font-size: var(--text-lg);
+      font-weight: var(--weight-bold);
+      margin-bottom: 2px;
+    }
+
+    .carousel-slide-sub {
+      font-size: var(--text-caption);
+      opacity: 0.85;
+    }
+
+    .carousel-dots {
+      position: absolute;
+      bottom: var(--space-3);
+      right: var(--space-4);
+      display: flex;
+      gap: 6px;
+      z-index: 2;
+    }
+
+    .carousel-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: var(--radius-full);
+      background: rgba(255, 255, 255, 0.4);
+      transition: all var(--duration-normal) var(--ease-out);
+      cursor: pointer;
+    }
+
+    .carousel-dot.active {
+      width: 20px;
+      background: white;
+    }
+
+    /* ============================================
+       底部
+       ============================================ */
+    .footer {
+      margin-top: var(--space-16);
+      padding: var(--space-8) 0;
+      border-top: 1px solid rgba(42, 36, 29, 0.06);
+      display: flex;
+      justify-content: space-between;
+      font-size: var(--text-caption);
+      color: var(--fg-muted);
+    }
+
+    /* SVG 图标通用 */
+    svg {
+      display: block;
+    }
+
+    .icon-sm { width: 18px; height: 18px; }
+    .icon-md { width: 20px; height: 20px; }
+    .icon-lg { width: 24px; height: 24px; }
+
+    .stroke-current { stroke: currentColor; fill: none; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- 侧边导航 -->
+  <nav class="sidebar">
+    <div class="sidebar-group">
+      <div class="sidebar-title">基础组件</div>
+      <a href="#text" class="sidebar-link">01 文本</a>
+      <a href="#button" class="sidebar-link">02 按钮</a>
+      <a href="#input" class="sidebar-link">03 输入框</a>
+      <a href="#otp" class="sidebar-link">04 验证码</a>
+      <a href="#switch" class="sidebar-link">05 开关</a>
+      <a href="#radio" class="sidebar-link">06 单选/复选</a>
+      <a href="#card" class="sidebar-link">07 卡片</a>
+      <a href="#list" class="sidebar-link">08 列表</a>
+      <a href="#navbar" class="sidebar-link">09 标题栏</a>
+      <a href="#progress" class="sidebar-link">10 进度条</a>
+      <a href="#divider" class="sidebar-link">11 分割线</a>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-title">反馈提示</div>
+      <a href="#toast" class="sidebar-link">12 Toast</a>
+      <a href="#modal" class="sidebar-link">13 模态框</a>
+      <a href="#loading" class="sidebar-link">14 加载</a>
+      <a href="#notification" class="sidebar-link">15 通知</a>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-title">展示组件</div>
+      <a href="#pill" class="sidebar-link">16 浮岛药丸</a>
+      <a href="#skeleton" class="sidebar-link">17 骨架屏</a>
+      <a href="#empty" class="sidebar-link">18 空状态</a>
+      <a href="#error" class="sidebar-link">19 错误状态</a>
+      <a href="#carousel" class="sidebar-link">20 轮播图</a>
+    </div>
+  </nav>
+
+  <!-- 主内容 -->
+  <main class="content">
+    <header class="page-header">
+      <div class="page-eyebrow">Component Library v2</div>
+      <h1 class="page-title">公共组件库</h1>
+      <p class="page-subtitle">
+        20 个组件 · 手机优先设计 · 全状态覆盖。
+        去硬边框、加渐变层次、引分类色、增微交互——让组件有温度、有惊喜。
+      </p>
+      <div class="page-meta">
+        <span class="meta-chip"><span class="meta-chip-dot" style="background:var(--color-rose-500)"></span>珊瑚玫瑰</span>
+        <span class="meta-chip"><span class="meta-chip-dot" style="background:var(--color-amber-500)"></span>蜜金</span>
+        <span class="meta-chip"><span class="meta-chip-dot" style="background:var(--color-teal-400)"></span>青潮</span>
+        <span class="meta-chip"><span class="meta-chip-dot" style="background:var(--color-lavender-400)"></span>薰衣</span>
+      </div>
+    </header>
+
+    <!-- ============================================
+         01 文本
+         ============================================ -->
+    <section class="comp-section" id="text">
+      <div class="comp-header">
+        <span class="comp-number">01</span>
+        <h2 class="comp-title">文本</h2>
+      </div>
+      <p class="comp-desc">7 级展示 + 数字用等宽数字。标题用思源黑体，数字用 Inter tabular-nums。</p>
+      <div class="phone-frame phone-frame-compact">
+        <span class="phone-frame-label">375px</span>
+        <div class="text-demo">
+          <div class="text-row"><span class="text-row-info">Display 32px</span><span style="font-size:32px;font-weight:var(--weight-bold);letter-spacing:var(--tracking-tight)">96 天</span></div>
+          <div class="text-row"><span class="text-row-info">H1 24px</span><span style="font-size:24px;font-weight:var(--weight-bold)">恋爱纪念日</span></div>
+          <div class="text-row"><span class="text-row-info">H2 20px</span><span style="font-size:20px;font-weight:var(--weight-semibold)">2024.11.18</span></div>
+          <div class="text-row"><span class="text-row-info">Body 16px</span><span style="font-size:16px">第 2 年 · 还有 96 天</span></div>
+          <div class="text-row"><span class="text-row-info">Body-sm 14px</span><span style="font-size:14px;color:var(--fg-secondary)">点击查看更多详情</span></div>
+          <div class="text-row"><span class="text-row-info">Caption 12px</span><span style="font-size:12px;color:var(--fg-muted)">最近编辑于 3 天前</span></div>
+          <div class="text-row"><span class="text-row-info">Number</span><span style="font-family:var(--font-num);font-variant-numeric:tabular-nums;font-size:20px;font-weight:var(--weight-semibold);color:var(--color-rose-500)">72</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================
+         02 按钮
+         ============================================ -->
+    <section class="comp-section" id="button">
+      <div class="comp-header">
+        <span class="comp-number">02</span>
+        <h2 class="comp-title">按钮</h2>
+      </div>
+      <p class="comp-desc">主按钮用暖渐变 + 内嵌高光 + 弹性缩放。hover 上浮 1px，active 缩放 0.97。无硬边框。</p>
+      <div class="phone-frame phone-frame-compact">
+        <span class="phone-frame-label">375px</span>
+        <div style="display:flex;flex-direction:column;gap:var(--space-5)">
+          <div class="demo-group">
+            <span class="demo-label">类型</span>
+            <div class="demo-row-items">
+              <button class="btn btn-primary">新建纪念日</button>
+              <button class="btn btn-secondary">编辑</button>
+              <button class="btn btn-ghost">取消</button>
+              <button class="btn btn-text">查看全部</button>
+            </div>
+          </div>
+          <div class="demo-group">
+            <span class="demo-label">危险 / 图标 / 圆形</span>
+            <div class="demo-row-items">
+              <button class="btn btn-danger">删除</button>
+              <button class="btn btn-primary btn-sm">小尺寸</button>
+              <button class="btn btn-icon"><svg class="icon-md stroke-current" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></button>
+              <button class="btn btn-icon btn-icon-circle"><svg class="icon-md stroke-current" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+            </div>
+          </div>
+          <div class="demo-group">
+            <span class="demo-label">状态</span>
+            <div class="demo-row-items">
+              <button class="btn btn-primary btn-loading"><span class="btn-text-content">保存中</span></button>
+              <button class="btn btn-primary" disabled>禁用</button>
+            </div>
+          </div>
+          <div class="demo-group">
+            <span class="demo-label">全宽 / 带图标</span>
+            <div style="display:flex;flex-direction:column;gap:var(--space-2);width:100%">
+              <button class="btn btn-primary" style="width:100%">开始记录</button>
+              <button class="btn btn-secondary" style="width:100%">
+                <svg class="icon-sm stroke-current" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                新建纪念日
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================
+         03 输入框
+         ============================================ -->
+    <section class="comp-section" id="input">
+      <div class="comp-header">
+        <span class="comp-number">03</span>
+        <h2 class="comp-title">输入框</h2>
+      </div>
+      <p class="comp-desc">填充式底色取代边框。focus 时 3px 柔光晕环 + 微微上浮。Search 带放大镜，Password 带显隐切换。</p>
+      <div class="phone-frame phone-frame-compact" style="width:375px">
+        <span class="phone-frame-label">375px</span>
+        <div style="display:flex;flex-direction:column;gap:var(--space-5)">
+          <div class="input-group">
+            <label class="input-label">纪念日名称</label>
+            <div class="input-wrap">
+              <input class="input" placeholder="给这个日子起个名字" value="恋爱纪念日">
+            </div>
+            <span class="input-help">好名字让你一眼认出它</span>
+          </div>
+          <div class="input-group">
+            <label class="input-label">搜索</label>
+            <div class="input-wrap">
+              <svg class="input-icon-left stroke-current" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+              <input class="input input-has-icon-left" placeholder="搜索纪念日">
+            </div>
+          </div>
+          <div class="input-group">
+            <label class="input-label">密码</label>
+            <div class="input-wrap">
+              <svg class="input-icon-left stroke-current" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <input class="input input-has-icon-left input-has-icon-right" type="password" value="123456">
+              <svg class="input-icon-right stroke-current" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+          </div>
+          <div class="input-group">
+            <label class="input-label">日期（错误态）</label>
+            <div class="input-wrap">
+              <input class="input input-error" value="2024.13.45">
+            </div>
+            <span class="input-error-text">日期格式不正确，请检查</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================
+         04 OTP
+         ============================================ -->
+    <section class="comp-section" id="otp">
+      <div class="comp-header">
+        <span class="comp-number">04</span>
+        <h2 class="comp-title">验证码框</h2>
+      </div>
+      <p class="comp-desc">6 位 OTP。focus 时上浮 2px + 柔光晕环。filled 后变暖底色。</p>
+      <div class="phone-frame phone-frame-compact">
+        <span class="phone-frame-label">375px</span>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:var(--space-3)">
+          <span style="font-size:var(--text-sm);color:var(--fg-secondary)">输入验证码</span>
+          <div class="otp-container">
+            <input class="otp-box filled" maxlength="1" value="8">
+            <input class="otp-box filled" maxlength="1" value="3">
+            <input class="otp-box filled" maxlength="1" value="2">
+            <input class="otp-box" maxlength="1" value="" autofocus>
+            <input class="otp-box" maxlength="1">
+            <input class="otp-box" maxlength="1">
+          </div>
+          <span style="font-size:var(--text-caption);color:var(--fg-muted)">验证码已发送至 +86 138****6688</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================
+         05 开关
+         ============================================ -->
+    <section class="comp-section" id="switch">
+      <div class="comp-header">
+        <span class="comp-number">05</span>
+        <h2 class="comp-title">开关</h2>
+      </div>
+      <p class="comp-desc">48×28px。开启用暖渐变 + 色阴影，弹性缓动。</p>
+      <div class="phone-frame phone-frame-compact">
+        <span class="phone-frame-label">375px</span>
+        <div style="display:flex;flex-direction:column;gap:var(--space-4)">
+          <div class="list-item" style="border-radius:var(--radius-lg)">
+            <div class="list-item-text"><div class="list-item-title">推送通知</div><div class="list-item-sub">纪念日到期前提醒</div></div>
+            <button class="switch switch-on"><span class="switch-thumb"></span></button>
+          </div>
+          <div class="list-item" style="border-radius:var(--radius-lg)">
+            <div class="list-item-text"><div class="list-item-title">深色模式</div><div class="list-item-sub">跟随系统</div></div>
+            <button class="switch"><span class="switch-thumb"></span></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================
+         06 单选/复选
+         ============================================ -->
+    <section class="comp-section" id="radio">
+      <div class="comp-header">
+        <span class="comp-number">06</span>
+        <h2 class="comp-title">单选 / 复选</h2>
+      </div>
+      <p class="comp-desc">22px 触控区。复选选中时用暖渐变填充 + 白色勾。圆角 6px。</p>
+      <div class="phone-frame phone-frame-compact">
+        <span class="phone-frame-label">375px</span>
+        <div style="display:flex;flex-direction:column;gap:var(--space-4)">
+          <div style="display:flex;align-items:center;gap:var(--space-3)">
+            <div class="radio radio-checked"></div>
+            <span style="font-size:var(--text-sm)">每年</span>
+            <div style="margin-left:var(--space-4)" class="radio"></div>
+            <span style="font-size:var(--text-sm)">每月</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:var(--space-3)">
+            <div class="checkbox checkbox-checked"></div>
+            <span style="font-size:var(--text-sm)">恋爱纪念日</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:var(--space-3)">
+            <div class="checkbox"></div>
+            <span style="font-size:var(--text-sm)">妈妈生日</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================
+         07 卡片
+         ============================================ -->
+    <section class="comp-section" id="card">
+      <div class="comp-header">
+        <span class="comp-number">07</span>
+        <h2 class="comp-title">卡片</h2>
+      </div>
+      <p class="comp-desc">
+        纪念日卡片按分类色显示——顶部 4px 色条 + 暖底色图标 + 分类色数字。
+        Featured 卡片用暖渐变。hover 时上浮 3px + 阴影扩散。
+      </p>
+      <div class="phone-frame phone-frame-compact">
+        <span class="phone-frame-label">375px</span>
+        <div style="display:flex;flex-direction:column;gap:var(--space-3)">
+          <!-- Featured 倒计时卡片 -->
+          <div class="card-anniversary card-featured" style="border-radius:var(--radius-xl)">
+            <div class="card-featured-title">即将到来</div>
+            <div class="card-featured-num">96</div>
+            <div class="card-featured-label">天后 · 恋爱纪念日</div>
+          </div>
+          <!-- 分类色卡片 -->
+          <div class="card-anniversary card-anniversary-rose">
+            <div class="card-anniversary-body">
+              <div class="card-anniversary-icon card-anniversary-icon-rose">
+                <svg class="icon-md stroke-current" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              </div>
+              <div class="card-anniversary-text">
+                <div class="card-anniversary-title">恋爱纪念日</div>
+                <div class="card-anniversary-sub">11.18 · 第 2 年</div>
+              </div>
+              <div class="card-anniversary-num card-anniversary-num-rose">96</div>
+            </div>
+          </div>
+          <div class="card-anniversary card-anniversary-amber">
+            <div class="card-anniversary-body">
+              <div class="card-anniversary-icon card-anniversary-icon-amber">
+                <svg class="icon-md stroke-current" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <div class="card-anniversary-text">
+                <div class="card-anniversary-title">妈妈生日</div>
+                <div class="card-anniversary-sub">10.15 · 还有 72 天</div>
+              </div>
+              <div class="card-anniversary-num card-anniversary-num-amber">72</div>
+            </div>
+          </div>
+          <div class="card-anniversary card-anniversary-teal">
+            <div class="card-anniversary-body">
+              <div class="card-anniversary-icon card-anniversary-icon-teal">
+                <svg class="icon-md stroke-current" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
+              <div class="card-anniversary-text">
+                <div class="card-anniversary-title">北海道旅行</div>
+                <div class="card-anniversary-sub">12.01 · 还有 119 天</div>
+              </div>
+              <div class="card-anniversary-num card-anniversary-num-teal">119</div>
+            </div>
+          </div>
+          <div class="card-anniversary card-anniversary-lavender">
+            <div class="card-anniversary-body">
+              <div class="card-anniversary-icon card-anniversary-icon-lavender">
+                <svg class="icon-md stroke-current" viewBox="0 0 24 24"><path d="M12 2l3 7h7l-5.5 4.5 2 7L12 16l-6.5 4.5 2-7L2 9h7z"/></svg>
+              </div>
+              <div class="card-anniversary-text">
+                <div class="card-anniversary-title">入职三周年</div>
+                <div class="card-anniversary-sub">08.15 · 第 3 年</div>
+              </div>
+              <div class="card-anniversary-num card-anniversary-num-lavender">312</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================
+         08 列表
+         ============================================ -->
+    <section class="comp-section" id="list">
+      <div class="comp-header">
+        <span class="comp-number">08</span>
+        <h2 class="comp-title">列表</h2>
+      </div>
+      <p class="comp-desc">分组卡片内，无硬分割线（仅 0.04 opacity 微线）。hover 暖底色。</p>
+      <div class="phone-frame phone-frame-compact">
+        <span class="phone-frame-label">375px</span>
+        <div class="list-section">
+          <div class="list-item">
+            <div class="list-item-icon" style="background:var(--color-rose-50);color:var(--color-rose-500)">
+              <svg class="icon-sm stroke-current" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </div>
+            <div class="list-item-text"><div class="list-item-title">恋爱纪念日</div><div class="list-item-sub">11.18 · 还有 96 天</div></div>
+            <span class="list-item-value">96天</span>
+            <svg class="icon-sm list-item-chevron stroke-current" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+          <div class="list-item">
+            <div class="list-item-icon" style="background:var(--color-amber-50);color:var(--color-amber-600)">
+              <svg class="icon-sm stroke-current" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div class="list-item-text"><div class="list-item-title">妈妈生日</div><div class="list-item-sub">10.15 · 还有 72 天</div></div>
+            <span class="list-item-value">72天</span>
+            <svg class="icon-sm list-item-chevron stroke-current" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+          <div class="list-item">
+            <div class="list-item-icon" style="background:var(--color-teal-50);color:var(--color-teal-500)">
+              <svg class="icon-sm stroke-current" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div class="list-item-text"><div class="list-item-title">北海道旅行</div><div class="list-item-sub">12.01 · 还有 119 天</div></div>
+            <span class="list-item-value">119天</span>
+            <svg class="icon-sm list-item-chevron stroke-current" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================
+         09 标题栏（含沉浸式）
+         ============================================ -->
+    <section class="comp-section" id="navbar">
+      <div class="comp-header">
+        <span class="comp-number">09</span>
+        <h2 class="comp-title">标题栏（含沉浸式 ★）</h2>
+      </div>
+      <p class="comp-desc">
+        三种模式：① 标准实心（设置页）② 沉浸式透明（详情页配图，白字）③ 滚动后半透明+模糊（250ms 过渡）。
+      </p>
+      <div class="demo-row">
+        <div class="demo-group">
+          <span class="demo-label">① 标准实心</span>
+          <div class="nav-demo">
+            <div class="nav-standard">
+              <div class="nav-btn"><svg class="icon-sm stroke-current" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+              <span class="nav-title">设置</span>
+              <div class="nav-btn"><svg class="icon-sm stroke-current" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></div>
+            </div>
+          </div>
+        </div>
+        <div class="demo-group">
+          <span class="demo-label">② 沉浸式·透明（配图）</span>
+          <div class="nav-demo">
+            <div class="nav-immersive-demo">
+              <div class="nav-immersive">
+                <div class="nav-btn"><svg class="icon-sm stroke-current" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+                <span class="nav-title"></span>
+                <div class="nav-btn"><svg class="icon-sm stroke-current" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></div>
+              </div>
+              <div class="nav-immersive-content">
+                <div class="nav-immersive-eyebrow">还有 96 天</div>
+                <div class="nav-immersive-title">恋爱纪念日</div>
+                <div class="nav-immersive-sub">2024.11.18 · 第 2 年</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:var(--space-4)">
+        <div class="demo-group">
+          <span class="demo-label">③ 滚动后·半透明 + blur(20px)</span>
+          <div class="nav-demo">
+            <div class="nav-scrolled-demo">
+              <div class="nav-btn"><svg class="icon-sm stroke-current" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+              <span class="nav-title">恋爱纪念日</span>
+              <div class="nav-btn"><svg class="icon-sm stroke-current" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================
+         10 进度条
+         ============================================ -->
+    <section class="comp-section" id="progress">
+      <div class="comp-header">
+        <span class="comp-number">10</span>
+        <h2 class="comp-title">进度条</h2>
+      </div>
+      <p class="comp-desc">线性用暖渐变填充，圆角胶囊。环形用 SVG 渐变 stroke。</p>
+      <div class="phone-frame phone-frame-compact">
+        <span class="phone-frame-label">375px</span>
+        <div style="display:flex;flex-direction:column;gap:var(--space-5)">
+          <div class="demo-group">
+            <span class="demo-label">线性</span>
+            <div class="progress-linear"><div class="progress-fill" style="width:68%"></div></div>
+          </div>
+          <div class="demo-group">
+            <span class="demo-label">环形</span>
+            <div style="display:flex;gap:var(--space-6);align-items:center">
+              <div class="progress-circular">
+                <svg width="64" height="64">
+                  <defs><linearGradient id="progressGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#D9622E"/><stop offset="100%" stop-color="#E8A838"/></linearGradient></defs>
+                  <circle class="progress-circular-track" cx="32" cy="32" r="28"/>
+                  <circle class="progress-circular-fill" cx="32" cy="32" r="28" stroke-dasharray="176" stroke-dashoffset="56"/>
+                </svg>
+                <span class="progress-circular-text">68%</span>
+              </div>
+              <div class="progress-circular">
+                <svg width="64" height="64">
+                  <circle class="progress-circular-track" cx="32" cy="32" r="28"/>
+                  <circle class="progress-circular-fill" cx="32" cy="32" r="28" stroke-dasharray="176" stroke-dashoffset="35" style="stroke:url(#progressGrad)"/>
+                </svg>
+                <span class="progress-circular-text">80%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================
+         11 分割线
+         ============================================ -->
+    <section class="comp-section" id="divider">
+      <div class="comp-header">
+        <span class="comp-number">11</span>
+        <h2 class="comp-title">分割线</h2>
+      </div>
+      <div class="phone-frame phone-frame-compact">
+        <span class="phone-frame-label">375px</span>
+        <div style="display:flex;flex-direction:column;gap:var(--space-4)">
+          <hr class="divider">
+          <hr class="divider-dashed">
+          <div class="divider-text">或</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================
+         12 Toast
+         ============================================ -->
+    <section class="comp-section" id="toast">
+      <div class="comp-header">
+        <span class="comp-number">12</span>
+        <h2 class="comp-title">Toast</h2>
+      </div>
+      <p class="comp-desc">渐变底色 + 白字。最多 320px 宽。3 秒自动消失。</p>
+      <div class="phone-frame phone-frame-compact">
+        <span class="phone-frame-label">375px</span>
+        <div style="display:flex;flex-direction:column;gap:var(--space-3)">
+          <div class="toast toast-success">
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <span>保存成功</span>
+          </div>
+          <div class="toast toast-warning">
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span>纪念日即将到来</span>
+          </div>
+          <div class="toast toast-error">
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            <span>删除失败，请重试</span>
+          </div>
+          <div class="toast toast-info">
+            <svg class="icon-sm stroke-current" viewBox="0 0 24 24" style="color:var(--color-primary-500)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span>已复制到剪贴板</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================
+         13 模态框
+         ============================================ -->
+    <section class="comp-section" id="modal">
+      <div class="comp-header">
+        <span class="comp-number">13</span>
+        <h2 class="comp-title">模态框</h2>
+      </div>
+      <p class="comp-desc">居中弹窗 + 底部抽屉。圆角 20px。遮罩 rgba(42,36,29,0.4) + blur(4px)。</p>
+      <div class="demo-row">
+        <div class="demo-group">
+          <span class="demo-label">居中弹窗</span>
+          <div class="modal-demo">
+            <div class="modal-header">
+              <div class="modal-icon">
+                <svg class="icon-lg stroke-current" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+              </div>
+              <div class="modal-title">删除纪念日？</div>
+              <div class="modal-desc">删除后无法恢复，确定要删除「恋爱纪念日」吗？</div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-ghost" style="background:rgba(42,36,29,0.04)">取消</button>
+              <button class="btn btn-danger">删除</button>
+            </div>
+          </div>
+        </div>
+        <div class="demo-group">
+          <span class="demo-label">底部抽屉</span>
+          <div class="sheet-demo">
+            <div class="sheet-handle"></div>
+            <div style="font-size:var(--text-lg);font-weight:var(--weight-semibold);margin-bottom:var(--space-1)">选择分类</div>
+            <div style="font-size:var(--text-sm);color:var(--fg-secondary);margin-bottom:var(--space-4)">为这个纪念日选择一个分类色</div>
+            <div style="display:flex;gap:var(--space-2);flex-wrap:wrap;margin-bottom:var(--space-4)">
+              <span style="padding:var(--space-1) var(--space-3);background:var(--color-rose-50);color:var(--color-rose-600);border-radius:var(--radius-full);font-size:var(--text-sm)">恋爱</span>
+              <span style="padding:var(--space-1) var(--space-3);background:var(--color-amber-50);color:var(--color-amber-600);border-radius:var(--radius-full);font-size:var(--text-sm)">生日</span>
+              <span style="padding:var(--space-1) var(--space-3);background:var(--color-teal-50);color:var(--color-teal-500);border-radius:var(--radius-full);font-size:var(--text-sm)">旅行</span>
+              <span style="padding:var(--space-1) var(--space-3);background:var(--color-lavender-50);color:var(--color-lavender-500);border-radius:var(--radius-full);font-size:var(--text-sm)">里程碑</span>
+            </div>
+            <button class="btn btn-primary" style="width:100%">确定</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================
+         14 加载
+         ============================================ -->
+    <section class="comp-section" id="loading">
+      <div class="comp-header">
+        <span class="comp-number">14</span>
+        <h2 class="comp-title">加载</h2>
+      </div>
+      <div class="phone-frame phone-frame-compact">
+        <span class="phone-frame-label">375px</span>
+        <div style="display:flex;align-items:center;gap:var(--space-8)">
+          <div class="demo-group"><span class="demo-label">Spinner S/M/L</span><div class="demo-row-items"><div class="spinner spinner-sm"></div><div class="spinner"></div><div class="spinner spinner-lg"></div></div></div>
+          <div class="demo-group"><span class="demo-label">Dots</span><div class="dots"><span></span><span></span><span></span></div></div>
+          <div class="demo-group"><span class="demo-label">文字</span><div style="display:flex;align-items:center;gap:var(--space-2)"><div class="spinner spinner-sm"></div><span style="font-size:var(--text-sm);color:var(--fg-secondary)">正在翻到下一页…</span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================
+         15 通知
+         ============================================ -->
+    <section class="comp-section" id="notification">
+      <div class="comp-header">
+        <span class="comp-number">15</span>
+        <h2 class="comp-title">通知</h2>
+      </div>
+      <div class="phone-frame phone-frame-compact">
+        <span class="phone-frame-label">375px</span>
+        <div class="notification">
+          <div class="notification-icon" style="background:linear-gradient(135deg,#D9622E,#E8A838);color:white">
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </div>
+          <div class="notification-body">
+            <div class="notification-title">恋爱纪念日 · 3 天后</div>
+            <div class="notification-text">别忘了准备一份小礼物，给 TA 一个惊喜</div>
+          </div>
+          <svg class="notification-close icon-sm stroke-current" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================
+         16 浮岛药丸
+         ============================================ -->
+    <section class="comp-section" id="pill">
+      <div class="comp-header">
+        <span class="comp-number">16</span>
+        <h2 class="comp-title">浮岛药丸导航</h2>
+      </div>
+      <p class="comp-desc">半透明暖白 + blur(20px) + 内嵌高光。中央新建按钮用暖渐变 + 色阴影。active 时弹性缩放。</p>
+      <div class="pill-nav-demo">
+        <span class="phone-frame-label">375px</span>
+        <div class="pill-nav-content">
+          <div class="card-anniversary card-anniversary-rose">
+            <div class="card-anniversary-body">
+              <div class="card-anniversary-icon card-anniversary-icon-rose">
+                <svg class="icon-md stroke-current" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              </div>
+              <div class="card-anniversary-text">
+                <div class="card-anniversary-title">恋爱纪念日</div>
+                <div class="card-anniversary-sub">11.18 · 还有 96 天</div>
+              </div>
+              <div class="card-anniversary-num card-anniversary-num-rose">96</div>
+            </div>
+          </div>
+          <div class="card-anniversary card-anniversary-amber">
+            <div class="card-anniversary-body">
+              <div class="card-anniversary-icon card-anniversary-icon-amber">
+                <svg class="icon-md stroke-current" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <div class="card-anniversary-text">
+                <div class="card-anniversary-title">妈妈生日</div>
+                <div class="card-anniversary-sub">10.15 · 还有 72 天</div>
+              </div>
+              <div class="card-anniversary-num card-anniversary-num-amber">72</div>
+            </div>
+          </div>
+        </div>
+        <div class="pill-nav">
+          <div class="pill-item active">
+            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+            <span>首页</span>
+          </div>
+          <div class="pill-item">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18"/></svg>
+            <span>日历</span>
+          </div>
+          <div class="pill-center">
+            <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+          </div>
+          <div class="pill-item">
+            <svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+            <span>提醒</span>
+          </div>
+          <div class="pill-item">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M3 21a9 9 0 0 1 18 0"/></svg>
+            <span>我的</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================
+         17 骨架屏
+         ============================================ -->
+    <section class="comp-section" id="skeleton">
+      <div class="comp-header">
+        <span class="comp-number">17</span>
+        <h2 class="comp-title">骨架屏</h2>
+      </div>
+      <p class="comp-desc">shimmer 1.8s。用暖灰 rgba 而非纯灰，保持温度。</p>
+      <div class="phone-frame phone-frame-compact">
+        <span class="phone-frame-label">375px</span>
+        <div style="display:flex;flex-direction:column;gap:var(--space-3)">
+          <div class="skeleton-card">
+            <div class="skeleton skeleton-circle"></div>
+            <div style="flex:1"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-text" style="width:40%"></div></div>
+            <div class="skeleton" style="width:40px;height:24px;border-radius:var(--radius-md)"></div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton skeleton-circle"></div>
+            <div style="flex:1"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-text" style="width:40%"></div></div>
+            <div class="skeleton" style="width:40px;height:24px;border-radius:var(--radius-md)"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================
+         18 空状态
+         ============================================ -->
+    <section class="comp-section" id="empty">
+      <div class="comp-header">
+        <span class="comp-number">18</span>
+        <h2 class="comp-title">空状态</h2>
+      </div>
+      <p class="comp-desc">自绘 SVG 插画。单色线条 + 一抹分类色。柔软有温度。</p>
+      <div class="phone-frame phone-frame-compact">
+        <span class="phone-frame-label">375px</span>
+        <div class="empty-state">
+          <svg class="empty-illust" viewBox="0 0 120 120" fill="none">
+            <!-- 日历插画 -->
+            <rect x="20" y="28" width="80" height="72" rx="10" stroke="rgba(217,98,46,0.25)" stroke-width="2"/>
+            <rect x="20" y="28" width="80" height="20" rx="10" fill="rgba(217,98,46,0.08)"/>
+            <path d="M40 28V14M80 28V14" stroke="rgba(217,98,46,0.3)" stroke-width="2.5" stroke-linecap="round"/>
+            <!-- 心形 -->
+            <path d="M60 65c-3-5-12-3-12 4c0 7 12 14 12 14s12-7 12-14c0-7-9-9-12-4z" fill="rgba(232,103,90,0.15)" stroke="rgba(232,103,90,0.4)" stroke-width="1.5"/>
+            <!-- 装饰点 -->
+            <circle cx="35" cy="55" r="1.5" fill="rgba(232,167,56,0.4)"/>
+            <circle cx="85" cy="55" r="1.5" fill="rgba(232,167,56,0.4)"/>
+          </svg>
+          <div class="empty-title">还没有纪念日</div>
+          <div class="empty-text">点击下方按钮，记录你的第一个重要日子</div>
+          <button class="btn btn-primary" style="margin-top:var(--space-2)">新建纪念日</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================
+         19 错误状态
+         ============================================ -->
+    <section class="comp-section" id="error">
+      <div class="comp-header">
+        <span class="comp-number">19</span>
+        <h2 class="comp-title">错误状态</h2>
+      </div>
+      <div class="phone-frame phone-frame-compact">
+        <span class="phone-frame-label">375px</span>
+        <div class="empty-state">
+          <svg class="empty-illust" viewBox="0 0 120 120" fill="none">
+            <!-- 云朵 -->
+            <path d="M35 65c-8 0-14 6-14 14s6 14 14 14h45c8 0 15-7 15-15s-7-14-15-14c-1-9-9-16-18-16s-17 7-18 16c-3-1-6-2-9-2z" stroke="rgba(42,36,29,0.15)" stroke-width="2" fill="rgba(42,36,29,0.03)"/>
+            <!-- 闪电 -->
+            <path d="M60 55l-5 10h4l-3 8 8-12h-4l3-6z" fill="rgba(217,98,46,0.5)" stroke="rgba(217,98,46,0.7)" stroke-width="1"/>
+          </svg>
+          <div class="empty-title">网络开小差了</div>
+          <div class="empty-text">请检查网络连接，稍后再试</div>
+          <button class="btn btn-secondary">重新加载</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================
+         20 轮播图
+         ============================================ -->
+    <section class="comp-section" id="carousel">
+      <div class="comp-header">
+        <span class="comp-number">20</span>
+        <h2 class="comp-title">轮播图</h2>
+      </div>
+      <p class="comp-desc">分类色渐变背景。圆点指示器变胶囊。自动播放 3.5s。</p>
+      <div class="carousel" id="carouselDemo">
+        <div class="carousel-track" id="carouselTrack">
+          <div class="carousel-slide carousel-slide-1">
+            <div class="carousel-slide-content">
+              <div class="carousel-slide-title">恋爱纪念日</div>
+              <div class="carousel-slide-sub">还有 96 天 · 第 2 年</div>
+            </div>
+          </div>
+          <div class="carousel-slide carousel-slide-2">
+            <div class="carousel-slide-content">
+              <div class="carousel-slide-title">北海道旅行</div>
+              <div class="carousel-slide-sub">还有 119 天 · 一周年</div>
+            </div>
+          </div>
+          <div class="carousel-slide carousel-slide-3">
+            <div class="carousel-slide-content">
+              <div class="carousel-slide-title">入职三周年</div>
+              <div class="carousel-slide-sub">还有 312 天 · 第 3 年</div>
+            </div>
+          </div>
+        </div>
+        <div class="carousel-dots" id="carouselDots">
+          <div class="carousel-dot active" onclick="goSlide(0)"></div>
+          <div class="carousel-dot" onclick="goSlide(1)"></div>
+          <div class="carousel-dot" onclick="goSlide(2)"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================
+         底部
+         ============================================ -->
+    <footer class="footer">
+      <span>Daymark Design System v1.0.0 · Component Library v2</span>
+      <span>基于 https://sfile.chatglm.cn/workspace/file/39/392a106e8f.css · 手机优先 · 分类色 + 渐变 + 微交互</span>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+  // 侧边导航高亮
+  const links = document.querySelectorAll('.sidebar-link');
+  const sections = document.querySelectorAll('.comp-section');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
+      }
+    });
+  }, { rootMargin: '-20% 0px -60% 0px' });
+  sections.forEach(s => observer.observe(s));
+
+  // 轮播图
+  let slideIdx = 0;
+  const track = document.getElementById('carouselTrack');
+  const dots = document.querySelectorAll('#carouselDots .carousel-dot');
+  function goSlide(idx) {
+    slideIdx = idx;
+    track.style.transform = `translateX(-${idx * 100}%)`;
+    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+  }
+  setInterval(() => { slideIdx = (slideIdx + 1) % 3; goSlide(slideIdx); }, 3500);
+</script>
+
+</body>
+</html>
