@@ -45,6 +45,10 @@
 
         <activity android:name=".activity.index.IndexActivity" />
 
+        <activity
+            android:name=".widget.composable.CSComponentShowcaseActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>
