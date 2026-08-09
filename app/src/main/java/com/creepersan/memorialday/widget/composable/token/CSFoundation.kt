@@ -1,5 +1,6 @@
 package com.creepersan.memorialday.widget.composable.token
 
+import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.sizeIn
@@ -270,8 +271,8 @@ fun CSTheme(
     val context = LocalContext.current
     val colors = if (darkTheme) CSColorsDark else CSColorsLight
     val colorScheme = when {
-        dynamicColor && darkTheme -> dynamicDarkColorScheme(context)
-        dynamicColor -> dynamicLightColorScheme(context)
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && darkTheme -> dynamicDarkColorScheme(context)
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> dynamicLightColorScheme(context)
         darkTheme -> darkColorScheme(
             primary = colors.primary,
             secondary = colors.secondary,

@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daymark · 新增独立页面</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://sfile.chatglm.cn/workspace/file/39/392a106e8f.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font-sans); background: var(--gradient-dawn); color: var(--fg); line-height: var(--leading-normal); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    .page { max-width: 1400px; margin: 0 auto; padding: var(--space-10) var(--space-6) var(--space-16); }
+    .page-header { margin-bottom: var(--space-10); text-align: center; }
+    .page-eyebrow { font-family: var(--font-mono); font-size: var(--text-caption); color: var(--color-primary-500); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--space-3); }
+    .page-title { font-size: var(--text-4xl); font-weight: var(--weight-bold); letter-spacing: var(--tracking-tight); color: var(--fg); margin-bottom: var(--space-3); }
+    .page-subtitle { font-size: var(--text-base); color: var(--fg-secondary); max-width: 600px; margin: 0 auto; }
+    .screens-row { display: flex; flex-wrap: wrap; gap: var(--space-8); justify-content: center; }
+    .screen-item { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); }
+    .screen-label { font-family: var(--font-mono); font-size: var(--text-caption); color: var(--fg-muted); text-align: center; }
+    .screen-label strong { color: var(--fg); font-weight: var(--weight-medium); }
+    .screen-label-desc { font-size: var(--text-xs); color: var(--fg-muted); text-align: center; max-width: 375px; }
+    .screen { width: 375px; background: var(--bg); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-lg); position: relative; }
+    .nav-bar { height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 var(--space-4); position: relative; z-index: 10; }
+    .nav-bar-title { font-size: var(--text-base); font-weight: var(--weight-semibold); color: var(--fg); }
+    .nav-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-full); cursor: pointer; }
+    .nav-btn svg { width: 20px; height: 20px; stroke: var(--fg); stroke-width: 1.75; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .nav-btn.save { width: auto; padding: 0 12px; border-radius: var(--radius-full); background: var(--color-primary-50); }
+    .nav-btn.save span { font-size: 13px; font-weight: 600; color: var(--color-primary-600); }
+    .nav-bar-spacer { width: 32px; }
+    .field { background: rgba(42,36,29,0.03); border-radius: var(--radius-md); padding: 14px 16px; }
+    .field-label { font-size: 11px; font-weight: var(--weight-medium); color: var(--color-neutral-500); margin-bottom: 4px; }
+    .footer { margin-top: var(--space-16); padding-top: var(--space-8); border-top: 1px solid var(--border-soft); text-align: center; display: flex; justify-content: space-between; font-size: var(--text-caption); color: var(--fg-muted); font-family: var(--font-mono); }
+    .toggle { width: 44px; height: 26px; border-radius: var(--radius-full); background: rgba(42,36,29,0.10); position: relative; cursor: pointer; flex-shrink: 0; transition: background var(--duration-normal) var(--ease-out); }
+    .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; background: #fff; border-radius: var(--radius-full); box-shadow: 0 1px 3px rgba(0,0,0,0.2); transition: transform var(--duration-normal) var(--ease-spring); }
+    .toggle.on { background: var(--gradient-warm); }
+    .toggle.on::after { transform: translateX(18px); }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="page-header">
+    <div class="page-eyebrow">Daymark · New Pages</div>
+    <h1 class="page-title">新增独立页面</h1>
+    <p class="page-subtitle">Mark 新建编辑 · 时间线详情 · 权限说明 · 新旧版本切换 · 分类新建编辑</p>
+  </div>
+
+  <div class="screens-row">
+    <!-- ============================================
+         01 Mark 新建编辑页
+         ============================================ -->
+    <div class="screen-item">
+      <div class="screen-label"><strong>01 Mark</strong> · 新建编辑</div>
+      <div class="screen" style="min-height:780px">
+        <div class="nav-bar" style="border-bottom:1px solid rgba(42,36,29,0.04)">
+          <div class="nav-btn"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+          <span class="nav-bar-title">Mark 瞬间</span>
+          <div class="nav-btn save"><span>保存</span></div>
+        </div>
+
+        <div style="padding:16px;display:flex;flex-direction:column;gap:16px">
+          <!-- 关联纪念日 -->
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--color-rose-50);border-radius:12px">
+            <div style="width:32px;height:32px;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--color-rose-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </div>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:600;color:var(--color-rose-600)">恋爱纪念日</div>
+              <div style="font-size:11px;color:var(--color-rose-500);margin-top:1px">2024.11.18 · 第 2 年</div>
+            </div>
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="var(--color-rose-400)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+
+          <!-- 日期 -->
+          <div class="field">
+            <div class="field-label">日期</div>
+            <div style="display:flex;align-items:baseline;justify-content:space-between">
+              <span style="font-size:16px;font-weight:600;color:var(--fg)">2026年8月4日</span>
+              <span style="font-size:12px;color:var(--color-neutral-500)">今天 · 星期二</span>
+            </div>
+          </div>
+
+          <!-- 文本输入 -->
+          <div>
+            <div class="field-label" style="margin-bottom:8px">记录这一刻</div>
+            <div class="field" style="min-height:120px">
+              <textarea style="width:100%;min-height:100px;border:none;background:transparent;font-size:15px;color:var(--fg);outline:none;resize:none;font-family:var(--font-sans);line-height:1.6" placeholder="今天发生了什么值得记住的事…">今天是我们在一起的第 670 天。你突然说想去海边看日落，我们就真的开了两个小时的车去了。日落很美，你更美。</textarea>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:6px;padding:0 4px">
+              <span style="font-size:11px;color:var(--color-neutral-400)">支持文字、语音、图片、视频</span>
+              <span style="font-size:11px;color:var(--color-neutral-400);font-family:var(--font-mono)">68/500</span>
+            </div>
+          </div>
+
+          <!-- 多媒体录入 -->
+          <div>
+            <div class="field-label" style="margin-bottom:10px">添加</div>
+            <div style="display:flex;gap:10px">
+              <!-- 语音 -->
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;background:rgba(42,36,29,0.03);border-radius:14px;cursor:pointer;transition:transform var(--duration-fast) var(--ease-spring)">
+                <div style="width:40px;height:40px;border-radius:50%;background:var(--color-amber-50);display:flex;align-items:center;justify-content:center">
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--color-amber-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+                </div>
+                <span style="font-size:12px;font-weight:500;color:var(--fg)">语音</span>
+              </div>
+              <!-- 图片 -->
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;background:rgba(42,36,29,0.03);border-radius:14px;cursor:pointer">
+                <div style="width:40px;height:40px;border-radius:50%;background:var(--color-teal-50);display:flex;align-items:center;justify-content:center">
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--color-teal-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                </div>
+                <span style="font-size:12px;font-weight:500;color:var(--fg)">图片</span>
+              </div>
+              <!-- 视频 -->
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;background:rgba(42,36,29,0.03);border-radius:14px;cursor:pointer">
+                <div style="width:40px;height:40px;border-radius:50%;background:var(--color-lavender-50);display:flex;align-items:center;justify-content:center">
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--color-lavender-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                </div>
+                <span style="font-size:12px;font-weight:500;color:var(--fg)">视频</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 已添加的媒体 -->
+          <div>
+            <div class="field-label" style="margin-bottom:8px">已添加 2 张图片 · 1 段语音</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <div style="width:72px;height:72px;border-radius:12px;background:var(--color-rose-50);position:relative;overflow:hidden">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="var(--color-rose-300)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                <div style="position:absolute;top:4px;right:4px;width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center">
+                  <svg viewBox="0 0 24 24" width="10" height="10" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </div>
+              </div>
+              <div style="width:72px;height:72px;border-radius:12px;background:var(--color-teal-50);position:relative;overflow:hidden">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="var(--color-teal-300)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                <div style="position:absolute;top:4px;right:4px;width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center">
+                  <svg viewBox="0 0 24 24" width="10" height="10" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </div>
+              </div>
+              <!-- 语音条 -->
+              <div style="width:72px;height:72px;border-radius:12px;background:var(--color-amber-50);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;position:relative">
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--color-amber-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+                <span style="font-size:10px;color:var(--color-amber-600);font-family:var(--font-mono)">0:12</span>
+                <div style="position:absolute;top:4px;right:4px;width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center">
+                  <svg viewBox="0 0 24 24" width="10" height="10" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </div>
+              </div>
+              <!-- 添加更多 -->
+              <div style="width:72px;height:72px;border-radius:12px;border:2px dashed rgba(42,36,29,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer">
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--color-neutral-400)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- 心情 -->
+          <div>
+            <div class="field-label" style="margin-bottom:8px">此刻心情</div>
+            <div style="display:flex;gap:8px">
+              <div style="padding:6px 14px;border-radius:var(--radius-full);background:var(--gradient-warm);font-size:13px;font-weight:500;color:#fff;cursor:pointer">开心</div>
+              <div style="padding:6px 14px;border-radius:var(--radius-full);background:rgba(42,36,29,0.04);font-size:13px;font-weight:500;color:var(--color-neutral-500);cursor:pointer">感动</div>
+              <div style="padding:6px 14px;border-radius:var(--radius-full);background:rgba(42,36,29,0.04);font-size:13px;font-weight:500;color:var(--color-neutral-500);cursor:pointer">怀念</div>
+              <div style="padding:6px 14px;border-radius:var(--radius-full);background:rgba(42,36,29,0.04);font-size:13px;font-weight:500;color:var(--color-neutral-500);cursor:pointer">期待</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-label-desc">关联纪念日 · 文本(500字) · 语音/图片/视频录入 · 心情标签 · 活泼暖光渐变</div>
+    </div>
+
+    <!-- ============================================
+         02 时间线详情页
+         ============================================ -->
+    <div class="screen-item">
+      <div class="screen-label"><strong>02 时间线详情</strong> · 全部 Mark 记录</div>
+      <div class="screen" style="min-height:880px">
+        <div class="nav-bar" style="border-bottom:1px solid rgba(42,36,29,0.04)">
+          <div class="nav-btn"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+          <span class="nav-bar-title">时间线</span>
+          <div class="nav-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg></div>
+        </div>
+
+        <div style="padding:16px">
+          <!-- 标题 -->
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+            <div style="width:36px;height:36px;border-radius:10px;background:var(--color-rose-50);display:flex;align-items:center;justify-content:center">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--color-rose-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </div>
+            <div>
+              <div style="font-size:16px;font-weight:600;color:var(--fg)">恋爱纪念日 · 时间线</div>
+              <div style="font-size:12px;color:var(--color-neutral-500)">共 12 条记录</div>
+            </div>
+          </div>
+
+          <!-- 筛选 -->
+          <div style="display:flex;gap:8px;margin-bottom:16px;overflow-x:auto">
+            <div style="padding:5px 12px;border-radius:var(--radius-full);background:var(--color-primary-50);font-size:12px;font-weight:600;color:var(--color-primary-600);white-space:nowrap">全部 12</div>
+            <div style="padding:5px 12px;border-radius:var(--radius-full);background:rgba(42,36,29,0.04);font-size:12px;font-weight:500;color:var(--color-neutral-500);white-space:nowrap">文字 5</div>
+            <div style="padding:5px 12px;border-radius:var(--radius-full);background:rgba(42,36,29,0.04);font-size:12px;font-weight:500;color:var(--color-neutral-500);white-space:nowrap">语音 3</div>
+            <div style="padding:5px 12px;border-radius:var(--radius-full);background:rgba(42,36,29,0.04);font-size:12px;font-weight:500;color:var(--color-neutral-500);white-space:nowrap">图片 3</div>
+            <div style="padding:5px 12px;border-radius:var(--radius-full);background:rgba(42,36,29,0.04);font-size:12px;font-weight:500;color:var(--color-neutral-500);white-space:nowrap">视频 1</div>
+          </div>
+
+          <!-- 时间线列表 -->
+          <div style="position:relative;padding-left:20px">
+            <div style="position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:rgba(42,36,29,0.06)"></div>
+
+            <!-- 条目 1 -->
+            <div style="position:relative;padding-bottom:20px">
+              <div style="position:absolute;left:-20px;top:4px;width:16px;height:16px;border-radius:50%;background:var(--color-rose-500);box-shadow:0 0 0 3px var(--color-rose-50)"></div>
+              <div style="font-size:11px;color:var(--color-neutral-500);font-family:var(--font-mono);margin-bottom:4px">2026.08.04 · 今天</div>
+              <div style="background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow-sm)">
+                <div style="font-size:14px;color:var(--fg);line-height:1.6">去了海边看日落，你比日落更美。</div>
+                <div style="display:flex;gap:6px;margin-top:10px">
+                  <div style="width:48px;height:48px;border-radius:8px;background:var(--color-rose-50)"></div>
+                  <div style="width:48px;height:48px;border-radius:8px;background:var(--color-teal-50)"></div>
+                </div>
+                <div style="display:flex;gap:6px;margin-top:6px;align-items:center">
+                  <svg viewBox="0 0 24 24" width="14" height="14" stroke="var(--color-amber-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+                  <span style="font-size:11px;color:var(--color-amber-600);font-family:var(--font-mono)">语音 0:12</span>
+                  <span style="font-size:11px;color:var(--color-neutral-400);margin-left:auto">开心</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 条目 2 -->
+            <div style="position:relative;padding-bottom:20px">
+              <div style="position:absolute;left:-20px;top:4px;width:16px;height:16px;border-radius:50%;background:var(--color-amber-500);box-shadow:0 0 0 3px var(--color-amber-50)"></div>
+              <div style="font-size:11px;color:var(--color-neutral-500);font-family:var(--font-mono);margin-bottom:4px">2024.11.18 · 一周年</div>
+              <div style="background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow-sm)">
+                <div style="font-size:14px;color:var(--fg);line-height:1.6">一周年快乐！吃了蛋糕 🎂 看了电影</div>
+                <div style="display:flex;gap:6px;margin-top:10px">
+                  <div style="width:48px;height:48px;border-radius:8px;background:var(--color-amber-50)"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 条目 3 -->
+            <div style="position:relative;padding-bottom:20px">
+              <div style="position:absolute;left:-20px;top:4px;width:16px;height:16px;border-radius:50%;background:var(--color-lavender-500);box-shadow:0 0 0 3px var(--color-lavender-50)"></div>
+              <div style="font-size:11px;color:var(--color-neutral-500);font-family:var(--font-mono);margin-bottom:4px">2024.06.20 · 视频</div>
+              <div style="background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow-sm)">
+                <div style="font-size:14px;color:var(--fg);line-height:1.6">毕业五周年同学聚会，放了当年的视频</div>
+                <div style="margin-top:10px;height:80px;border-radius:10px;background:var(--color-lavender-50);display:flex;align-items:center;justify-content:center;position:relative">
+                  <div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.8);display:flex;align-items:center;justify-content:center">
+                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="var(--color-lavender-500)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  </div>
+                  <span style="position:absolute;bottom:6px;right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,0.4);padding:1px 6px;border-radius:4px;font-family:var(--font-mono)">1:24</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 条目 4 -->
+            <div style="position:relative;padding-bottom:20px">
+              <div style="position:absolute;left:-20px;top:4px;width:16px;height:16px;border-radius:50%;background:var(--color-teal-500);box-shadow:0 0 0 3px var(--color-teal-50)"></div>
+              <div style="font-size:11px;color:var(--color-neutral-500);font-family:var(--font-mono);margin-bottom:4px">2024.03.08</div>
+              <div style="background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow-sm)">
+                <div style="font-size:14px;color:var(--fg);line-height:1.6">第一次一起去看樱花，拍了好多照片</div>
+              </div>
+            </div>
+
+            <!-- 省略 -->
+            <div style="text-align:center;padding:8px 0;font-size:11px;color:var(--color-neutral-400);font-family:var(--font-mono)">· · · 还有 8 条 · · ·</div>
+
+            <!-- 条目 12 -->
+            <div style="position:relative">
+              <div style="position:absolute;left:-20px;top:4px;width:16px;height:16px;border-radius:50%;background:var(--color-secondary-500);box-shadow:0 0 0 3px var(--color-secondary-50)"></div>
+              <div style="font-size:11px;color:var(--color-neutral-500);font-family:var(--font-mono);margin-bottom:4px">2022.11.18 · 初遇</div>
+              <div style="background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow-sm)">
+                <div style="font-size:14px;color:var(--fg);line-height:1.6">初遇那天，下着小雨。你撑着伞走过来，对我笑了一下。</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 底部 Mark 按钮 -->
+          <div style="position:sticky;bottom:16px;margin-top:20px;display:flex;justify-content:center">
+            <div style="display:inline-flex;align-items:center;gap:6px;padding:12px 24px;border-radius:var(--radius-full);background:var(--gradient-warm);color:#fff;font-size:15px;font-weight:600;box-shadow:0 4px 16px -4px rgba(217,98,46,0.4);cursor:pointer">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              <span>Mark 新瞬间</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-label-desc">全部记录 · 类型筛选(文字/语音/图片/视频) · 时间线卡片 · 底部 Mark 按钮</div>
+    </div>
+
+    <!-- ============================================
+         03 权限说明页
+         ============================================ -->
+    <div class="screen-item">
+      <div class="screen-label"><strong>03 权限说明</strong> · 权限+场景+跳转</div>
+      <div class="screen" style="min-height:820px">
+        <div class="nav-bar" style="border-bottom:1px solid rgba(42,36,29,0.04)">
+          <div class="nav-btn"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+          <span class="nav-bar-title">权限说明</span>
+          <div class="nav-bar-spacer"></div>
+        </div>
+
+        <div style="padding:16px">
+          <!-- 说明 -->
+          <div style="padding:14px 16px;background:var(--color-primary-50);border-radius:14px;margin-bottom:20px">
+            <div style="display:flex;align-items:start;gap:10px">
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--color-primary-600)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--color-primary-700)">Daymark 仅申请必要权限</div>
+                <div style="font-size:12px;color:var(--color-primary-600);margin-top:2px;line-height:1.5">每个权限都有明确的用途场景。你可以随时在系统设置中关闭。</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 权限列表 -->
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <!-- 通知 -->
+            <div style="background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow-sm)">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:40px;height:40px;border-radius:12px;background:var(--color-rose-50);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--color-rose-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                </div>
+                <div style="flex:1">
+                  <div style="font-size:15px;font-weight:600;color:var(--fg)">通知</div>
+                  <div style="font-size:12px;color:var(--color-neutral-500);margin-top:2px;line-height:1.5">用于发送纪念日倒计时提醒，让你不会错过每一个重要日子</div>
+                </div>
+                <div class="toggle on"></div>
+              </div>
+              <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(42,36,29,0.04);display:flex;align-items:center;justify-content:space-between">
+                <span style="font-size:11px;color:var(--color-neutral-500)">使用场景：纪念日提前提醒、当天通知</span>
+                <span style="font-size:12px;color:var(--color-primary-500);font-weight:500;cursor:pointer">系统设置 →</span>
+              </div>
+            </div>
+
+            <!-- 日历 -->
+            <div style="background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow-sm)">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:40px;height:40px;border-radius:12px;background:var(--color-amber-50);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--color-amber-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>
+                </div>
+                <div style="flex:1">
+                  <div style="font-size:15px;font-weight:600;color:var(--fg)">日历</div>
+                  <div style="font-size:12px;color:var(--color-neutral-500);margin-top:2px;line-height:1.5">将纪念日同步至系统日历，在日历 App 中查看</div>
+                </div>
+                <div class="toggle on"></div>
+              </div>
+              <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(42,36,29,0.04);display:flex;align-items:center;justify-content:space-between">
+                <span style="font-size:11px;color:var(--color-neutral-500)">使用场景：同步至系统日历功能</span>
+                <span style="font-size:12px;color:var(--color-primary-500);font-weight:500;cursor:pointer">系统设置 →</span>
+              </div>
+            </div>
+
+            <!-- 相机 -->
+            <div style="background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow-sm)">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:40px;height:40px;border-radius:12px;background:var(--color-teal-50);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--color-teal-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                </div>
+                <div style="flex:1">
+                  <div style="font-size:15px;font-weight:600;color:var(--fg)">相机</div>
+                  <div style="font-size:12px;color:var(--color-neutral-500);margin-top:2px;line-height:1.5">在 Mark 中拍照记录纪念日瞬间</div>
+                </div>
+                <div class="toggle"></div>
+              </div>
+              <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(42,36,29,0.04);display:flex;align-items:center;justify-content:space-between">
+                <span style="font-size:11px;color:var(--color-neutral-500)">使用场景：Mark 拍照</span>
+                <span style="font-size:12px;color:var(--color-primary-500);font-weight:500;cursor:pointer">系统设置 →</span>
+              </div>
+            </div>
+
+            <!-- 相册 -->
+            <div style="background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow-sm)">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:40px;height:40px;border-radius:12px;background:var(--color-lavender-50);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--color-lavender-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                </div>
+                <div style="flex:1">
+                  <div style="font-size:15px;font-weight:600;color:var(--fg)">相册</div>
+                  <div style="font-size:12px;color:var(--color-neutral-500);margin-top:2px;line-height:1.5">从相册选择照片和视频添加到 Mark 记录</div>
+                </div>
+                <div class="toggle on"></div>
+              </div>
+              <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(42,36,29,0.04);display:flex;align-items:center;justify-content:space-between">
+                <span style="font-size:11px;color:var(--color-neutral-500)">使用场景：Mark 选择图片/视频</span>
+                <span style="font-size:12px;color:var(--color-primary-500);font-weight:500;cursor:pointer">系统设置 →</span>
+              </div>
+            </div>
+
+            <!-- 麦克风 -->
+            <div style="background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow-sm)">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:40px;height:40px;border-radius:12px;background:var(--color-secondary-50);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--color-secondary-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+                </div>
+                <div style="flex:1">
+                  <div style="font-size:15px;font-weight:600;color:var(--fg)">麦克风</div>
+                  <div style="font-size:12px;color:var(--color-neutral-500);margin-top:2px;line-height:1.5">在 Mark 中录制语音，用声音记录回忆</div>
+                </div>
+                <div class="toggle"></div>
+              </div>
+              <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(42,36,29,0.04);display:flex;align-items:center;justify-content:space-between">
+                <span style="font-size:11px;color:var(--color-neutral-500)">使用场景：Mark 语音录制</span>
+                <span style="font-size:12px;color:var(--color-primary-500);font-weight:500;cursor:pointer">系统设置 →</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="padding:16px;text-align:center;font-size:11px;color:var(--color-neutral-400);font-family:var(--font-mono);margin-top:8px">
+            Daymark 绝不会读取你的通讯录、位置信息或浏览历史
+          </div>
+        </div>
+      </div>
+      <div class="screen-label-desc">5 项权限(通知/日历/相机/相册/麦克风) · 场景说明 · 权限开关 · 跳转系统设置</div>
+    </div>
+
+    <!-- ============================================
+         04 新旧版本切换页
+         ============================================ -->
+    <div class="screen-item">
+      <div class="screen-label"><strong>04 版本切换</strong> · 推荐新版</div>
+      <div class="screen" style="min-height:680px">
+        <div class="nav-bar" style="border-bottom:1px solid rgba(42,36,29,0.04)">
+          <div class="nav-btn"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+          <span class="nav-bar-title">版本切换</span>
+          <div class="nav-bar-spacer"></div>
+        </div>
+
+        <div style="padding:20px 16px">
+          <!-- 说明 -->
+          <div style="text-align:center;margin-bottom:24px">
+            <div style="font-size:14px;color:var(--color-neutral-600);line-height:1.6">选择你喜欢的版本体验</div>
+          </div>
+
+          <!-- 新版（推荐） -->
+          <div style="border:2px solid var(--color-primary-500);border-radius:18px;padding:20px;margin-bottom:16px;position:relative;overflow:hidden;background:#fff;box-shadow:0 4px 20px -8px rgba(217,98,46,0.15)">
+            <!-- 推荐角标 -->
+            <div style="position:absolute;top:0;right:0;padding:4px 14px;background:var(--gradient-warm);color:#fff;font-size:11px;font-weight:600;border-bottom-left-radius:14px">推荐</div>
+
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+              <div style="width:48px;height:48px;border-radius:14px;background:var(--gradient-warm);display:flex;align-items:center;justify-content:center">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="#fff" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="M9 16l2 2 4-4"/></svg>
+              </div>
+              <div>
+                <div style="font-size:17px;font-weight:700;color:var(--fg)">Daymark 新版</div>
+                <div style="font-size:12px;color:var(--color-primary-600);font-weight:500;margin-top:2px">v1.2.0 · 当前使用</div>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="var(--color-primary-500)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                <span style="font-size:13px;color:var(--fg)">浮岛药丸导航，更轻盈的体验</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="var(--color-primary-500)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                <span style="font-size:13px;color:var(--fg)">分类色系统，每个日子有性格</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="var(--color-primary-500)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                <span style="font-size:13px;color:var(--fg)">Mark 功能，记录每一个瞬间</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="var(--color-primary-500)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                <span style="font-size:13px;color:var(--fg)">桌面小组件，一抬头就知道</span>
+              </div>
+            </div>
+
+            <div style="height:44px;border-radius:12px;background:var(--gradient-warm);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px -2px rgba(217,98,46,0.3)">
+              <span style="font-size:15px;font-weight:600;color:#fff">当前使用 ✓</span>
+            </div>
+          </div>
+
+          <!-- 旧版 -->
+          <div style="border:1px solid rgba(42,36,29,0.06);border-radius:18px;padding:20px;background:rgba(42,36,29,0.02)">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+              <div style="width:48px;height:48px;border-radius:14px;background:rgba(42,36,29,0.06);display:flex;align-items:center;justify-content:center">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="var(--color-neutral-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>
+              </div>
+              <div>
+                <div style="font-size:17px;font-weight:700;color:var(--color-neutral-600)">Daymark 经典版</div>
+                <div style="font-size:12px;color:var(--color-neutral-500);margin-top:2px">v1.0.4 · 底部 Tab 导航</div>
+              </div>
+            </div>
+
+            <div style="font-size:12px;color:var(--color-neutral-500);line-height:1.6;margin-bottom:16px">
+              经典的底部 Tab 栏布局，适合习惯旧版交互的用户。功能完整但无 Mark、小组件等新特性。
+            </div>
+
+            <div style="height:44px;border-radius:12px;background:rgba(42,36,29,0.04);display:flex;align-items:center;justify-content:center;cursor:pointer">
+              <span style="font-size:14px;font-weight:500;color:var(--color-neutral-600)">切换至经典版</span>
+            </div>
+          </div>
+
+          <div style="padding:12px;text-align:center;font-size:11px;color:var(--color-neutral-400);line-height:1.5;margin-top:8px">
+            切换版本后数据不会丢失，可随时切回。<br>推荐使用新版以获得最佳体验和后续更新。
+          </div>
+        </div>
+      </div>
+      <div class="screen-label-desc">新版(推荐角标+4项特性) · 经典版(弱化) · 明确推荐新版 · 数据不丢失</div>
+    </div>
+
+    <!-- ============================================
+         05 新建编辑分类页
+         ============================================ -->
+    <div class="screen-item">
+      <div class="screen-label"><strong>05 新建分类</strong> · 名称+颜色+图标</div>
+      <div class="screen" style="min-height:680px">
+        <div class="nav-bar" style="border-bottom:1px solid rgba(42,36,29,0.04)">
+          <div class="nav-btn"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+          <span class="nav-bar-title">新建分类</span>
+          <div class="nav-btn save"><span>保存</span></div>
+        </div>
+
+        <div style="padding:16px;display:flex;flex-direction:column;gap:20px">
+          <!-- 预览 -->
+          <div style="display:flex;align-items:center;justify-content:center;padding:20px 0">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+              <div style="width:64px;height:64px;border-radius:18px;background:var(--color-rose-50);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;box-shadow:var(--shadow-md)">
+                <div style="position:absolute;top:0;left:0;right:0;height:4px;background:var(--gradient-rose)"></div>
+                <svg viewBox="0 0 24 24" width="30" height="30" stroke="var(--color-rose-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              </div>
+              <span style="font-size:14px;font-weight:600;color:var(--fg)">恋爱</span>
+            </div>
+          </div>
+
+          <!-- 名称 -->
+          <div class="field">
+            <div class="field-label">分类名称</div>
+            <input class="field-input" style="border:none;background:transparent;font-size:16px;color:var(--fg);outline:none;font-family:var(--font-sans)" value="恋爱" placeholder="输入分类名称">
+          </div>
+
+          <!-- 颜色选择 -->
+          <div>
+            <div class="field-label" style="margin-bottom:10px">颜色</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <div style="width:36px;height:36px;border-radius:50%;background:var(--color-rose-500);cursor:pointer;position:relative;box-shadow:0 0 0 3px #fff,0 0 0 5px var(--color-rose-500)">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div style="width:36px;height:36px;border-radius:50%;background:var(--color-amber-500);cursor:pointer"></div>
+              <div style="width:36px;height:36px;border-radius:50%;background:var(--color-teal-500);cursor:pointer"></div>
+              <div style="width:36px;height:36px;border-radius:50%;background:var(--color-lavender-500);cursor:pointer"></div>
+              <div style="width:36px;height:36px;border-radius:50%;background:var(--color-secondary-500);cursor:pointer"></div>
+              <div style="width:36px;height:36px;border-radius:50%;background:var(--color-primary-500);cursor:pointer"></div>
+              <!-- 自定义色 -->
+              <div style="width:36px;height:36px;border-radius:50%;background:conic-gradient(red,orange,yellow,green,cyan,blue,purple,red);cursor:pointer;position:relative;border:2px solid #fff;box-shadow:0 0 0 1px rgba(42,36,29,0.1)">
+                <svg viewBox="0 0 24 24" width="14" height="14" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)"><path d="M12 5v14M5 12h14"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- 图标选择 -->
+          <div>
+            <div class="field-label" style="margin-bottom:10px">图标</div>
+            <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px">
+              <div style="aspect-ratio:1;border-radius:10px;background:var(--color-rose-50);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 0 0 2px var(--color-rose-500)">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--color-rose-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              </div>
+              <div style="aspect-ratio:1;border-radius:10px;background:rgba(42,36,29,0.04);display:flex;align-items:center;justify-content:center;cursor:pointer">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--color-neutral-600)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <div style="aspect-ratio:1;border-radius:10px;background:rgba(42,36,29,0.04);display:flex;align-items:center;justify-content:center;cursor:pointer">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--color-neutral-600)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
+              <div style="aspect-ratio:1;border-radius:10px;background:rgba(42,36,29,0.04);display:flex;align-items:center;justify-content:center;cursor:pointer">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--color-neutral-600)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4.5 2 7L12 16l-6.5 4.5 2-7L2 9h7z"/></svg>
+              </div>
+              <div style="aspect-ratio:1;border-radius:10px;background:rgba(42,36,29,0.04);display:flex;align-items:center;justify-content:center;cursor:pointer">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--color-neutral-600)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>
+              </div>
+              <div style="aspect-ratio:1;border-radius:10px;background:rgba(42,36,29,0.04);display:flex;align-items:center;justify-content:center;cursor:pointer">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--color-neutral-600)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>
+              </div>
+              <div style="aspect-ratio:1;border-radius:10px;background:rgba(42,36,29,0.04);display:flex;align-items:center;justify-content:center;cursor:pointer">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--color-neutral-600)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-12V5l-8-3-8 3v5c0 8 8 12 8 12z"/></svg>
+              </div>
+              <div style="aspect-ratio:1;border-radius:10px;background:rgba(42,36,29,0.04);display:flex;align-items:center;justify-content:center;cursor:pointer">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--color-neutral-600)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              </div>
+              <div style="aspect-ratio:1;border-radius:10px;background:rgba(42,36,29,0.04);display:flex;align-items:center;justify-content:center;cursor:pointer">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--color-neutral-600)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <div style="aspect-ratio:1;border-radius:10px;background:rgba(42,36,29,0.04);display:flex;align-items:center;justify-content:center;cursor:pointer">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--color-neutral-600)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15 8 22 9 17 14 18 21 12 18 6 21 7 14 2 9 9 8 12 2"/></svg>
+              </div>
+              <div style="aspect-ratio:1;border-radius:10px;background:rgba(42,36,29,0.04);display:flex;align-items:center;justify-content:center;cursor:pointer">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--color-neutral-600)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><path d="M6 1v3M10 1v3M14 1v3"/></svg>
+              </div>
+              <div style="aspect-ratio:1;border-radius:10px;background:rgba(42,36,29,0.04);display:flex;align-items:center;justify-content:center;cursor:pointer">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--color-neutral-600)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- 提醒默认 -->
+          <div>
+            <div class="field-label" style="margin-bottom:8px">此分类默认提醒</div>
+            <div style="background:rgba(42,36,29,0.03);border-radius:12px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:14px;color:var(--fg)">提前 7 天提醒</span>
+              <div class="toggle on"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-label-desc">预览卡片 · 名称 · 6+1 颜色(含自定义) · 12 图标 · 默认提醒开关</div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <span>Daymark · New Pages · 2026</span>
+    <span>Mark · Timeline · Permissions · Version Switch · Category Editor</span>
+  </footer>
+</div>
+</body>
+</html>

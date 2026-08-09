@@ -1,44 +1,22 @@
 package com.creepersan.memorialday.activity.intro
 
+import android.content.Intent
 import android.os.Bundle
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import com.creepersan.memorialday.base.activity.BaseComposeActivity
+import com.creepersan.memorialday.activity.login.LoginActivity
+import com.creepersan.memorialday.activity.business.CSBusinessActivity
+import com.creepersan.memorialday.module.network.host.account.KVAccountTokenStorage
 
 class IntroActivity : BaseComposeActivity() {
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        setContent { BuildPage() }
+        val destination = if (KVAccountTokenStorage().current() == null) {
+            LoginActivity::class.java
+        } else {
+            CSBusinessActivity::class.java
+        }
+        startActivity(Intent(this, destination))
+        finish()
     }
-
-
-    @Preview
-    @Composable
-    fun BuildPage() {
-
-    }
-
-
-
-    @Preview
-    @Composable
-    fun BuildPager() {
-
-    }
-
-    @Preview
-    @Composable
-    fun BuildButtonGroup() {
-
-    }
-
-
 }

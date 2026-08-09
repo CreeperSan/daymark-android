@@ -1,5 +1,7 @@
 package com.creepersan.memorialday.module.network.core
 
+import android.util.Log
+
 /**
  * 可注入的网络诊断输出接口。
  *
@@ -11,5 +13,8 @@ fun interface NetworkLogger {
     companion object {
         /** 默认不输出任何内容，避免生产环境意外泄露信息。 */
         val NONE = NetworkLogger { }
+
+        /** 输出到 Android Logcat 的网络诊断日志。 */
+        val LOGCAT = NetworkLogger { message -> Log.d("NetworkClient", message) }
     }
 }

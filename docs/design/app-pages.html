@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daymark · 主功能页面设计稿 v2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://sfile.chatglm.cn/workspace/file/39/392a106e8f.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font-sans); background: var(--gradient-dawn); color: var(--fg); line-height: var(--leading-normal); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    .page { max-width: 1400px; margin: 0 auto; padding: var(--space-10) var(--space-6) var(--space-16); }
+    .page-header { margin-bottom: var(--space-10); text-align: center; }
+    .page-eyebrow { font-family: var(--font-mono); font-size: var(--text-caption); color: var(--color-primary-500); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--space-3); }
+    .page-title { font-size: var(--text-4xl); font-weight: var(--weight-bold); letter-spacing: var(--tracking-tight); line-height: var(--leading-tight); color: var(--fg); margin-bottom: var(--space-3); }
+    .page-subtitle { font-size: var(--text-base); color: var(--fg-secondary); max-width: 600px; margin: 0 auto; }
+    .screens-row { display: flex; flex-wrap: wrap; gap: var(--space-8); justify-content: center; }
+    .screen-item { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); }
+    .screen-label { font-family: var(--font-mono); font-size: var(--text-caption); color: var(--fg-muted); text-align: center; }
+    .screen-label strong { color: var(--fg); font-weight: var(--weight-medium); }
+    .screen-label-desc { font-size: var(--text-xs); color: var(--fg-muted); text-align: center; max-width: 375px; }
+    .screen { width: 375px; background: var(--bg); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-lg); position: relative; }
+
+    /* 通用组件 */
+    .nav-bar { height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 var(--space-4); position: relative; z-index: 10; }
+    .nav-bar-title { font-size: var(--text-base); font-weight: var(--weight-semibold); color: var(--fg); }
+    .nav-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-full); cursor: pointer; transition: background var(--duration-fast) var(--ease-out); }
+    .nav-btn:active { background: rgba(42,36,29,0.06); }
+    .nav-btn svg { width: 20px; height: 20px; stroke: var(--fg); stroke-width: 1.75; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .nav-btn svg.white { stroke: #fff; }
+    .nav-bar-spacer { width: 32px; }
+
+    /* 浮岛药丸 */
+    .pill-nav { position: absolute; bottom: 16px; left: 32px; right: 32px; height: 52px; background: rgba(250,246,241,0.82); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8); border: 1px solid rgba(229,219,208,0.6); border-radius: var(--radius-full); box-shadow: 0 4px 24px -6px rgba(42,36,29,0.12), 0 1px 4px 0 rgba(42,36,29,0.06); display: flex; align-items: center; justify-content: space-around; padding: 0 8px; z-index: 20; }
+    .pill-item { display: flex; flex-direction: column; align-items: center; min-width: 44px; padding: 6px 10px; border-radius: var(--radius-full); transition: background var(--duration-fast) var(--ease-out); cursor: pointer; }
+    .pill-item svg { width: 22px; height: 22px; stroke: var(--color-neutral-500); stroke-width: 1.75; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .pill-item.active { background: var(--color-primary-50); }
+    .pill-item.active svg { stroke: var(--color-primary-600); }
+    .pill-item span { font-size: 10px; color: var(--color-neutral-500); font-weight: var(--weight-medium); margin-top: 1px; }
+    .pill-item.active span { color: var(--color-primary-600); }
+    .pill-center { width: 44px; height: 44px; background: var(--gradient-warm); border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px -4px rgba(217,98,46,0.4); flex-shrink: 0; cursor: pointer; transition: transform var(--duration-fast) var(--ease-spring); position: relative; overflow: hidden; }
+    .pill-center::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 50%); border-radius: inherit; }
+    .pill-center:active { transform: scale(0.92); }
+    .pill-center svg { width: 20px; height: 20px; stroke: #fff; stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; position: relative; z-index: 1; }
+
+    /* 填充式输入框 */
+    .field { background: rgba(42,36,29,0.03); border-radius: var(--radius-md); padding: 14px 16px; transition: box-shadow var(--duration-fast) var(--ease-out); }
+    .field:focus-within { box-shadow: 0 0 0 4px rgba(217,98,46,0.10); background: rgba(42,36,29,0.02); }
+    .field-label { font-size: 11px; font-weight: var(--weight-medium); color: var(--color-neutral-500); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+    .field-input { width: 100%; border: none; background: transparent; font-size: var(--text-base); color: var(--fg); outline: none; font-family: var(--font-sans); }
+    .field-input::placeholder { color: var(--color-neutral-400); }
+
+    /* 开关 */
+    .toggle { width: 44px; height: 26px; border-radius: var(--radius-full); background: rgba(42,36,29,0.10); position: relative; cursor: pointer; transition: background var(--duration-normal) var(--ease-out); flex-shrink: 0; }
+    .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; background: #fff; border-radius: var(--radius-full); box-shadow: 0 1px 3px rgba(0,0,0,0.2); transition: transform var(--duration-normal) var(--ease-spring); }
+    .toggle.on { background: var(--gradient-warm); box-shadow: 0 2px 8px -2px rgba(217,98,46,0.3); }
+    .toggle.on::after { transform: translateX(18px); }
+
+    /* 设置列表 */
+    .settings-group { display: flex; flex-direction: column; gap: 2px; }
+    .settings-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; transition: background var(--duration-fast) var(--ease-out); }
+    .settings-item:active { background: rgba(42,36,29,0.03); }
+    .settings-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .settings-icon svg { width: 18px; height: 18px; stroke-width: 1.75; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .settings-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+    .settings-name { font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--fg); }
+    .settings-desc { font-size: 11px; color: var(--color-neutral-500); }
+    .settings-value { font-size: var(--text-sm); color: var(--color-neutral-500); }
+    .settings-arrow svg { width: 16px; height: 16px; stroke: var(--color-neutral-400); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .badge-new { background: var(--gradient-celebration); color: #fff; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: var(--radius-full); }
+
+    /* Mark 按钮 */
+    .mark-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--radius-full); background: var(--gradient-warm); color: #fff; font-size: var(--text-sm); font-weight: var(--weight-semibold); box-shadow: 0 3px 12px -3px rgba(217,98,46,0.4); cursor: pointer; transition: transform var(--duration-fast) var(--ease-spring); position: relative; overflow: hidden; }
+    .mark-btn::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 50%); }
+    .mark-btn:active { transform: scale(0.95); }
+    .mark-btn svg { width: 16px; height: 16px; stroke: #fff; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; position: relative; z-index: 1; }
+    .mark-btn span { position: relative; z-index: 1; }
+
+    /* 分类色选择器（紧凑版） */
+    .cat-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: var(--radius-full); cursor: pointer; transition: all var(--duration-fast) var(--ease-out); font-size: var(--text-sm); border: 1.5px solid transparent; }
+    .cat-chip.selected { border-color: currentColor; background: rgba(255,255,255,0.5); }
+    .cat-chip-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    .cat-chip span { font-weight: var(--weight-medium); color: var(--fg); }
+
+    /* 拖拽排序手柄 */
+    .drag-handle { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: grab; opacity: 0.4; transition: opacity var(--duration-fast); }
+    .drag-handle:hover { opacity: 1; }
+    .drag-handle svg { width: 16px; height: 16px; stroke: var(--fg); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* 时间线 */
+    .timeline-item { display: flex; gap: 12px; padding: 12px 0; }
+    .timeline-dot { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .timeline-dot svg { width: 16px; height: 16px; stroke-width: 1.75; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .timeline-content { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+    .timeline-date { font-size: 11px; color: var(--color-neutral-500); font-family: var(--font-mono); }
+    .timeline-text { font-size: var(--text-sm); color: var(--fg); line-height: 1.5; }
+    .timeline-media { display: flex; gap: 6px; margin-top: 4px; }
+    .timeline-thumb { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; }
+
+    /* 桌面小组件 */
+    .widget-grid { display: flex; flex-wrap: wrap; gap: var(--space-8); justify-content: center; margin-top: var(--space-8); }
+    .widget-item { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); }
+    .widget-label { font-family: var(--font-mono); font-size: var(--text-caption); color: var(--fg-muted); text-align: center; }
+    .widget-label strong { color: var(--fg); }
+    .widget { background: var(--bg); border-radius: 20px; overflow: hidden; box-shadow: var(--shadow-md); position: relative; }
+
+    /* 底部 */
+    .footer { margin-top: var(--space-16); padding-top: var(--space-8); border-top: 1px solid var(--border-soft); text-align: center; display: flex; justify-content: space-between; font-size: var(--text-caption); color: var(--fg-muted); font-family: var(--font-mono); }
+
+    /* 响应式 */
+    @media (max-width: 768px) { .page { padding: var(--space-6) var(--space-4) var(--space-12); } .screens-row { gap: var(--space-4); } }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="page-header">
+    <div class="page-eyebrow">Daymark · App Pages v2</div>
+    <h1 class="page-title">主功能页面设计稿</h1>
+    <p class="page-subtitle">6 个核心页面 · 375px mobile-first · 公历农历 · Mark · 分类排序 · 桌面小组件</p>
+  </div>
+
+  <!-- ============================================
+       01 首页
+       ============================================ -->
+  <div class="screens-row">
+    <div class="screen-item">
+      <div class="screen-label"><strong>01 首页</strong> · 仪表盘</div>
+      <div class="screen" style="min-height:780px">
+        <div style="padding:16px 16px 0">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+            <div>
+              <div style="font-size:11px;color:var(--color-neutral-500);font-weight:500">2026年8月4日 星期二</div>
+              <div style="font-size:24px;font-weight:700;color:var(--fg);margin-top:2px">早安 ☀</div>
+            </div>
+            <div style="width:40px;height:40px;border-radius:50%;background:var(--gradient-warm);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px">林</div>
+          </div>
+
+          <!-- Hero 倒计时卡片 -->
+          <div style="border-radius:20px;overflow:hidden;position:relative;height:200px;margin-bottom:16px;box-shadow:var(--shadow-md)">
+            <div style="position:absolute;inset:0;background:var(--gradient-warm)"></div>
+            <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,0.15) 100%)"></div>
+            <div style="position:relative;padding:20px;height:100%;display:flex;flex-direction:column;justify-content:space-between;color:#fff">
+              <div>
+                <div style="font-size:11px;opacity:0.8;text-transform:uppercase;letter-spacing:0.08em;font-weight:500">最近的一个</div>
+                <div style="font-size:18px;font-weight:600;margin-top:4px">恋爱纪念日</div>
+                <div style="font-size:12px;opacity:0.7;margin-top:2px">2024.11.18 · 第 2 年</div>
+              </div>
+              <div style="display:flex;align-items:baseline;gap:6px">
+                <span style="font-size:56px;font-weight:700;font-family:var(--font-num);letter-spacing:-0.04em;line-height:1">96</span>
+                <span style="font-size:14px;opacity:0.8">天后</span>
+              </div>
+            </div>
+            <!-- 装饰日历 -->
+            <div style="position:absolute;right:-20px;top:-20px;width:120px;height:120px;opacity:0.12">
+              <svg viewBox="0 0 24 24" fill="#fff"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>
+            </div>
+          </div>
+
+          <!-- 统计条 -->
+          <div style="display:flex;gap:8px;margin-bottom:16px">
+            <div style="flex:1;background:rgba(42,36,29,0.03);border-radius:12px;padding:10px 12px">
+              <div style="font-size:11px;color:var(--color-neutral-500)">本月</div>
+              <div style="font-size:18px;font-weight:600;color:var(--fg);margin-top:2px">2 个</div>
+            </div>
+            <div style="flex:1;background:rgba(42,36,29,0.03);border-radius:12px;padding:10px 12px">
+              <div style="font-size:11px;color:var(--color-neutral-500)">本年</div>
+              <div style="font-size:18px;font-weight:600;color:var(--fg);margin-top:2px">8 个</div>
+            </div>
+            <div style="flex:1;background:rgba(42,36,29,0.03);border-radius:12px;padding:10px 12px">
+              <div style="font-size:11px;color:var(--color-neutral-500)">已过</div>
+              <div style="font-size:18px;font-weight:600;color:var(--fg);margin-top:2px">3 个</div>
+            </div>
+          </div>
+
+          <!-- 列表标题 -->
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <span style="font-size:15px;font-weight:600;color:var(--fg)">即将到来</span>
+            <span style="font-size:12px;color:var(--color-primary-500);font-weight:500">查看全部</span>
+          </div>
+        </div>
+
+        <!-- 列表 -->
+        <div style="padding:0 16px 100px">
+          <!-- 卡片 1 恋爱 -->
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(42,36,29,0.04)">
+            <div style="width:40px;height:40px;border-radius:12px;background:var(--color-rose-50);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;overflow:hidden">
+              <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--gradient-rose)"></div>
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--color-rose-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600;color:var(--fg)">恋爱纪念日</div>
+              <div style="font-size:11px;color:var(--color-neutral-500);margin-top:1px">11月18日 · 第2年 · 玫瑰</div>
+            </div>
+            <div style="font-size:20px;font-weight:700;color:var(--color-rose-500);font-family:var(--font-num)">96</div>
+          </div>
+
+          <!-- 卡片 2 生日 -->
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(42,36,29,0.04)">
+            <div style="width:40px;height:40px;border-radius:12px;background:var(--color-amber-50);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;overflow:hidden">
+              <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--color-amber-400),var(--color-amber-600))"></div>
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--color-amber-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600;color:var(--fg)">妈妈生日</div>
+              <div style="font-size:11px;color:var(--color-neutral-500);margin-top:1px">10月15日 · 农历八月廿三 · 蜜金</div>
+            </div>
+            <div style="font-size:20px;font-weight:700;color:var(--color-amber-500);font-family:var(--font-num)">72</div>
+          </div>
+
+          <!-- 卡片 3 旅行 -->
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(42,36,29,0.04)">
+            <div style="width:40px;height:40px;border-radius:12px;background:var(--color-teal-50);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;overflow:hidden">
+              <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--color-teal-300),var(--color-teal-600))"></div>
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--color-teal-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600;color:var(--fg)">北海道旅行</div>
+              <div style="font-size:11px;color:var(--color-neutral-500);margin-top:1px">12月20日 · 3周年 · 青潮</div>
+            </div>
+            <div style="font-size:20px;font-weight:700;color:var(--color-teal-500);font-family:var(--font-num)">138</div>
+          </div>
+
+          <!-- 卡片 4 里程碑 -->
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(42,36,29,0.04)">
+            <div style="width:40px;height:40px;border-radius:12px;background:var(--color-lavender-50);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;overflow:hidden">
+              <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--color-lavender-300),var(--color-lavender-600))"></div>
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--color-lavender-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4.5 2 7L12 16l-6.5 4.5 2-7L2 9h7z"/></svg>
+            </div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600;color:var(--fg)">毕业五周年</div>
+              <div style="font-size:11px;color:var(--color-neutral-500);margin-top:1px">2027.06.20 · 5周年 · 薰衣</div>
+            </div>
+            <div style="font-size:20px;font-weight:700;color:var(--color-lavender-500);font-family:var(--font-num)">320</div>
+          </div>
+
+          <!-- 卡片 5 节日 -->
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 0">
+            <div style="width:40px;height:40px;border-radius:12px;background:var(--color-secondary-50);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;overflow:hidden">
+              <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--color-secondary-300),var(--color-secondary-600))"></div>
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--color-secondary-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>
+            </div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600;color:var(--fg)">结婚纪念日</div>
+              <div style="font-size:11px;color:var(--color-neutral-500);margin-top:1px">5月20日 · 5周年 · 鼠尾草</div>
+            </div>
+            <div style="font-size:20px;font-weight:700;color:var(--color-secondary-500);font-family:var(--font-num)">289</div>
+          </div>
+        </div>
+
+        <!-- 浮岛药丸 -->
+        <div class="pill-nav">
+          <div class="pill-item active"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg><span>首页</span></div>
+          <div class="pill-item"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18"/></svg><span>日历</span></div>
+          <div class="pill-center"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>
+          <div class="pill-item"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span>提醒</span></div>
+          <div class="pill-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M3 21a9 9 0 0 1 18 0"/></svg><span>我的</span></div>
+        </div>
+      </div>
+      <div class="screen-label-desc">暖光渐变 Hero · 分类色列表卡片（玫瑰/蜜金/青潮/薰衣/鼠尾草）· 浮岛药丸导航</div>
+    </div>
+
+    <!-- ============================================
+         02 新建编辑纪念日（大幅修改）
+         ============================================ -->
+    <div class="screen-item">
+      <div class="screen-label"><strong>02 新建纪念日</strong> · 公历/农历 · Mark 按钮 · 时间线 10 条</div>
+      <div class="screen" style="min-height:900px">
+        <div class="nav-bar" style="border-bottom:1px solid rgba(42,36,29,0.04)">
+          <div class="nav-btn"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+          <span class="nav-bar-title">新建纪念日</span>
+          <div class="nav-btn" style="width:auto;padding:0 12px;border-radius:var(--radius-full);background:var(--color-primary-50)">
+            <span style="font-size:13px;font-weight:600;color:var(--color-primary-600)">保存</span>
+          </div>
+        </div>
+
+        <div style="padding:16px;display:flex;flex-direction:column;gap:16px">
+          <!-- 名称 -->
+          <div class="field">
+            <div class="field-label">名称</div>
+            <input class="field-input" placeholder="给这一天起个名字" value="恋爱纪念日">
+          </div>
+
+          <!-- ★ 日期选择：公历/农历切换（创建后不可改） -->
+          <div>
+            <div class="field-label" style="margin-bottom:8px;display:flex;align-items:center;gap:6px">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="var(--color-neutral-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>
+              日期
+              <span style="font-size:10px;color:var(--color-neutral-400);font-weight:400">创建后不可修改</span>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:10px">
+              <!-- 公历/农历切换 -->
+              <div style="display:flex;background:rgba(42,36,29,0.04);border-radius:10px;padding:3px">
+                <div style="padding:6px 14px;border-radius:7px;background:#fff;font-size:13px;font-weight:600;color:var(--color-primary-600);box-shadow:0 1px 2px rgba(0,0,0,0.06)">公历</div>
+                <div style="padding:6px 14px;border-radius:7px;font-size:13px;font-weight:500;color:var(--color-neutral-500)">农历</div>
+              </div>
+              <div style="flex:1"></div>
+            </div>
+            <div class="field">
+              <div style="display:flex;align-items:baseline;justify-content:space-between">
+                <span style="font-size:16px;font-weight:600;color:var(--fg)">2024年11月18日</span>
+                <span style="font-size:12px;color:var(--color-neutral-500)">星期一</span>
+              </div>
+              <div style="font-size:11px;color:var(--color-neutral-400);margin-top:4px">公历 · Solar Calendar</div>
+            </div>
+          </div>
+
+          <!-- ★ 分类（权重降低，紧凑行内） -->
+          <div>
+            <div class="field-label" style="margin-bottom:8px">分类</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <div class="cat-chip selected" style="color:var(--color-rose-500)">
+                <div class="cat-chip-dot" style="background:var(--color-rose-500)"></div>
+                <span>恋爱</span>
+              </div>
+              <div class="cat-chip" style="color:var(--color-amber-600)">
+                <div class="cat-chip-dot" style="background:var(--color-amber-500)"></div>
+                <span>生日</span>
+              </div>
+              <div class="cat-chip" style="color:var(--color-teal-500)">
+                <div class="cat-chip-dot" style="background:var(--color-teal-500)"></div>
+                <span>旅行</span>
+              </div>
+              <div class="cat-chip" style="color:var(--color-lavender-500)">
+                <div class="cat-chip-dot" style="background:var(--color-lavender-500)"></div>
+                <span>里程碑</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ★ 提醒（左右间距优化） -->
+          <div>
+            <div class="field-label" style="margin-bottom:8px;display:flex;align-items:center;gap:6px">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="var(--color-neutral-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+              提醒
+            </div>
+            <div style="background:rgba(42,36,29,0.03);border-radius:var(--radius-md);padding:14px 20px;display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <span style="font-size:14px;color:var(--fg)">提前提醒</span>
+                <div class="toggle on"></div>
+              </div>
+              <div style="height:1px;background:rgba(42,36,29,0.04)"></div>
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <span style="font-size:14px;color:var(--fg)">提醒时间</span>
+                <span style="font-size:14px;color:var(--color-primary-500);font-weight:500">09:00</span>
+              </div>
+              <div style="height:1px;background:rgba(42,36,29,0.04)"></div>
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <span style="font-size:14px;color:var(--fg)">提前天数</span>
+                <span style="font-size:14px;color:var(--color-primary-500);font-weight:500">7 天 · 1 天 · 当天</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 备注 -->
+          <div class="field">
+            <div class="field-label">备注</div>
+            <textarea class="field-input" rows="2" placeholder="写点什么…" style="resize:none;font-family:var(--font-sans)">那一天我们第一次牵手</textarea>
+          </div>
+
+          <!-- 重复 -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(42,36,29,0.03);border-radius:var(--radius-md)">
+            <span style="font-size:14px;font-weight:500;color:var(--fg)">重复</span>
+            <span style="font-size:14px;color:var(--color-primary-500);font-weight:500">每年</span>
+          </div>
+
+          <!-- ★ 时间线 + Mark 按钮 -->
+          <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <div class="field-label" style="margin-bottom:0">纪念时间线</div>
+              <!-- Mark 按钮 -->
+              <div class="mark-btn">
+                <svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                <span>Mark</span>
+              </div>
+            </div>
+            <div style="background:rgba(42,36,29,0.02);border-radius:var(--radius-md);padding:12px 16px">
+              <!-- 时间线 1 -->
+              <div class="timeline-item" style="padding-top:0">
+                <div class="timeline-dot" style="background:var(--color-rose-50)">
+                  <svg viewBox="0 0 24 24" stroke="var(--color-rose-500)"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                </div>
+                <div class="timeline-content">
+                  <span class="timeline-date">2024.11.18 · 第 1 年</span>
+                  <span class="timeline-text">一周年快乐！吃了蛋糕，看了电影 🎬</span>
+                  <div class="timeline-media">
+                    <img class="timeline-thumb" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='8' fill='%23FDF1EE'/%3E%3C/svg%3E">
+                    <img class="timeline-thumb" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='8' fill='%23FDF6E8'/%3E%3C/svg%3E">
+                  </div>
+                </div>
+              </div>
+              <!-- 时间线 2 -->
+              <div class="timeline-item">
+                <div class="timeline-dot" style="background:var(--color-amber-50)">
+                  <svg viewBox="0 0 24 24" stroke="var(--color-amber-500)"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                </div>
+                <div class="timeline-content">
+                  <span class="timeline-date">2024.08.10 · 语音记录</span>
+                  <span class="timeline-text">在车里录了一段话，说给你听</span>
+                  <div style="display:flex;align-items:center;gap:6px;margin-top:4px;padding:6px 10px;background:var(--color-amber-50);border-radius:8px">
+                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="var(--color-amber-500)" stroke-width="2" fill="none" stroke-linecap="round"><path d="M8 13a4 4 0 0 1 8 0v4a4 4 0 0 1-8 0z"/><path d="M12 4v4"/></svg>
+                    <div style="flex:1;height:4px;background:rgba(232,168,56,0.2);border-radius:2px;position:relative">
+                      <div style="width:30%;height:100%;background:var(--color-amber-400);border-radius:2px"></div>
+                    </div>
+                    <span style="font-size:10px;color:var(--color-amber-600);font-family:var(--font-mono)">0:12</span>
+                  </div>
+                </div>
+              </div>
+              <!-- 时间线 3 -->
+              <div class="timeline-item" style="padding-bottom:0">
+                <div class="timeline-dot" style="background:var(--color-lavender-50)">
+                  <svg viewBox="0 0 24 24" stroke="var(--color-lavender-500)"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                </div>
+                <div class="timeline-content">
+                  <span class="timeline-date">2024.06.20 · 视频</span>
+                  <span class="timeline-text">毕业五周年同学聚会，放了当年的视频</span>
+                </div>
+              </div>
+              <!-- 省略条目 4-9 -->
+              <div style="text-align:center;padding:8px 0;font-size:11px;color:var(--color-neutral-400);font-family:var(--font-mono)">· · · 共 10 条 · · ·</div>
+              <!-- 查看更多 -->
+              <div style="text-align:center;padding:10px 0">
+                <span style="font-size:13px;color:var(--color-primary-500);font-weight:500">查看全部时间线 →</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-label-desc">公历/农历切换（创建后不可改）· 分类紧凑行内选择 · 提醒左右间距 20px · Mark 按钮 · 时间线 max 10 + 查看更多</div>
+    </div>
+
+    <!-- ============================================
+         03 详情页（不变）
+         ============================================ -->
+    <div class="screen-item">
+      <div class="screen-label"><strong>03 详情页</strong> · 沉浸式标题栏</div>
+      <div class="screen" style="min-height:880px">
+        <!-- Hero -->
+        <div style="position:relative;height:280px;overflow:hidden">
+          <div style="position:absolute;inset:0;background:var(--gradient-warm)"></div>
+          <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.15) 0%,transparent 30%,rgba(250,246,241,0.5) 90%,var(--bg) 100%)"></div>
+          <!-- 沉浸式标题栏 -->
+          <div class="nav-bar" style="position:relative;z-index:10">
+            <div class="nav-btn"><svg class="white" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+            <div class="nav-btn"><svg class="white" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg></div>
+          </div>
+          <div style="position:absolute;bottom:0;left:0;right:0;padding:20px;color:#fff">
+            <div style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;background:rgba(255,255,255,0.2);backdrop-filter:blur(8px);border-radius:var(--radius-full);font-size:11px;font-weight:500;margin-bottom:8px">
+              <div style="width:8px;height:8px;border-radius:50%;background:#fff"></div> 恋爱
+            </div>
+            <div style="font-size:22px;font-weight:700">恋爱纪念日</div>
+            <div style="font-size:13px;opacity:0.8;margin-top:2px">2024.11.18 · 公历 · 第 2 年</div>
+          </div>
+        </div>
+
+        <div style="padding:0 16px 16px">
+          <!-- 大倒计时 -->
+          <div style="text-align:center;padding:20px 0 24px">
+            <div style="font-size:11px;color:var(--color-neutral-500);text-transform:uppercase;letter-spacing:0.08em;font-weight:500">还有</div>
+            <div style="display:flex;align-items:baseline;justify-content:center;gap:4px;margin:4px 0">
+              <span style="font-size:64px;font-weight:700;font-family:var(--font-num);letter-spacing:-0.04em;line-height:1;background:var(--gradient-warm);-webkit-background-clip:text;-webkit-text-fill-color:transparent">96</span>
+              <span style="font-size:16px;color:var(--color-neutral-600);font-weight:500">天</span>
+            </div>
+            <div style="font-size:12px;color:var(--color-neutral-500)">2024年11月18日 星期一</div>
+          </div>
+
+          <!-- 纪念时间线 -->
+          <div style="margin-bottom:20px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <span style="font-size:15px;font-weight:600;color:var(--fg)">纪念时间线</span>
+              <div class="mark-btn" style="font-size:12px;padding:6px 12px">
+                <svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                <span>Mark</span>
+              </div>
+            </div>
+            <div style="position:relative;padding-left:20px">
+              <div style="position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:rgba(42,36,29,0.06)"></div>
+              <div style="position:relative;padding-bottom:16px">
+                <div style="position:absolute;left:-20px;top:4px;width:16px;height:16px;border-radius:50%;background:var(--color-rose-500);box-shadow:0 0 0 3px var(--color-rose-50)"></div>
+                <div style="font-size:11px;color:var(--color-neutral-500);font-family:var(--font-mono)">2024.11.18</div>
+                <div style="font-size:14px;color:var(--fg);margin-top:2px">一周年快乐！吃了蛋糕 🎂</div>
+              </div>
+              <div style="position:relative;padding-bottom:16px">
+                <div style="position:absolute;left:-20px;top:4px;width:16px;height:16px;border-radius:50%;background:var(--color-amber-500);box-shadow:0 0 0 3px var(--color-amber-50)"></div>
+                <div style="font-size:11px;color:var(--color-neutral-500);font-family:var(--font-mono)">2023.11.18</div>
+                <div style="font-size:14px;color:var(--fg);margin-top:2px">在一起的第一天 ❤</div>
+              </div>
+              <div style="position:relative">
+                <div style="position:absolute;left:-20px;top:4px;width:16px;height:16px;border-radius:50%;background:var(--color-lavender-500);box-shadow:0 0 0 3px var(--color-lavender-50)"></div>
+                <div style="font-size:11px;color:var(--color-neutral-500);font-family:var(--font-mono)">2022.11.18</div>
+                <div style="font-size:14px;color:var(--fg);margin-top:2px">初遇那天，下着小雨</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 操作按钮 -->
+          <div style="display:flex;gap:10px">
+            <div style="flex:1;height:44px;border-radius:12px;background:rgba(42,36,29,0.04);display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--fg)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              <span style="font-size:13px;font-weight:500;color:var(--fg)">编辑</span>
+            </div>
+            <div style="flex:1;height:44px;border-radius:12px;background:rgba(42,36,29,0.04);display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--fg)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg>
+              <span style="font-size:13px;font-weight:500;color:var(--fg)">分享</span>
+            </div>
+            <div style="flex:1;height:44px;border-radius:12px;background:rgba(180,67,42,0.06);display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--color-danger-text)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              <span style="font-size:13px;font-weight:500;color:var(--color-danger-text)">删除</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-label-desc">沉浸式标题栏 · 渐变 Hero · 96 天大倒计时 · 时间线 · Mark 按钮 · 编辑/分享/删除</div>
+    </div>
+
+    <!-- ============================================
+         04 设置页（大幅修改：+检查更新 +同步日历 +权限 +版本切换）
+         ============================================ -->
+    <div class="screen-item">
+      <div class="screen-label"><strong>04 设置</strong> · 检查更新 · 同步日历 · 权限 · 版本</div>
+      <div class="screen" style="min-height:960px">
+        <div class="nav-bar" style="border-bottom:1px solid rgba(42,36,29,0.04)">
+          <div class="nav-btn"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+          <span class="nav-bar-title">设置</span>
+          <div class="nav-bar-spacer"></div>
+        </div>
+
+        <div style="padding:16px;display:flex;flex-direction:column;gap:20px">
+          <!-- 用户资料 -->
+          <div style="display:flex;align-items:center;gap:12px;padding:12px">
+            <div style="width:56px;height:56px;border-radius:50%;background:var(--gradient-warm);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:20px">林</div>
+            <div>
+              <div style="font-size:16px;font-weight:600;color:var(--fg)">林小满</div>
+              <div style="font-size:12px;color:var(--color-neutral-500);margin-top:2px">hello@daymark.app</div>
+            </div>
+          </div>
+
+          <!-- 通用 -->
+          <div>
+            <div style="font-size:11px;color:var(--color-neutral-500);font-weight:600;margin-bottom:6px;padding-left:4px">通用</div>
+            <div class="settings-group">
+              <div class="settings-item" style="background:rgba(42,36,29,0.02);border-radius:12px 12px 0 0">
+                <div class="settings-icon" style="background:var(--color-primary-50)"><svg stroke="var(--color-primary-600)"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></div>
+                <div class="settings-text"><span class="settings-name">深色模式</span></div>
+                <span class="settings-value">跟随系统</span>
+                <div class="settings-arrow"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
+              </div>
+              <div class="settings-item" style="background:rgba(42,36,29,0.02)">
+                <div class="settings-icon" style="background:var(--color-teal-50)"><svg stroke="var(--color-teal-500)"><path d="M5 8h14M5 8a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2M5 8V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2"/></svg></div>
+                <div class="settings-text"><span class="settings-name">语言</span></div>
+                <span class="settings-value">简体中文</span>
+                <div class="settings-arrow"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
+              </div>
+              <div class="settings-item" style="background:rgba(42,36,29,0.02);border-radius:0 0 12px 12px">
+                <div class="settings-icon" style="background:var(--color-amber-50)"><svg stroke="var(--color-amber-500)"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg></div>
+                <div class="settings-text"><span class="settings-name">日历起始日</span></div>
+                <span class="settings-value">周一</span>
+                <div class="settings-arrow"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 日历与提醒 -->
+          <div>
+            <div style="font-size:11px;color:var(--color-neutral-500);font-weight:600;margin-bottom:6px;padding-left:4px">日历与提醒</div>
+            <div class="settings-group">
+              <!-- ★ 同步至系统日历 -->
+              <div class="settings-item" style="background:rgba(42,36,29,0.02);border-radius:12px 12px 0 0">
+                <div class="settings-icon" style="background:var(--color-secondary-50)"><svg stroke="var(--color-secondary-500)"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18M8 14h2M14 14h2"/></svg></div>
+                <div class="settings-text"><span class="settings-name">同步至系统日历</span><span class="settings-desc">将纪念日同步到日历 App</span></div>
+                <div class="toggle on"></div>
+              </div>
+              <div class="settings-item" style="background:rgba(42,36,29,0.02)">
+                <div class="settings-icon" style="background:var(--color-rose-50)"><svg stroke="var(--color-rose-500)"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></div>
+                <div class="settings-text"><span class="settings-name">推送通知</span></div>
+                <div class="toggle on"></div>
+              </div>
+              <div class="settings-item" style="background:rgba(42,36,29,0.02);border-radius:0 0 12px 12px">
+                <div class="settings-icon" style="background:var(--color-lavender-50)"><svg stroke="var(--color-lavender-500)"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-6h3v4zM3 19a2 2 0 0 0 2 2h1v-6H3v4z"/></svg></div>
+                <div class="settings-text"><span class="settings-name">提醒铃声</span></div>
+                <span class="settings-value">晨间</span>
+                <div class="settings-arrow"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 关于 -->
+          <div>
+            <div style="font-size:11px;color:var(--color-neutral-500);font-weight:600;margin-bottom:6px;padding-left:4px">关于</div>
+            <div class="settings-group">
+              <!-- ★ 检查更新 -->
+              <div class="settings-item" style="background:rgba(42,36,29,0.02);border-radius:12px 12px 0 0">
+                <div class="settings-icon" style="background:var(--color-primary-50)"><svg stroke="var(--color-primary-600)"><path d="M21 12a9 9 0 11-6.219-8.56"/><path d="M21 3v6h-6"/></svg></div>
+                <div class="settings-text"><span class="settings-name">检查更新</span><span class="settings-desc">当前版本 v1.2.0</span></div>
+                <span class="badge-new">有新版本</span>
+                <div class="settings-arrow"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
+              </div>
+              <!-- ★ 权限说明 -->
+              <div class="settings-item" style="background:rgba(42,36,29,0.02)">
+                <div class="settings-icon" style="background:var(--color-teal-50)"><svg stroke="var(--color-teal-500)"><path d="M12 2L3 7v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V7l-9-5z"/><path d="M9 12l2 2 4-4"/></svg></div>
+                <div class="settings-text"><span class="settings-name">权限说明</span><span class="settings-desc">查看应用使用的权限</span></div>
+                <div class="settings-arrow"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
+              </div>
+              <!-- ★ 新旧版本切换（弱化） -->
+              <div class="settings-item" style="background:rgba(42,36,29,0.02)">
+                <div class="settings-icon" style="background:rgba(42,36,29,0.04)"><svg stroke="var(--color-neutral-500)"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 4v5h5"/><path d="M21 12a9 9 0 1 0-9 9"/><path d="M21 20v-5h-5"/></svg></div>
+                <div class="settings-text"><span class="settings-name" style="color:var(--color-neutral-500)">切回旧版</span><span class="settings-desc" style="color:var(--color-neutral-400)">推荐使用新版体验更佳</span></div>
+                <div class="settings-arrow"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
+              </div>
+              <div class="settings-item" style="background:rgba(42,36,29,0.02);border-radius:0 0 12px 12px">
+                <div class="settings-icon" style="background:rgba(42,36,29,0.04)"><svg stroke="var(--color-neutral-500)"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></div>
+                <div class="settings-text"><span class="settings-name">关于 Daymark</span></div>
+                <span class="settings-value">v1.2.0</span>
+                <div class="settings-arrow"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 退出 -->
+          <div style="padding:8px 0">
+            <div style="height:48px;border-radius:12px;background:rgba(180,67,42,0.06);display:flex;align-items:center;justify-content:center;cursor:pointer">
+              <span style="font-size:15px;font-weight:500;color:var(--color-danger-text)">退出登录</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-label-desc">检查更新(含当前版本+新版提示) · 同步系统日历 · 权限说明 · 切回旧版(弱化+推荐新版) · 4 组设置</div>
+    </div>
+
+    <!-- ============================================
+         05 分类管理（+排序）
+         ============================================ -->
+    <div class="screen-item">
+      <div class="screen-label"><strong>05 分类管理</strong> · 拖拽排序 · 新建入口</div>
+      <div class="screen" style="min-height:720px">
+        <div class="nav-bar" style="border-bottom:1px solid rgba(42,36,29,0.04)">
+          <div class="nav-btn"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+          <span class="nav-bar-title">分类管理</span>
+          <div class="nav-btn" style="width:auto;padding:0 12px">
+            <span style="font-size:13px;font-weight:600;color:var(--color-primary-600)">编辑</span>
+          </div>
+        </div>
+
+        <div style="padding:16px">
+          <div style="font-size:12px;color:var(--color-neutral-500);margin-bottom:12px;padding-left:4px">长按拖动排序 · 共 5 个分类</div>
+
+          <!-- 分类列表（带拖拽手柄） -->
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <!-- 恋爱 -->
+            <div style="display:flex;align-items:center;gap:12px;padding:14px 12px;background:#fff;border-radius:14px;box-shadow:var(--shadow-sm)">
+              <div class="drag-handle"><svg viewBox="0 0 24 24"><circle cx="9" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="18" r="1"/></svg></div>
+              <div style="width:44px;height:44px;border-radius:12px;background:var(--color-rose-50);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+                <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--gradient-rose)"></div>
+                <svg viewBox="0 0 24 24" width="22" height="22" stroke="var(--color-rose-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              </div>
+              <div style="flex:1">
+                <div style="font-size:15px;font-weight:600;color:var(--fg)">恋爱</div>
+                <div style="font-size:12px;color:var(--color-neutral-500);margin-top:2px">3 个纪念日</div>
+              </div>
+              <div style="width:24px;height:24px;border-radius:50%;background:var(--color-rose-500)"></div>
+            </div>
+
+            <!-- 生日 -->
+            <div style="display:flex;align-items:center;gap:12px;padding:14px 12px;background:#fff;border-radius:14px;box-shadow:var(--shadow-sm)">
+              <div class="drag-handle"><svg viewBox="0 0 24 24"><circle cx="9" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="18" r="1"/></svg></div>
+              <div style="width:44px;height:44px;border-radius:12px;background:var(--color-amber-50);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+                <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--color-amber-400),var(--color-amber-600))"></div>
+                <svg viewBox="0 0 24 24" width="22" height="22" stroke="var(--color-amber-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <div style="flex:1">
+                <div style="font-size:15px;font-weight:600;color:var(--fg)">生日</div>
+                <div style="font-size:12px;color:var(--color-neutral-500);margin-top:2px">5 个纪念日</div>
+              </div>
+              <div style="width:24px;height:24px;border-radius:50%;background:var(--color-amber-500)"></div>
+            </div>
+
+            <!-- 旅行 -->
+            <div style="display:flex;align-items:center;gap:12px;padding:14px 12px;background:#fff;border-radius:14px;box-shadow:var(--shadow-sm)">
+              <div class="drag-handle"><svg viewBox="0 0 24 24"><circle cx="9" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="18" r="1"/></svg></div>
+              <div style="width:44px;height:44px;border-radius:12px;background:var(--color-teal-50);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+                <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--color-teal-300),var(--color-teal-600))"></div>
+                <svg viewBox="0 0 24 24" width="22" height="22" stroke="var(--color-teal-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
+              <div style="flex:1">
+                <div style="font-size:15px;font-weight:600;color:var(--fg)">旅行</div>
+                <div style="font-size:12px;color:var(--color-neutral-500);margin-top:2px">2 个纪念日</div>
+              </div>
+              <div style="width:24px;height:24px;border-radius:50%;background:var(--color-teal-500)"></div>
+            </div>
+
+            <!-- 里程碑 -->
+            <div style="display:flex;align-items:center;gap:12px;padding:14px 12px;background:#fff;border-radius:14px;box-shadow:var(--shadow-sm)">
+              <div class="drag-handle"><svg viewBox="0 0 24 24"><circle cx="9" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="18" r="1"/></svg></div>
+              <div style="width:44px;height:44px;border-radius:12px;background:var(--color-lavender-50);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+                <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--color-lavender-300),var(--color-lavender-600))"></div>
+                <svg viewBox="0 0 24 24" width="22" height="22" stroke="var(--color-lavender-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4.5 2 7L12 16l-6.5 4.5 2-7L2 9h7z"/></svg>
+              </div>
+              <div style="flex:1">
+                <div style="font-size:15px;font-weight:600;color:var(--fg)">里程碑</div>
+                <div style="font-size:12px;color:var(--color-neutral-500);margin-top:2px">4 个纪念日</div>
+              </div>
+              <div style="width:24px;height:24px;border-radius:50%;background:var(--color-lavender-500)"></div>
+            </div>
+
+            <!-- 节日 -->
+            <div style="display:flex;align-items:center;gap:12px;padding:14px 12px;background:#fff;border-radius:14px;box-shadow:var(--shadow-sm)">
+              <div class="drag-handle"><svg viewBox="0 0 24 24"><circle cx="9" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="18" r="1"/></svg></div>
+              <div style="width:44px;height:44px;border-radius:12px;background:var(--color-secondary-50);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+                <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--color-secondary-300),var(--color-secondary-600))"></div>
+                <svg viewBox="0 0 24 24" width="22" height="22" stroke="var(--color-secondary-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>
+              </div>
+              <div style="flex:1">
+                <div style="font-size:15px;font-weight:600;color:var(--fg)">节日</div>
+                <div style="font-size:12px;color:var(--color-neutral-500);margin-top:2px">6 个纪念日</div>
+              </div>
+              <div style="width:24px;height:24px;border-radius:50%;background:var(--color-secondary-500)"></div>
+            </div>
+
+            <!-- 新建分类 -->
+            <div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border:2px dashed rgba(42,36,29,0.10);border-radius:14px;cursor:pointer;transition:all var(--duration-fast) var(--ease-out)">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--color-primary-500)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              <span style="font-size:14px;font-weight:500;color:var(--color-primary-500)">新建分类</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-label-desc">拖拽手柄排序 · 每个分类用渐变色条 + 分类色圆点 · 虚线框新建入口</div>
+    </div>
+
+    <!-- ============================================
+         06 通知提醒
+         ============================================ -->
+    <div class="screen-item">
+      <div class="screen-label"><strong>06 通知提醒</strong> · Tab 切换 · 未读红点</div>
+      <div class="screen" style="min-height:700px">
+        <div class="nav-bar" style="border-bottom:1px solid rgba(42,36,29,0.04)">
+          <div class="nav-btn"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+          <span class="nav-bar-title">提醒</span>
+          <div class="nav-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg></div>
+        </div>
+
+        <div style="padding:16px">
+          <!-- Tab -->
+          <div style="display:flex;background:rgba(42,36,29,0.04);border-radius:10px;padding:3px;margin-bottom:16px">
+            <div style="flex:1;padding:8px;text-align:center;border-radius:7px;background:#fff;font-size:13px;font-weight:600;color:var(--color-primary-600);box-shadow:0 1px 2px rgba(0,0,0,0.06);position:relative">
+              即将到来
+              <div style="position:absolute;top:4px;right:50%;width:6px;height:6px;border-radius:50%;background:var(--color-primary-500)"></div>
+            </div>
+            <div style="flex:1;padding:8px;text-align:center;border-radius:7px;font-size:13px;font-weight:500;color:var(--color-neutral-500)">已接收</div>
+          </div>
+
+          <!-- 通知 1 -->
+          <div style="background:#fff;border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden">
+            <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gradient-rose)"></div>
+            <div style="display:flex;align-items:start;gap:12px;padding-left:8px">
+              <div style="width:36px;height:36px;border-radius:10px;background:var(--color-rose-50);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--color-rose-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              </div>
+              <div style="flex:1">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:14px;font-weight:600;color:var(--fg)">恋爱纪念日</span>
+                  <div style="width:6px;height:6px;border-radius:50%;background:var(--color-primary-500)"></div>
+                </div>
+                <div style="font-size:12px;color:var(--color-neutral-500);margin-top:2px;line-height:1.5">还有 3 天就是恋爱两周年啦！</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+                  <span style="font-size:11px;color:var(--color-neutral-400);font-family:var(--font-mono)">2 小时前</span>
+                  <div style="padding:4px 12px;border-radius:var(--radius-full);background:var(--color-primary-500);font-size:12px;font-weight:500;color:#fff">查看</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 通知 2 -->
+          <div style="background:#fff;border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden">
+            <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(90deg,var(--color-amber-400),var(--color-amber-600))"></div>
+            <div style="display:flex;align-items:start;gap:12px;padding-left:8px">
+              <div style="width:36px;height:36px;border-radius:10px;background:var(--color-amber-50);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--color-amber-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <div style="flex:1">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:14px;font-weight:600;color:var(--fg)">妈妈生日</span>
+                  <div style="width:6px;height:6px;border-radius:50%;background:var(--color-primary-500)"></div>
+                </div>
+                <div style="font-size:12px;color:var(--color-neutral-500);margin-top:2px;line-height:1.5">农历八月廿三，还有 7 天就是妈妈生日</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+                  <span style="font-size:11px;color:var(--color-neutral-400);font-family:var(--font-mono)">昨天 09:00</span>
+                  <div style="padding:4px 12px;border-radius:var(--radius-full);background:var(--color-primary-500);font-size:12px;font-weight:500;color:#fff">查看</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 通知 3 已读 -->
+          <div style="background:#fff;border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:var(--shadow-sm);opacity:0.7">
+            <div style="display:flex;align-items:start;gap:12px">
+              <div style="width:36px;height:36px;border-radius:10px;background:var(--color-teal-50);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--color-teal-500)" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
+              <div style="flex:1">
+                <span style="font-size:14px;font-weight:600;color:var(--fg)">北海道旅行</span>
+                <div style="font-size:12px;color:var(--color-neutral-500);margin-top:2px">明年 12 月 20 日出发，3 周年</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+                  <span style="font-size:11px;color:var(--color-neutral-400);font-family:var(--font-mono)">1 周前</span>
+                  <span style="font-size:12px;color:var(--color-neutral-400);font-weight:500">已查看</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="padding:16px;text-align:center;font-size:11px;color:var(--color-neutral-400);font-family:var(--font-mono)">· 仅显示未来 90 天内的提醒 ·</div>
+        </div>
+      </div>
+      <div class="screen-label-desc">Tab 即将到来/已接收 · 未读红点 · 分类色 · 查看按钮</div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <span>Daymark · App Pages v2 · 2026</span>
+    <span>公历农历 · Mark · 分类排序 · 检查更新 · 同步日历 · 权限</span>
+  </footer>
+</div>
+</body>
+</html>

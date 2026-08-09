@@ -17,6 +17,8 @@ android {
         versionCode = 30100
         versionName = "3.1.0"
 
+        buildConfigField("boolean", "USE_DEBUG_SERVICE", "true")
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
@@ -40,6 +42,7 @@ android {
         jvmTarget = "17"
     }
     buildFeatures {
+        buildConfig = true
         compose = true
     }
     packaging {

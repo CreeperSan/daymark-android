@@ -3,6 +3,7 @@ package com.creepersan.memorialday.module.network.api
 import com.creepersan.memorialday.module.network.core.HttpMethod
 import com.creepersan.memorialday.module.network.core.NetworkClientBuilder
 import com.creepersan.memorialday.module.network.core.NetworkEvent
+import com.creepersan.memorialday.module.network.core.NetworkLogger
 import com.creepersan.memorialday.module.network.core.NetworkRequest
 import com.creepersan.memorialday.module.network.transfer.ResponseDecoders
 import kotlinx.coroutines.flow.filterIsInstance
@@ -21,6 +22,7 @@ object NetworkUsage {
      */
     fun createClient(baseUrl: String) = NetworkClientBuilder()
         .baseUrl(baseUrl)
+        .logger(NetworkLogger.LOGCAT)
         .build()
 
     /**

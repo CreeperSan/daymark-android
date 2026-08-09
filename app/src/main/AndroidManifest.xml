@@ -10,6 +10,7 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher_02"
         android:label="@string/app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true"
         android:theme="@style/Theme.MemorialDay"
         android:name=".application.MemorialDayApplication"
@@ -21,6 +22,11 @@
             android:exported="true"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.MemorialDay"/>
+
+        <activity
+            android:name=".activity.business.CSBusinessActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.MemorialDay" />
 
         <activity
             android:name=".activity.add.AddEditMemorialDayActivity"
@@ -42,6 +48,13 @@
         <activity android:name=".activity.register.RegisterActivity" />
 
         <activity android:name=".activity.forget_password.ForgetPasswordActivity" />
+
+        <activity android:name=".module.route.navigator.CSEmailVerificationActivity" />
+
+        <activity
+            android:name=".module.route.navigator.CSNavigationResultActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MemorialDay" />
 
         <activity android:name=".activity.index.IndexActivity" />
 

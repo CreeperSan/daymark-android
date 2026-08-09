@@ -5,6 +5,7 @@ import com.creepersan.memorialday.module.network.core.NetworkClientBuilder
 import com.creepersan.memorialday.module.network.core.NetworkEvent
 import com.creepersan.memorialday.module.network.core.NetworkRequest
 import com.creepersan.memorialday.module.network.core.NetworkFailure
+import com.creepersan.memorialday.module.network.core.NetworkLogger
 import com.creepersan.memorialday.module.network.middleware.NetworkMiddleware
 import com.creepersan.memorialday.module.network.middleware.MiddlewareOutcome
 import com.creepersan.memorialday.module.network.transfer.RequestPayload
@@ -68,6 +69,52 @@ class NetworkClientTest {
         val recordedRequest = server.takeRequest()
         assertEquals("request-token", recordedRequest.getHeader("Authorization"))
         assertEquals("/message?page=1", recordedRequest.path)
+    }
+
+    @Test
+    fun `network logging middleware prints request response details without secrets`() = runTest {
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(201)
+                .setHeader("Content-Type", "application/json")
+                .setBody("""{"token":"server-secret","message":"created"}""")
+        )
+        val logs = mutableListOf<String>()
+        val client = NetworkClientBuilder()
+            .baseUrl(server.url("/").toString())
+            .defaultHeaders(mapOf("Authorization" to "client-secret", "X-Trace" to "trace-1"))
+            .logger(NetworkLogger { logs += it })
+            .build()
+
+        client.execute(
+            NetworkRequest(
+                method = HttpMethod.POST,
+                path = "login",
+                responseDecoder = ResponseDecoders.text(),
+                queryParameters = mapOf("token" to "query-secret"),
+                payload = RequestPayload.Form(
+                    mapOf(
+                        "account" to "alice",
+                        "password" to "request-secret"
+                    )
+                )
+            )
+        ).toList()
+
+        val output = logs.joinToString("\n")
+            .replace("authorization", "Authorization")
+            .replace("x-trace", "X-Trace")
+        assertTrue(output.contains("HTTP REQUEST"))
+        assertTrue(output.contains("method=POST"))
+        assertTrue(output.contains("headers={Authorization=[***], X-Trace=[trace-1]}"))
+        assertTrue(output.contains("params=account=alice&password=***"))
+        assertTrue(output.contains("HTTP RESPONSE"))
+        assertTrue(output.contains("code=201"))
+        assertTrue(output.contains("""result={"token":"***","message":"created"}"""))
+        assertTrue(!output.contains("client-secret"))
+        assertTrue(!output.contains("query-secret"))
+        assertTrue(!output.contains("request-secret"))
+        assertTrue(!output.contains("server-secret"))
     }
 
     @Test

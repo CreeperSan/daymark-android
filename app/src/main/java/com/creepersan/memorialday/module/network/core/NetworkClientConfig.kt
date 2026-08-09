@@ -98,6 +98,7 @@ class NetworkClientBuilder {
                     .connectTimeout(connectTimeout)
                     .readTimeout(readTimeout)
                     .writeTimeout(writeTimeout)
+                    .addInterceptor(NetworkConsoleLoggingInterceptor(logger))
                     .build(),
                 gson = gson,
                 globalMiddlewares = globalMiddlewares,

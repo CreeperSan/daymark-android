@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daymark · 认证流程设计稿</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://sfile.chatglm.cn/workspace/file/39/392a106e8f.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--gradient-dawn);
+      color: var(--fg);
+      line-height: var(--leading-normal);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ============================================
+       页面框架
+       ============================================ */
+    .page {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: var(--space-12) var(--space-8) var(--space-16);
+    }
+
+    @media (min-width: 768px) {
+      .page { padding: var(--space-20) var(--space-12) var(--space-20); }
+    }
+
+    .page-header {
+      margin-bottom: var(--space-12);
+    }
+
+    .page-header h1 {
+      font-size: var(--text-4xl);
+      font-weight: var(--weight-bold);
+      letter-spacing: var(--tracking-tight);
+      line-height: var(--leading-tight);
+      color: var(--fg);
+      margin-bottom: var(--space-3);
+    }
+
+    .page-header p {
+      font-size: var(--text-lg);
+      color: var(--fg-secondary);
+      max-width: 600px;
+    }
+
+    /* ============================================
+       屏幕展示区 — 无手机外框
+       ============================================ */
+    .screens-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-8);
+      justify-content: center;
+    }
+
+    .screen-card {
+      width: 375px;
+      flex-shrink: 0;
+    }
+
+    .screen-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: var(--weight-medium);
+      color: var(--fg-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: var(--space-2);
+      text-align: center;
+    }
+
+    .screen-title {
+      font-size: var(--text-sm);
+      font-weight: var(--weight-semibold);
+      color: var(--fg);
+      text-align: center;
+      margin-bottom: var(--space-3);
+    }
+
+    .screen {
+      width: 375px;
+      background: var(--color-neutral-50);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 8px 40px -12px rgba(42, 36, 29, 0.12), 0 2px 8px -2px rgba(42, 36, 29, 0.06);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .screen-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 812px;
+    }
+
+    .screen-info {
+      font-size: var(--text-xs);
+      color: var(--fg-secondary);
+      text-align: center;
+      margin-top: var(--space-3);
+      max-width: 375px;
+    }
+
+    /* ============================================
+       欢迎页 — 左右翻页介绍
+       ============================================ */
+    .welcome-screen {
+      height: 812px;
+    }
+
+    .welcome-pager {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .welcome-track {
+      display: flex;
+      height: 100%;
+      transition: transform 400ms var(--ease-out);
+    }
+
+    .welcome-slide {
+      min-width: 375px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 32px 120px;
+      position: relative;
+    }
+
+    /* Slide 1 — 记录重要日子 */
+    .welcome-slide-1 {
+      background: linear-gradient(160deg, #D9622E 0%, #E8A838 100%);
+      color: var(--color-neutral-0);
+    }
+
+    /* Slide 2 — 智能倒计时 */
+    .welcome-slide-2 {
+      background: linear-gradient(160deg, #E8675A 0%, #E8A838 100%);
+      color: var(--color-neutral-0);
+    }
+
+    /* Slide 3 — 分类管理 */
+    .welcome-slide-3 {
+      background: linear-gradient(160deg, #3B8B8E 0%, #2E7A7D 100%);
+      color: var(--color-neutral-0);
+    }
+
+    /* Slide 4 — 开始使用 */
+    .welcome-slide-4 {
+      background: linear-gradient(180deg, #FAF6F1 0%, #F5EDE3 100%);
+      color: var(--fg);
+    }
+
+    .welcome-illustration {
+      width: 200px;
+      height: 200px;
+      margin-bottom: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .welcome-illustration svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .welcome-slide-title {
+      font-size: 24px;
+      font-weight: var(--weight-bold);
+      text-align: center;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+
+    .welcome-slide-desc {
+      font-size: 15px;
+      text-align: center;
+      opacity: 0.85;
+      line-height: 1.5;
+      max-width: 260px;
+    }
+
+    /* 翻页指示器 */
+    .welcome-dots {
+      position: absolute;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      z-index: 10;
+    }
+
+    .welcome-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.4);
+      cursor: pointer;
+      transition: all 300ms var(--ease-out);
+    }
+
+    .welcome-dot.active {
+      width: 24px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    /* Slide 4 特殊样式 */
+    .welcome-slide-4 .welcome-dot {
+      background: rgba(42, 36, 29, 0.15);
+    }
+
+    .welcome-slide-4 .welcome-dot.active {
+      background: var(--color-primary-500);
+    }
+
+    /* 翻页箭头 */
+    .welcome-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10;
+      transition: all 200ms var(--ease-out);
+    }
+
+    .welcome-arrow:hover {
+      background: rgba(255, 255, 255, 0.35);
+      transform: translateY(-50%) scale(1.1);
+    }
+
+    .welcome-arrow svg {
+      width: 20px;
+      height: 20px;
+      stroke: white;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .welcome-arrow-left { left: 16px; }
+    .welcome-arrow-right { right: 16px; }
+
+    .welcome-slide-4 .welcome-arrow svg { stroke: var(--fg); }
+    .welcome-slide-4 .welcome-arrow { background: rgba(42, 36, 29, 0.06); }
+
+    /* 底部按钮区 */
+    .welcome-footer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 24px 32px 48px;
+      z-index: 10;
+    }
+
+    .welcome-start-btn {
+      width: 100%;
+      height: 52px;
+      background: var(--gradient-warm);
+      border: none;
+      border-radius: var(--radius-full);
+      color: var(--color-neutral-0);
+      font-size: 16px;
+      font-weight: var(--weight-semibold);
+      cursor: pointer;
+      box-shadow: 0 8px 24px -8px rgba(217, 98, 46, 0.5);
+      transition: all 200ms var(--ease-spring);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .welcome-start-btn::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 50%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 100%);
+      border-radius: var(--radius-full) var(--radius-full) 0 0;
+      pointer-events: none;
+    }
+
+    .welcome-start-btn:active {
+      transform: scale(0.97);
+    }
+
+    .welcome-signin {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+      color: var(--fg-secondary);
+    }
+
+    .welcome-signin a {
+      color: var(--color-primary-600);
+      font-weight: var(--weight-medium);
+      cursor: pointer;
+    }
+
+    /* 跳过 */
+    .welcome-skip {
+      position: absolute;
+      top: 48px;
+      right: 24px;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      z-index: 10;
+    }
+
+    .welcome-slide-4 .welcome-skip {
+      color: var(--fg-muted);
+      display: none;
+    }
+
+    /* ============================================
+       通用认证页样式
+       ============================================ */
+    .auth-screen {
+      min-height: 812px;
+    }
+
+    .auth-bg {
+      flex: 1;
+      background: var(--gradient-dawn);
+      padding: 56px 32px 48px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .auth-back {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: var(--space-8);
+      cursor: pointer;
+    }
+
+    .auth-back svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--fg);
+      stroke-width: 1.75;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .auth-logo {
+      margin-bottom: var(--space-6);
+    }
+
+    .auth-logo svg {
+      width: 48px;
+      height: 48px;
+    }
+
+    .auth-heading {
+      font-size: 28px;
+      font-weight: var(--weight-bold);
+      letter-spacing: var(--tracking-tight);
+      line-height: 1.2;
+      color: var(--fg);
+      margin-bottom: var(--space-2);
+    }
+
+    .auth-subtitle {
+      font-size: 15px;
+      color: var(--fg-secondary);
+      margin-bottom: var(--space-10);
+      line-height: 1.5;
+    }
+
+    /* 输入框 */
+    .auth-input-group {
+      margin-bottom: var(--space-5);
+    }
+
+    .auth-input-label {
+      font-size: 13px;
+      font-weight: var(--weight-medium);
+      color: var(--fg-secondary);
+      margin-bottom: var(--space-2);
+      display: block;
+    }
+
+    .auth-input-wrap {
+      position: relative;
+    }
+
+    .auth-input {
+      width: 100%;
+      height: 52px;
+      background: rgba(42, 36, 29, 0.03);
+      border: 2px solid transparent;
+      border-radius: var(--radius-lg);
+      padding: 0 16px;
+      font-family: var(--font-sans);
+      font-size: 16px;
+      color: var(--fg);
+      outline: none;
+      transition: all 250ms var(--ease-out);
+    }
+
+    .auth-input::placeholder {
+      color: var(--fg-placeholder, #B8AB9B);
+    }
+
+    .auth-input:focus {
+      background: rgba(42, 36, 29, 0.02);
+      border-color: rgba(217, 98, 46, 0.3);
+      box-shadow: 0 0 0 4px rgba(217, 98, 46, 0.08);
+    }
+
+    .auth-input-icon {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      color: var(--fg-muted);
+    }
+
+    .auth-input-icon svg {
+      width: 100%;
+      height: 100%;
+      stroke: currentColor;
+      stroke-width: 1.75;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* 主按钮 */
+    .auth-btn-primary {
+      width: 100%;
+      height: 52px;
+      background: var(--gradient-warm);
+      border: none;
+      border-radius: var(--radius-full);
+      color: var(--color-neutral-0);
+      font-family: var(--font-sans);
+      font-size: 16px;
+      font-weight: var(--weight-semibold);
+      cursor: pointer;
+      box-shadow: 0 8px 24px -8px rgba(217, 98, 46, 0.45);
+      transition: all 250ms var(--ease-spring);
+      position: relative;
+      overflow: hidden;
+      margin-top: var(--space-2);
+    }
+
+    .auth-btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 50%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 100%);
+      border-radius: var(--radius-full) var(--radius-full) 0 0;
+      pointer-events: none;
+    }
+
+    .auth-btn-primary:active {
+      transform: scale(0.97);
+      box-shadow: 0 4px 16px -6px rgba(217, 98, 46, 0.4);
+    }
+
+    /* 文字链接 */
+    .auth-link-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: var(--space-3);
+    }
+
+    .auth-link {
+      font-size: 14px;
+      color: var(--color-primary-600);
+      font-weight: var(--weight-medium);
+      cursor: pointer;
+    }
+
+    /* 分割线 */
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      margin: var(--space-8) 0;
+    }
+
+    .auth-divider-line {
+      flex: 1;
+      height: 1px;
+      background: rgba(42, 36, 29, 0.08);
+    }
+
+    .auth-divider-text {
+      font-size: 13px;
+      color: var(--fg-muted);
+    }
+
+    /* 社交登录 */
+    .auth-social {
+      display: flex;
+      gap: var(--space-4);
+      justify-content: center;
+    }
+
+    .auth-social-btn {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius-full);
+      background: rgba(42, 36, 29, 0.03);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 200ms var(--ease-out);
+    }
+
+    .auth-social-btn:hover {
+      background: rgba(42, 36, 29, 0.06);
+      transform: translateY(-2px);
+    }
+
+    .auth-social-btn svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    /* 底部 */
+    .auth-footer {
+      text-align: center;
+      margin-top: auto;
+      padding-top: var(--space-8);
+      font-size: 14px;
+      color: var(--fg-secondary);
+    }
+
+    .auth-footer a {
+      color: var(--color-primary-600);
+      font-weight: var(--weight-medium);
+      cursor: pointer;
+    }
+
+    /* ============================================
+       验证码 OTP
+       ============================================ */
+    .otp-group {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin: var(--space-6) 0;
+    }
+
+    .otp-box {
+      width: 44px;
+      height: 56px;
+      background: rgba(42, 36, 29, 0.03);
+      border: 2px solid transparent;
+      border-radius: var(--radius-md);
+      text-align: center;
+      font-family: var(--font-num);
+      font-size: 22px;
+      font-weight: var(--weight-semibold);
+      color: var(--fg);
+      outline: none;
+      transition: all 250ms var(--ease-spring);
+    }
+
+    .otp-box:focus {
+      border-color: rgba(217, 98, 46, 0.3);
+      background: var(--color-primary-50);
+      box-shadow: 0 0 0 4px rgba(217, 98, 46, 0.08);
+      transform: translateY(-2px);
+    }
+
+    .otp-box.filled {
+      background: rgba(217, 98, 46, 0.04);
+      color: var(--color-primary-600);
+    }
+
+    .otp-resend {
+      text-align: center;
+      margin-top: var(--space-4);
+      font-size: 14px;
+      color: var(--fg-secondary);
+    }
+
+    .otp-resend-timer {
+      color: var(--color-primary-500);
+      font-weight: var(--weight-medium);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .otp-resend-link {
+      color: var(--color-primary-600);
+      font-weight: var(--weight-medium);
+      cursor: pointer;
+    }
+
+    /* ============================================
+       注册页 — 条款
+       ============================================ */
+    .auth-terms {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin: var(--space-4) 0 var(--space-6);
+    }
+
+    .auth-checkbox {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(42, 36, 29, 0.15);
+      border-radius: 6px;
+      flex-shrink: 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 200ms var(--ease-out);
+      margin-top: 1px;
+    }
+
+    .auth-checkbox.checked {
+      background: var(--color-primary-500);
+      border-color: var(--color-primary-500);
+    }
+
+    .auth-checkbox.checked svg {
+      width: 12px;
+      height: 12px;
+      stroke: white;
+      stroke-width: 3;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .auth-terms-text {
+      font-size: 13px;
+      color: var(--fg-secondary);
+      line-height: 1.5;
+    }
+
+    .auth-terms-text a {
+      color: var(--color-primary-600);
+    }
+
+    /* ============================================
+       忘记密码 — 邮箱验证
+       ============================================ */
+    .auth-illustration {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto var(--space-8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .auth-illustration svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ============================================
+       底部
+       ============================================ */
+    .footer {
+      text-align: center;
+      margin-top: var(--space-16);
+      padding-top: var(--space-8);
+      border-top: 1px solid rgba(42, 36, 29, 0.06);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--fg-muted);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header class="page-header">
+    <h1>认证流程设计稿</h1>
+    <p>Daymark 纪念日应用 · 375px 移动优先 · 邮箱验证体系 · 暖光渐变</p>
+  </header>
+
+  <div class="screens-grid">
+
+    <!-- ============================================
+         1. 欢迎页 — 左右翻页介绍
+         ============================================ -->
+    <div class="screen-card">
+      <div class="screen-label">01 / Auth</div>
+      <div class="screen-title">欢迎页 · 左右翻页介绍</div>
+      <div class="screen welcome-screen">
+        <div class="screen-content">
+          <div class="welcome-pager">
+            <div class="welcome-track" id="welcomeTrack">
+
+              <!-- Slide 1 -->
+              <div class="welcome-slide welcome-slide-1">
+                <span class="welcome-skip">跳过</span>
+                <div class="welcome-illustration">
+                  <svg viewBox="0 0 200 200" fill="none">
+                    <rect x="40" y="30" width="120" height="140" rx="16" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+                    <rect x="40" y="30" width="120" height="30" rx="16" fill="rgba(255,255,255,0.2)"/>
+                    <circle cx="100" cy="105" r="32" fill="rgba(255,255,255,0.2)"/>
+                    <path d="M100 89v16h12" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                    <path d="M60 160h80" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M70 175h60" stroke="rgba(255,255,255,0.2)" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <h2 class="welcome-slide-title">记录每一个重要日子</h2>
+                <p class="welcome-slide-desc">恋爱纪念日、生日、入职周年……所有值得铭记的瞬间，都在这里被温柔收藏。</p>
+              </div>
+
+              <!-- Slide 2 -->
+              <div class="welcome-slide welcome-slide-2">
+                <span class="welcome-skip">跳过</span>
+                <div class="welcome-illustration">
+                  <svg viewBox="0 0 200 200" fill="none">
+                    <circle cx="100" cy="100" r="60" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+                    <circle cx="100" cy="100" r="40" fill="rgba(255,255,255,0.2)"/>
+                    <text x="100" y="95" text-anchor="middle" font-size="28" font-weight="700" fill="white" font-family="Inter">96</text>
+                    <text x="100" y="115" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)" font-family="Inter">days</text>
+                    <circle cx="100" cy="100" r="60" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-dasharray="377" stroke-dashoffset="120" opacity="0.5"/>
+                  </svg>
+                </div>
+                <h2 class="welcome-slide-title">智能倒计时提醒</h2>
+                <p class="welcome-slide-desc">提前 1 天、3 天、7 天收到提醒。让每个重要时刻都不被遗忘，惊喜永远如期而至。</p>
+              </div>
+
+              <!-- Slide 3 -->
+              <div class="welcome-slide welcome-slide-3">
+                <span class="welcome-skip">跳过</span>
+                <div class="welcome-illustration">
+                  <svg viewBox="0 0 200 200" fill="none">
+                    <rect x="35" y="40" width="130" height="36" rx="10" fill="rgba(255,255,255,0.15)"/>
+                    <circle cx="55" cy="58" r="8" fill="#E8675A"/>
+                    <rect x="72" y="54" width="50" height="8" rx="4" fill="rgba(255,255,255,0.5)"/>
+                    <rect x="35" y="86" width="130" height="36" rx="10" fill="rgba(255,255,255,0.12)"/>
+                    <circle cx="55" cy="104" r="8" fill="#E8A838"/>
+                    <rect x="72" y="100" width="60" height="8" rx="4" fill="rgba(255,255,255,0.5)"/>
+                    <rect x="35" y="132" width="130" height="36" rx="10" fill="rgba(255,255,255,0.09)"/>
+                    <circle cx="55" cy="150" r="8" fill="#2E7A7D"/>
+                    <rect x="72" y="146" width="40" height="8" rx="4" fill="rgba(255,255,255,0.5)"/>
+                  </svg>
+                </div>
+                <h2 class="welcome-slide-title">分类管理 一目了然</h2>
+                <p class="welcome-slide-desc">恋爱、生日、旅行、里程碑……每种日子都有自己的色彩性格。翻阅如同一本多彩的日记。</p>
+              </div>
+
+              <!-- Slide 4 — 开始使用 -->
+              <div class="welcome-slide welcome-slide-4">
+                <div class="welcome-illustration">
+                  <svg viewBox="0 0 200 200" fill="none">
+                    <path d="M100 30 C 60 30, 40 60, 40 100 C 40 140, 60 170, 100 170 C 140 170, 160 140, 160 100 C 160 60, 140 30, 100 30 Z" fill="rgba(217,98,46,0.08)" stroke="rgba(217,98,46,0.15)" stroke-width="1.5"/>
+                    <path d="M100 55 L 100 145 M 55 100 L 145 100" stroke="#D9622E" stroke-width="3" stroke-linecap="round"/>
+                    <circle cx="100" cy="100" r="14" fill="rgba(217,98,46,0.15)"/>
+                    <path d="M93 100 L 98 105 L 108 95" stroke="#D9622E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  </svg>
+                </div>
+                <h2 class="welcome-slide-title" style="color: var(--fg);">开始你的纪念之旅</h2>
+                <p class="welcome-slide-desc" style="color: var(--fg-secondary);">每一个值得铭记的瞬间，都值得被温柔对待。</p>
+
+                <div class="welcome-footer">
+                  <button class="welcome-start-btn">开始使用</button>
+                  <div class="welcome-signin">
+                    已有账号？<a>直接登录</a>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- 翻页箭头 -->
+            <div class="welcome-arrow welcome-arrow-left" id="welcomePrev" style="display:none">
+              <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+            </div>
+            <div class="welcome-arrow welcome-arrow-right" id="welcomeNext">
+              <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+
+            <!-- 指示点 -->
+            <div class="welcome-dots" id="welcomeDots">
+              <div class="welcome-dot active" data-slide="0"></div>
+              <div class="welcome-dot" data-slide="1"></div>
+              <div class="welcome-dot" data-slide="2"></div>
+              <div class="welcome-dot" data-slide="3"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-info">4 页介绍 · 左右滑动 · 跳过 · 最后一页开始使用</div>
+    </div>
+
+    <!-- ============================================
+         2. 登录页
+         ============================================ -->
+    <div class="screen-card">
+      <div class="screen-label">02 / Auth</div>
+      <div class="screen-title">登录页</div>
+      <div class="screen auth-screen">
+        <div class="auth-bg">
+          <div class="auth-logo">
+            <svg viewBox="0 0 48 48" fill="none">
+              <rect x="8" y="12" width="32" height="32" rx="8" fill="rgba(217,98,46,0.1)"/>
+              <path d="M16 4v8 M32 4v8" stroke="#D9622E" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M18 28l4 4 8-8" stroke="#D9622E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+
+          <h1 class="auth-heading">欢迎回来</h1>
+          <p class="auth-subtitle">继续记录你的每一个重要日子</p>
+
+          <!-- 邮箱输入 -->
+          <div class="auth-input-group">
+            <label class="auth-input-label">邮箱</label>
+            <div class="auth-input-wrap">
+              <input class="auth-input" type="email" placeholder="name@example.com" value="hello@daymark.app">
+            </div>
+          </div>
+
+          <!-- 密码输入 -->
+          <div class="auth-input-group">
+            <label class="auth-input-label">密码</label>
+            <div class="auth-input-wrap">
+              <input class="auth-input" type="password" placeholder="请输入密码" value="••••••••">
+              <span class="auth-input-icon">
+                <svg viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+              </span>
+            </div>
+          </div>
+
+          <div class="auth-link-row">
+            <span class="auth-link">忘记密码？</span>
+          </div>
+
+          <button class="auth-btn-primary">登 录</button>
+
+          <div class="auth-divider">
+            <div class="auth-divider-line"></div>
+            <span class="auth-divider-text">或</span>
+            <div class="auth-divider-line"></div>
+          </div>
+
+          <div class="auth-social">
+            <div class="auth-social-btn">
+              <svg viewBox="0 0 24 24" fill="#3B8B8E"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93z"/></svg>
+            </div>
+            <div class="auth-social-btn">
+              <svg viewBox="0 0 24 24" fill="#2A241D"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.86 15.65 3.77 7.62 9.36 7.31c1.34.1 2.29.72 3.08.77 1.17-.24 2.29-.88 3.66-.79 1.55.13 2.71.78 3.46 1.94-3.14 1.91-2.41 6.27.49 7.49-.59 1.53-1.35 3.04-3.05 4.56zM12.03 7.25c-.15-2.01 1.56-3.66 3.5-3.84.27 2.34-2.11 4.09-3.5 3.84z"/></svg>
+            </div>
+            <div class="auth-social-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#2A241D" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M14.5 9.5c-.5-1-1.5-1.5-2.5-1.5s-2 .5-2 1.5 1 1.5 2 2 2.5 1 2.5 2.5-1.5 2-2.5 2-2-.5-2.5-1.5"/><path d="M12 7v1.5 M12 15.5v1.5"/></svg>
+            </div>
+          </div>
+
+          <div class="auth-footer">
+            还没有账号？<a>注册新账号</a>
+          </div>
+        </div>
+      </div>
+      <div class="screen-info">邮箱+密码登录 · 第三方登录 · 柔和填充式输入框</div>
+    </div>
+
+    <!-- ============================================
+         3. 注册页
+         ============================================ -->
+    <div class="screen-card">
+      <div class="screen-label">03 / Auth</div>
+      <div class="screen-title">注册页</div>
+      <div class="screen auth-screen">
+        <div class="auth-bg">
+          <div class="auth-back">
+            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+          </div>
+
+          <div class="auth-logo">
+            <svg viewBox="0 0 48 48" fill="none">
+              <rect x="8" y="12" width="32" height="32" rx="8" fill="rgba(217,98,46,0.1)"/>
+              <path d="M16 4v8 M32 4v8" stroke="#D9622E" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M18 28l4 4 8-8" stroke="#D9622E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+
+          <h1 class="auth-heading">创建账号</h1>
+          <p class="auth-subtitle">开始记录每一个值得铭记的日子</p>
+
+          <!-- 昵称 -->
+          <div class="auth-input-group">
+            <label class="auth-input-label">昵称</label>
+            <div class="auth-input-wrap">
+              <input class="auth-input" type="text" placeholder="给自己起个名字" value="小纪念日">
+            </div>
+          </div>
+
+          <!-- 邮箱 -->
+          <div class="auth-input-group">
+            <label class="auth-input-label">邮箱</label>
+            <div class="auth-input-wrap">
+              <input class="auth-input" type="email" placeholder="name@example.com">
+            </div>
+          </div>
+
+          <!-- 密码 -->
+          <div class="auth-input-group">
+            <label class="auth-input-label">密码</label>
+            <div class="auth-input-wrap">
+              <input class="auth-input" type="password" placeholder="至少 8 位，含字母和数字">
+              <span class="auth-input-icon">
+                <svg viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+              </span>
+            </div>
+          </div>
+
+          <!-- 条款 -->
+          <div class="auth-terms">
+            <div class="auth-checkbox checked">
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="auth-terms-text">
+              我已阅读并同意 <a>《用户协议》</a> 和 <a>《隐私政策》</a>
+            </div>
+          </div>
+
+          <button class="auth-btn-primary">注 册</button>
+
+          <div class="auth-divider">
+            <div class="auth-divider-line"></div>
+            <span class="auth-divider-text">或</span>
+            <div class="auth-divider-line"></div>
+          </div>
+
+          <div class="auth-social">
+            <div class="auth-social-btn">
+              <svg viewBox="0 0 24 24" fill="#3B8B8E"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93z"/></svg>
+            </div>
+            <div class="auth-social-btn">
+              <svg viewBox="0 0 24 24" fill="#2A241D"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.86 15.65 3.77 7.62 9.36 7.31c1.34.1 2.29.72 3.08.77 1.17-.24 2.29-.88 3.66-.79 1.55.13 2.71.78 3.46 1.94-3.14 1.91-2.41 6.27.49 7.49-.59 1.53-1.35 3.04-3.05 4.56zM12.03 7.25c-.15-2.01 1.56-3.66 3.5-3.84.27 2.34-2.11 4.09-3.5 3.84z"/></svg>
+            </div>
+            <div class="auth-social-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#2A241D" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M14.5 9.5c-.5-1-1.5-1.5-2.5-1.5s-2 .5-2 1.5 1 1.5 2 2 2.5 1 2.5 2.5-1.5 2-2.5 2-2-.5-2.5-1.5"/><path d="M12 7v1.5 M12 15.5v1.5"/></svg>
+            </div>
+          </div>
+
+          <div class="auth-footer">
+            已有账号？<a>直接登录</a>
+          </div>
+        </div>
+      </div>
+      <div class="screen-info">昵称+邮箱+密码 · 条款勾选 · 第三方注册</div>
+    </div>
+
+    <!-- ============================================
+         4. 验证码页 — 邮箱验证
+         ============================================ -->
+    <div class="screen-card">
+      <div class="screen-label">04 / Auth</div>
+      <div class="screen-title">验证码页 · 邮箱验证</div>
+      <div class="screen auth-screen">
+        <div class="auth-bg">
+          <div class="auth-back">
+            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+          </div>
+
+          <div class="auth-illustration">
+            <svg viewBox="0 0 120 120" fill="none">
+              <rect x="10" y="30" width="100" height="70" rx="12" fill="rgba(217,98,46,0.08)" stroke="rgba(217,98,46,0.2)" stroke-width="1.5"/>
+              <path d="M10 42 L 60 72 L 110 42" stroke="#D9622E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <circle cx="60" cy="20" r="12" fill="#E8A838"/>
+              <path d="M55 20l4 4 6-8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>
+          </div>
+
+          <h1 class="auth-heading" style="text-align:center">输入验证码</h1>
+          <p class="auth-subtitle" style="text-align:center">
+            验证码已发送至<br>
+            <strong style="color:var(--fg);font-weight:var(--weight-semibold)">hello@daymark.app</strong>
+          </p>
+
+          <!-- OTP -->
+          <div class="otp-group">
+            <input class="otp-box filled" maxlength="1" value="8" readonly>
+            <input class="otp-box filled" maxlength="1" value="3" readonly>
+            <input class="otp-box" maxlength="1" value="" placeholder="">
+            <input class="otp-box" maxlength="1" value="" placeholder="">
+            <input class="otp-box" maxlength="1" value="" placeholder="">
+            <input class="otp-box" maxlength="1" value="" placeholder="">
+          </div>
+
+          <div class="otp-resend">
+            <span class="otp-resend-timer">59s</span> 后可重新发送 · <span class="otp-resend-link">收不到？</span>
+          </div>
+
+          <button class="auth-btn-primary" style="margin-top:var(--space-8)">验 证</button>
+
+          <div class="auth-footer">
+            <a>更换邮箱地址</a>
+          </div>
+        </div>
+      </div>
+      <div class="screen-info">6 位邮箱验证码 · 59s 重发倒计时 · 已填 2 位</div>
+    </div>
+
+    <!-- ============================================
+         5. 忘记密码页 — 邮箱找回
+         ============================================ -->
+    <div class="screen-card">
+      <div class="screen-label">05 / Auth</div>
+      <div class="screen-title">忘记密码 · 邮箱找回</div>
+      <div class="screen auth-screen">
+        <div class="auth-bg">
+          <div class="auth-back">
+            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+          </div>
+
+          <div class="auth-illustration">
+            <svg viewBox="0 0 120 120" fill="none">
+              <rect x="35" y="50" width="50" height="40" rx="8" fill="rgba(217,98,46,0.1)" stroke="rgba(217,98,46,0.25)" stroke-width="1.5"/>
+              <path d="M50 50 V 42 a10 10 0 0 1 20 0 V 50" stroke="rgba(217,98,46,0.25)" stroke-width="1.5" fill="none"/>
+              <circle cx="60" cy="70" r="6" fill="#D9622E"/>
+              <path d="M60 74v6" stroke="#D9622E" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+
+          <h1 class="auth-heading" style="text-align:center">找回密码</h1>
+          <p class="auth-subtitle" style="text-align:center">
+            输入注册邮箱，我们将发送验证码<br>帮你重置密码
+          </p>
+
+          <!-- 邮箱输入 -->
+          <div class="auth-input-group">
+            <label class="auth-input-label">注册邮箱</label>
+            <div class="auth-input-wrap">
+              <input class="auth-input" type="email" placeholder="name@example.com">
+              <span class="auth-input-icon" style="color:var(--fg-muted)">
+                <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>
+              </span>
+            </div>
+          </div>
+
+          <button class="auth-btn-primary">发送验证码</button>
+
+          <div class="auth-divider">
+            <div class="auth-divider-line"></div>
+            <span class="auth-divider-text">或</span>
+            <div class="auth-divider-line"></div>
+          </div>
+
+          <div style="text-align:center;font-size:13px;color:var(--fg-secondary);line-height:1.6">
+            没收到邮件？检查垃圾邮箱<br>
+            或<a style="color:var(--color-primary-600);font-weight:var(--weight-medium);cursor:pointer">联系客服</a>
+          </div>
+
+          <div class="auth-footer">
+            想起来了？<a>返回登录</a>
+          </div>
+        </div>
+      </div>
+      <div class="screen-info">邮箱找回 · 自绘钥匙+信封插画 · 客服兜底</div>
+    </div>
+
+  </div>
+
+  <!-- ============================================
+       底部
+       ============================================ -->
+  <footer class="footer">
+    <span>Daymark · Auth Flow v2.0 · 2026</span>
+    <span>375px mobile-first · 无外框 · 邮箱验证 · 左右翻页</span>
+  </footer>
+
+</div>
+
+<script>
+  // 欢迎页翻页
+  let slideIdx = 0;
+  const track = document.getElementById('welcomeTrack');
+  const dots = document.querySelectorAll('#welcomeDots .welcome-dot');
+  const prevBtn = document.getElementById('welcomePrev');
+  const nextBtn = document.getElementById('welcomeNext');
+  const totalSlides = 4;
+
+  function goSlide(idx) {
+    slideIdx = Math.max(0, Math.min(idx, totalSlides - 1));
+    track.style.transform = `translateX(-${slideIdx * 375}px)`;
+    dots.forEach((d, i) => d.classList.toggle('active', i === slideIdx));
+    prevBtn.style.display = slideIdx > 0 ? 'flex' : 'none';
+    nextBtn.style.display = slideIdx < totalSlides - 1 ? 'flex' : 'none';
+  }
+
+  nextBtn.addEventListener('click', () => goSlide(slideIdx + 1));
+  prevBtn.addEventListener('click', () => goSlide(slideIdx - 1));
+  dots.forEach((d, i) => d.addEventListener('click', () => goSlide(i)));
+
+  // 跳过按钮 → 直接到最后一页
+  document.querySelectorAll('.welcome-skip').forEach(el => {
+    el.addEventListener('click', () => goSlide(totalSlides - 1));
+  });
+</script>
+
+</body>
+</html>
