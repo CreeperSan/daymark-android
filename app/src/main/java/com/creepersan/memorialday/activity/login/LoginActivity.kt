@@ -9,7 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import com.creepersan.memorialday.base.activity.BaseComposeActivity
+import com.creepersan.memorialday.common.activity.BaseComposeActivity
 import com.creepersan.memorialday.activity.auth.CSAuthDivider
 import com.creepersan.memorialday.activity.auth.CSAuthPage
 import com.creepersan.memorialday.activity.auth.CSAuthUnavailableSocialLogin

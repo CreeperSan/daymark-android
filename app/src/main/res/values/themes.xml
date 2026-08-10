@@ -28,6 +28,13 @@
 
     <style name="Theme.MemorialDayCompose" parent="android:Theme.Material.Light.NoActionBar" />
 
+    <!-- 系统启动窗口主题；启动 Activity 调用 installSplashScreen() 后自动切换到默认主题。 -->
+    <style name="Theme.MemorialDay.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/theme_camphor_wood_color_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_02</item>
+        <item name="postSplashScreenTheme">@style/Theme.MemorialDay</item>
+    </style>
+
 
     <style name="MemorialDayDialog" parent="android:Theme.Dialog">
         <item name="android:windowFrame">@null</item>

@@ -5,7 +5,7 @@ import android.view.MenuItem
 import androidx.core.widget.addTextChangedListener
 import com.creepersan.memorialday.R
 import com.creepersan.memorialday.application.MemorialDayApplication
-import com.creepersan.memorialday.base.activity.BaseViewBindingActivity
+import com.creepersan.memorialday.common.activity.BaseViewBindingActivity
 import com.creepersan.memorialday.constance.MDScheduler
 import com.creepersan.memorialday.database.model.MemorialDay
 import com.creepersan.memorialday.databinding.ActivityAddEditMemorialDayBinding
@@ -18,8 +18,6 @@ import com.creepersan.memorialday.ui.dialog.date_picker.DatePickerDialog
 import com.creepersan.memorialday.ui.dialog.message.MessageDialog
 import com.creepersan.memorialday.utils.chinese_calendar.ChineseCalendarUtils
 import com.creepersan.memorialday.utils.chinese_calendar.model.getFullLunarDayString
-import com.creepersan.memorialday.utils.chinese_calendar.model.lunarDayToString
-import com.creepersan.memorialday.utils.chinese_calendar.model.lunarMonthToString
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.Disposable
 import java.lang.NullPointerException

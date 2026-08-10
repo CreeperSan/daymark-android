@@ -1,6 +1,6 @@
 package com.creepersan.memorialday.activity.index
 
-import com.creepersan.memorialday.base.activity.BaseComposeActivity
+import com.creepersan.memorialday.common.activity.BaseComposeActivity
 
 class IndexActivity : BaseComposeActivity() {
 }

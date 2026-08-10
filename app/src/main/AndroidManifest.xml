@@ -33,8 +33,9 @@
             android:screenOrientation="portrait"/>
 
         <activity
-            android:name=".activity.intro.IntroActivity"
-            android:exported="true">
+            android:name=".activity.launch.LaunchActivity"
+            android:exported="true"
+            android:theme="@style/Theme.MemorialDay.Splash">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -42,6 +43,8 @@
             </intent-filter>
 
         </activity>
+
+        <activity android:name=".activity.intro.IntroActivity"/>
 
         <activity android:name=".activity.login.LoginActivity" />
 

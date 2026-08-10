@@ -34,7 +34,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.creepersan.memorialday.base.activity.BaseComposeActivity
+import com.creepersan.memorialday.common.activity.BaseComposeActivity
 import com.creepersan.memorialday.module.network.host.daymark.Anniversary
 import com.creepersan.memorialday.module.network.host.daymark.AnniversaryCreateRequest
 import com.creepersan.memorialday.module.network.host.daymark.AnniversaryEditRequest

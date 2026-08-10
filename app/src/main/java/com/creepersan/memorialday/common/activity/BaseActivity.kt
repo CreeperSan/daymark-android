@@ -1,4 +1,4 @@
-package com.creepersan.memorialday.base.activity
+package com.creepersan.memorialday.common.activity
 
 import androidx.appcompat.app.AppCompatActivity
 

@@ -6,7 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import com.creepersan.memorialday.base.activity.BaseComposeActivity
+import com.creepersan.memorialday.common.activity.BaseComposeActivity
 import com.creepersan.memorialday.activity.auth.CSAuthPage
 import com.creepersan.memorialday.module.route.navigator.CSNavigator
 import com.creepersan.memorialday.ui.theme.MemorialDayTheme

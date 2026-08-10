@@ -15,7 +15,7 @@ class KVDefinition<T>(
     private val defaultValue: T? = null,
     private val defaultValueDynamic: (() -> T?)? = null,
     /** 当前定义使用的存储后端。 */
-    val type: KVType = KVType.SharedPreferences,
+    val type: KVType,
 ) {
 
     init {

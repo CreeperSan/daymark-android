@@ -1,4 +1,4 @@
-package com.creepersan.memorialday.base.activity
+package com.creepersan.memorialday.common.activity
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity

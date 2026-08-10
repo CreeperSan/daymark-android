@@ -1,7 +1,6 @@
-package com.creepersan.memorialday.base.activity
+package com.creepersan.memorialday.common.activity
 
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.viewbinding.ViewBinding

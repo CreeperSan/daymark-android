@@ -98,6 +98,9 @@ dependencies {
     // 引入下拉刷新组件
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
+    // 引入 SplashScreen 组件
+    implementation("androidx.core:core-splashscreen:1.2.0")
+
     // 网络框架：Retrofit 3.0.0 与 OkHttp 4.12.0 均为稳定版本。
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")

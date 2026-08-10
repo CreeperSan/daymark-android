@@ -20,6 +20,6 @@ interface KVSerializable<T> {
      * @param storeValue 存储中的原始值
      * @return 恢复后的对象
      */
-    fun deserialize(storeValue: Any): T
+    fun deserialize(storeValue: String): T
 
 }
