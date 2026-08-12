@@ -7,7 +7,7 @@ import com.creepersan.memorialday.module.storage.kv.KVSerializable
  * 1、服务器模式
  * 2、本地模式
  */
-enum class ApplicationMode(val mode: String) : KVSerializable<ApplicationMode> {
+enum class AppMode(val mode: String) : KVSerializable<AppMode> {
     NotDecide("not_decided"),
     Server("server"),
     Classic("locally"),

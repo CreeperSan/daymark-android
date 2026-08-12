@@ -5,7 +5,9 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.lifecycle.lifecycleScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -68,6 +70,8 @@ import com.creepersan.memorialday.widget.composable.CSTextHint
 import com.creepersan.memorialday.widget.composable.CSTextSectionTitle
 import com.creepersan.memorialday.widget.composable.CSTextTitle
 import com.creepersan.memorialday.widget.composable.token.CSTheme
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
@@ -83,6 +87,14 @@ class CSBusinessActivity : BaseComposeActivity() {
                 CSBusinessPage(entry = entry, activity = this)
             }
         }
+    }
+}
+
+private fun launchNavigation(activity: Activity, navigation: Flow<*>) {
+    val componentActivity = activity as? ComponentActivity
+        ?: error("CSBusinessActivity navigation requires a ComponentActivity host")
+    componentActivity.lifecycleScope.launch {
+        navigation.collect {}
     }
 }
 
@@ -173,7 +185,9 @@ private fun CSHomePage(activity: Activity) {
         activity = activity,
         showBack = false,
         action = {
-            CSButtonText("设置", small = true, onClick = { CSNavigator.toSettings(activity).subscribe() })
+            CSButtonText("设置", small = true, onClick = {
+                launchNavigation(activity, CSNavigator.toSettings(activity))
+            })
         }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
@@ -183,7 +197,12 @@ private fun CSHomePage(activity: Activity) {
                     title = "还没有纪念日",
                     description = error ?: "记录一个重要的日子，让时间替你珍藏。",
                     modifier = Modifier.align(Alignment.Center),
-                    action = { CSButton("新建纪念日", onClick = { CSNavigator.toAnniversaryEditor(activity).subscribe() }) }
+                    action = {
+                        CSButton(
+                            "新建纪念日",
+                            onClick = { launchNavigation(activity, CSNavigator.toAnniversaryEditor(activity)) }
+                        )
+                    }
                 )
                 else -> LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -201,7 +220,9 @@ private fun CSHomePage(activity: Activity) {
                         }
                     }
                     items(anniversaries, key = { it.id }) { anniversary ->
-                        CSCard(onClick = { CSNavigator.toAnniversaryDetail(activity, anniversary.id).subscribe() }) {
+                        CSCard(onClick = {
+                            launchNavigation(activity, CSNavigator.toAnniversaryDetail(activity, anniversary.id))
+                        }) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Column(modifier = Modifier.weight(1f)) {
                                     CSTextCardTitle(anniversary.name)
@@ -229,13 +250,17 @@ private fun CSHomePage(activity: Activity) {
                 selectedIndex = 0,
                 onItemSelected = { index ->
                     when (index) {
-                        1 -> anniversaries.firstOrNull()?.let { CSNavigator.toTimeline(activity, it.id).subscribe() }
-                        2 -> CSNavigator.toReminderManagement(activity).subscribe()
-                        3 -> CSNavigator.toSettings(activity).subscribe()
+                        1 -> anniversaries.firstOrNull()?.let {
+                            launchNavigation(activity, CSNavigator.toTimeline(activity, it.id))
+                        }
+                        2 -> launchNavigation(activity, CSNavigator.toReminderManagement(activity))
+                        3 -> launchNavigation(activity, CSNavigator.toSettings(activity))
                     }
                 },
                 centerAction = { CSTextBody("+", color = Color.White) },
-                onCenterAction = { CSNavigator.toAnniversaryEditor(activity).subscribe() },
+                onCenterAction = {
+                    launchNavigation(activity, CSNavigator.toAnniversaryEditor(activity))
+                },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(20.dp)
@@ -414,7 +439,13 @@ private fun CSAnniversaryDetailPage(activity: Activity, anniversaryId: Long?) {
     CSBusinessScaffold(
         title = "纪念日详情",
         activity = activity,
-        action = { CSButtonText("编辑", small = true, onClick = { anniversaryId?.let { CSNavigator.toAnniversaryEditor(activity, it).subscribe() } }) }
+        action = {
+            CSButtonText("编辑", small = true, onClick = {
+                anniversaryId?.let {
+                    launchNavigation(activity, CSNavigator.toAnniversaryEditor(activity, it))
+                }
+            })
+        }
     ) { padding ->
         val anniversary = item
         when {
@@ -434,7 +465,9 @@ private fun CSAnniversaryDetailPage(activity: Activity, anniversaryId: Long?) {
                     Spacer(Modifier.height(8.dp))
                     CSTextHint("${anniversary.year}.${anniversary.month}.${anniversary.day} · ${anniversary.loopType}")
                 }
-                CSCard(onClick = { CSNavigator.toTimeline(activity, anniversary.id).subscribe() }) {
+                CSCard(onClick = {
+                    launchNavigation(activity, CSNavigator.toTimeline(activity, anniversary.id))
+                }) {
                     CSTextCardTitle("时间线")
                     CSTextBodySmall("记录属于这一天的文字、照片和心情")
                 }
@@ -488,10 +521,18 @@ private fun CSSettingsPage(activity: Activity) {
                 .padding(padding),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            CSSettingsRow("分类管理", "整理纪念日分类") { CSNavigator.toCategoryManagement(activity).subscribe() }
-            CSSettingsRow("提醒", "管理提醒方式和时间") { CSNavigator.toReminderManagement(activity).subscribe() }
-            CSSettingsRow("权限说明", "了解通知与媒体权限") { CSNavigator.toPermissionExplanation(activity).subscribe() }
-            CSSettingsRow("新旧版本切换", "选择你熟悉的使用方式") { CSNavigator.toVersionSwitch(activity).subscribe() }
+            CSSettingsRow("分类管理", "整理纪念日分类") {
+                launchNavigation(activity, CSNavigator.toCategoryManagement(activity))
+            }
+            CSSettingsRow("提醒", "管理提醒方式和时间") {
+                launchNavigation(activity, CSNavigator.toReminderManagement(activity))
+            }
+            CSSettingsRow("权限说明", "了解通知与媒体权限") {
+                launchNavigation(activity, CSNavigator.toPermissionExplanation(activity))
+            }
+            CSSettingsRow("新旧版本切换", "选择你熟悉的使用方式") {
+                launchNavigation(activity, CSNavigator.toVersionSwitch(activity))
+            }
         }
     }
 }
@@ -515,7 +556,11 @@ private fun CSCategoryManagementPage(activity: Activity) {
     CSBusinessScaffold(
         title = "纪念日分类",
         activity = activity,
-        action = { CSButtonText("新建", small = true, onClick = { CSNavigator.toCategoryEditor(activity).subscribe() }) }
+        action = {
+            CSButtonText("新建", small = true, onClick = {
+                launchNavigation(activity, CSNavigator.toCategoryEditor(activity))
+            })
+        }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -526,7 +571,9 @@ private fun CSCategoryManagementPage(activity: Activity) {
         ) {
             CSTextHint("分类排序仅保存在当前设备，等待分类接口开放后同步。")
             categories.forEachIndexed { index, category ->
-                CSCard(onClick = { CSNavigator.toCategoryEditor(activity, category).subscribe() }) {
+                CSCard(onClick = {
+                    launchNavigation(activity, CSNavigator.toCategoryEditor(activity, category))
+                }) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         CSTextCardTitle(category, Modifier.weight(1f))
                         CSButtonText("上移", small = true, enabled = index > 0, onClick = {
@@ -613,7 +660,9 @@ private fun CSTimelinePage(activity: Activity, anniversaryId: Long?) {
         activity = activity,
         action = {
             CSButtonText("新建", small = true, onClick = {
-                anniversaryId?.let { CSNavigator.toTimelineEventEditor(activity, it).subscribe() }
+                anniversaryId?.let {
+                    launchNavigation(activity, CSNavigator.toTimelineEventEditor(activity, it))
+                }
             })
         }
     ) { padding ->
@@ -635,7 +684,9 @@ private fun CSTimelinePage(activity: Activity, anniversaryId: Long?) {
                 description = "时间线服务接口尚未开放，创建入口已准备就绪。",
                 action = {
                     CSButton("记录第一条", onClick = {
-                        anniversaryId?.let { CSNavigator.toTimelineEventEditor(activity, it).subscribe() }
+                        anniversaryId?.let {
+                            launchNavigation(activity, CSNavigator.toTimelineEventEditor(activity, it))
+                        }
                     })
                 }
             )

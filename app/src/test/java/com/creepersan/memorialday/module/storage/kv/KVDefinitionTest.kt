@@ -11,6 +11,7 @@ class KVDefinitionTest {
         var key = "first"
         var defaultValue = 1
         val definition = KVDefinition(
+            type = KVType.DataStore,
             module = "test",
             keyDynamic = { key },
             defaultValueDynamic = { defaultValue }
@@ -28,13 +29,13 @@ class KVDefinitionTest {
     @Test
     fun `definition rejects invalid sources`() {
         assertThrows(KVDefinitionException::class.java) {
-            KVDefinition(module = "test", key = "key", keyDynamic = { "dynamic" }, defaultValue = 1)
+            KVDefinition(type = KVType.DataStore, module = "test", key = "key", keyDynamic = { "dynamic" }, defaultValue = 1)
         }
         assertThrows(KVDefinitionException::class.java) {
-            KVDefinition<Int>(module = "test", key = "key")
+            KVDefinition<Int>(type = KVType.DataStore, module = "test", key = "key")
         }
         assertThrows(KVDefinitionException::class.java) {
-            KVDefinition(module = "test", keyDynamic = { " " }, defaultValue = 1).resolveKey()
+            KVDefinition(type = KVType.DataStore, module = "test", keyDynamic = { " " }, defaultValue = 1).resolveKey()
         }
     }
 }

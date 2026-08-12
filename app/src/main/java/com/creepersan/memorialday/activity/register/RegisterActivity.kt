@@ -26,6 +26,7 @@ import com.creepersan.memorialday.widget.composable.CSButtonText
 import com.creepersan.memorialday.widget.composable.CSCheckbox
 import com.creepersan.memorialday.widget.composable.CSInput
 import com.creepersan.memorialday.widget.composable.CSPasswordInput
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 class RegisterActivity : BaseComposeActivity() {
@@ -66,7 +67,11 @@ private fun RegisterPage(
         footer = {
             CSButtonText(
                 text = "已有账号？直接登录",
-                onClick = { CSNavigator.toLogin(context as RegisterActivity).subscribe() }
+                onClick = {
+                    scope.launch {
+                        CSNavigator.toLogin(context as RegisterActivity).collect {}
+                    }
+                }
             )
         }
     ) {
@@ -133,7 +138,7 @@ private fun RegisterPage(
                                                 email = email,
                                                 expiresAtMillis = codeResult.data.expireTime ?: 0L
                                             )
-                                        ).subscribe { exit ->
+                                        ).collect { exit ->
                                             if (exit.outcome == CSPageOutcome.Completed && exit.code != null) {
                                                 scope.launch {
                                                     loading = true

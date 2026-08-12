@@ -9,7 +9,11 @@ import com.creepersan.memorialday.activity.business.CSBusinessActivity
 import com.creepersan.memorialday.activity.forget_password.ForgetPasswordActivity
 import com.creepersan.memorialday.activity.login.LoginActivity
 import com.creepersan.memorialday.activity.register.RegisterActivity
-import io.reactivex.rxjava3.core.Observable
+import kotlinx.coroutines.channels.ProducerScope
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.map
 import java.lang.ref.WeakReference
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
@@ -36,7 +40,7 @@ object CSNavigator {
     fun toLogin(
         activity: Activity,
         params: CSLoginPageEnter = CSLoginPageEnter()
-    ): Observable<CSLoginPageExit> = open(
+    ): Flow<CSLoginPageExit> = open(
         activity = activity,
         targetClass = LoginActivity::class.java,
         arguments = Bundle().apply { putString(EXTRA_LOGIN_ACCOUNT, params.account) }
@@ -50,7 +54,7 @@ object CSNavigator {
     fun toRegister(
         activity: Activity,
         params: CSRegisterPageEnter = CSRegisterPageEnter()
-    ): Observable<CSRegisterPageExit> = open(
+    ): Flow<CSRegisterPageExit> = open(
         activity = activity,
         targetClass = RegisterActivity::class.java,
         arguments = Bundle().apply {
@@ -68,7 +72,7 @@ object CSNavigator {
     fun toEmailVerification(
         activity: Activity,
         params: CSEmailVerificationPageEnter
-    ): Observable<CSEmailVerificationPageExit> = open(
+    ): Flow<CSEmailVerificationPageExit> = open(
         activity = activity,
         targetClass = CSEmailVerificationActivity::class.java,
         arguments = Bundle().apply {
@@ -86,7 +90,7 @@ object CSNavigator {
     fun toForgotPassword(
         activity: Activity,
         params: CSForgotPasswordPageEnter = CSForgotPasswordPageEnter()
-    ): Observable<CSForgotPasswordPageExit> = open(
+    ): Flow<CSForgotPasswordPageExit> = open(
         activity = activity,
         targetClass = ForgetPasswordActivity::class.java,
         arguments = Bundle().apply { putString(EXTRA_FORGOT_PASSWORD_EMAIL, params.email) }
@@ -95,7 +99,7 @@ object CSNavigator {
     fun toAddEditPage(
         activity: Activity,
         memorialDayId: Long? = null
-    ): Observable<CSPageExitModel> {
+    ): Flow<CSPageExitModel> {
         val arguments = Bundle().apply {
             putString(
                 AddEditMemorialDayActivity.INTENT_TYPE,
@@ -112,13 +116,13 @@ object CSNavigator {
         return open(activity, AddEditMemorialDayActivity::class.java, arguments)
     }
 
-    fun toHome(activity: Activity): Observable<CSBusinessPageExit> =
+    fun toHome(activity: Activity): Flow<CSBusinessPageExit> =
         toBusinessPage(activity, CSBusinessPageEnter(CSBusinessDestination.Home))
 
     fun toAnniversaryEditor(
         activity: Activity,
         anniversaryId: Long? = null
-    ): Observable<CSBusinessPageExit> = toBusinessPage(
+    ): Flow<CSBusinessPageExit> = toBusinessPage(
         activity,
         CSBusinessPageEnter(CSBusinessDestination.AnniversaryEditor, anniversaryId = anniversaryId)
     )
@@ -126,24 +130,24 @@ object CSNavigator {
     fun toAnniversaryDetail(
         activity: Activity,
         anniversaryId: Long
-    ): Observable<CSBusinessPageExit> = toBusinessPage(
+    ): Flow<CSBusinessPageExit> = toBusinessPage(
         activity,
         CSBusinessPageEnter(CSBusinessDestination.AnniversaryDetail, anniversaryId = anniversaryId)
     )
 
-    fun toSettings(activity: Activity): Observable<CSBusinessPageExit> =
+    fun toSettings(activity: Activity): Flow<CSBusinessPageExit> =
         toBusinessPage(activity, CSBusinessPageEnter(CSBusinessDestination.Settings))
 
-    fun toCategoryManagement(activity: Activity): Observable<CSBusinessPageExit> =
+    fun toCategoryManagement(activity: Activity): Flow<CSBusinessPageExit> =
         toBusinessPage(activity, CSBusinessPageEnter(CSBusinessDestination.CategoryManagement))
 
-    fun toReminderManagement(activity: Activity): Observable<CSBusinessPageExit> =
+    fun toReminderManagement(activity: Activity): Flow<CSBusinessPageExit> =
         toBusinessPage(activity, CSBusinessPageEnter(CSBusinessDestination.ReminderManagement))
 
     fun toTimeline(
         activity: Activity,
         anniversaryId: Long
-    ): Observable<CSBusinessPageExit> = toBusinessPage(
+    ): Flow<CSBusinessPageExit> = toBusinessPage(
         activity,
         CSBusinessPageEnter(CSBusinessDestination.Timeline, anniversaryId = anniversaryId)
     )
@@ -152,7 +156,7 @@ object CSNavigator {
         activity: Activity,
         anniversaryId: Long,
         timelineEventId: Long? = null
-    ): Observable<CSBusinessPageExit> = toBusinessPage(
+    ): Flow<CSBusinessPageExit> = toBusinessPage(
         activity,
         CSBusinessPageEnter(
             destination = CSBusinessDestination.TimelineEventEditor,
@@ -164,21 +168,21 @@ object CSNavigator {
     fun toMarkEditor(
         activity: Activity,
         anniversaryId: Long
-    ): Observable<CSBusinessPageExit> = toBusinessPage(
+    ): Flow<CSBusinessPageExit> = toBusinessPage(
         activity,
         CSBusinessPageEnter(CSBusinessDestination.MarkEditor, anniversaryId = anniversaryId)
     )
 
-    fun toPermissionExplanation(activity: Activity): Observable<CSBusinessPageExit> =
+    fun toPermissionExplanation(activity: Activity): Flow<CSBusinessPageExit> =
         toBusinessPage(activity, CSBusinessPageEnter(CSBusinessDestination.PermissionExplanation))
 
-    fun toVersionSwitch(activity: Activity): Observable<CSBusinessPageExit> =
+    fun toVersionSwitch(activity: Activity): Flow<CSBusinessPageExit> =
         toBusinessPage(activity, CSBusinessPageEnter(CSBusinessDestination.VersionSwitch))
 
     fun toCategoryEditor(
         activity: Activity,
         categoryId: String? = null
-    ): Observable<CSBusinessPageExit> = toBusinessPage(
+    ): Flow<CSBusinessPageExit> = toBusinessPage(
         activity,
         CSBusinessPageEnter(CSBusinessDestination.CategoryEditor, categoryId = categoryId)
     )
@@ -284,22 +288,21 @@ object CSNavigator {
         activity: Activity,
         targetClass: Class<out Activity>,
         arguments: Bundle
-    ): Observable<CSPageExitModel> = Observable.create { emitter ->
+    ): Flow<CSPageExitModel> = callbackFlow {
         if (activity.isFinishing || activity.isDestroyed) {
-            emitter.onNext(CSPageExitModel(CSPageOutcome.Cancelled))
-            emitter.onComplete()
-            return@create
+            trySend(CSPageExitModel(CSPageOutcome.Cancelled))
+            close()
+            return@callbackFlow
         }
 
         val navigationId = UUID.randomUUID().toString()
         val pending = PendingNavigation(
             navigationId = navigationId,
             host = WeakReference(activity),
-            emitter = emitter,
+            sender = this,
             onHostDestroyed = { id -> deliver(id, CSPageExitModel(CSPageOutcome.Cancelled)) }
         )
         pendingNavigations[navigationId] = pending
-        emitter.setCancellable { remove(navigationId) }
         activity.application.registerActivityLifecycleCallbacks(pending)
         activity.startActivity(
             Intent(activity, CSNavigationResultActivity::class.java)
@@ -307,12 +310,13 @@ object CSNavigator {
                 .putExtra(CSNavigationResultActivity.EXTRA_TARGET_CLASS, targetClass.name)
                 .putExtra(CSNavigationResultActivity.EXTRA_DESTINATION_ARGUMENTS, arguments)
         )
+        awaitClose { remove(navigationId) }
     }
 
     private fun toBusinessPage(
         activity: Activity,
         params: CSBusinessPageEnter
-    ): Observable<CSBusinessPageExit> = open(
+    ): Flow<CSBusinessPageExit> = open(
         activity = activity,
         targetClass = CSBusinessActivity::class.java,
         arguments = businessPageArguments(params)
@@ -333,10 +337,8 @@ object CSNavigator {
         }
         val pending = pendingNavigations.remove(navigationId) ?: return
         pending.unregister()
-        if (!pending.emitter.isDisposed) {
-            pending.emitter.onNext(exit)
-            pending.emitter.onComplete()
-        }
+        pending.sender.trySend(exit)
+        pending.sender.close()
     }
 
     private fun remove(navigationId: String) {
@@ -346,7 +348,7 @@ object CSNavigator {
     private class PendingNavigation(
         private val navigationId: String,
         private val host: WeakReference<Activity>,
-        val emitter: io.reactivex.rxjava3.core.ObservableEmitter<CSPageExitModel>,
+        val sender: ProducerScope<CSPageExitModel>,
         private val onHostDestroyed: (String) -> Unit
     ) : Application.ActivityLifecycleCallbacks {
         private var application: Application? = host.get()?.application
