@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.MenuItem
 import androidx.core.widget.addTextChangedListener
 import com.creepersan.memorialday.R
-import com.creepersan.memorialday.application.MemorialDayApplication
+import com.creepersan.memorialday.application.DaymarkApplication
 import com.creepersan.memorialday.common.activity.BaseViewBindingActivity
 import com.creepersan.memorialday.constance.MDScheduler
 import com.creepersan.memorialday.database.model.MemorialDay
@@ -165,7 +165,7 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
 
             databaseDisposable.disposeIfNeed()
             databaseDisposable = Observable.just(Unit).observeOn(MDScheduler.database).map {
-                MemorialDayApplication.instance.databaseManager.memorialDatabase.memorialDayDao()
+                DaymarkApplication.instance.databaseManager.memorialDatabase.memorialDayDao()
             }.map { dao ->
                 if (isEdit) {
                     dao.update(memorialDayModel)
@@ -179,7 +179,7 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
                 error.printStackTrace()
             })
 
-            MemorialDayApplication.instance.databaseManager.memorialDatabase.memorialDayDao()
+            DaymarkApplication.instance.databaseManager.memorialDatabase.memorialDayDao()
         }
 
         binding.delete.setOnClickListener {
@@ -195,7 +195,7 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
                     throw InterruptedException("用户取消")
                 }
             }.observeOn(MDScheduler.database).map {
-                MemorialDayApplication.instance.databaseManager.memorialDatabase.memorialDayDao()
+                DaymarkApplication.instance.databaseManager.memorialDatabase.memorialDayDao()
             }.map { dao ->
                 dao.delete(memorialDayModel)
             }.observeOn(MDScheduler.ui).subscribe({
@@ -222,7 +222,7 @@ class AddEditMemorialDayActivity: BaseViewBindingActivity<ActivityAddEditMemoria
 
     private fun initData() {
         databaseDisposable = Observable.just(Unit).observeOn(MDScheduler.database).map {
-            MemorialDayApplication.instance.databaseManager.memorialDatabase.memorialDayDao()
+            DaymarkApplication.instance.databaseManager.memorialDatabase.memorialDayDao()
         }.map { dao ->
             if (isEdit) {
                 dao.findMemorialDay(intentMemorialID) ?: throw NullPointerException("纪念日不存在 id=$intentMemorialID")

@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.util.Log
-import com.creepersan.memorialday.application.MemorialDayApplication
+import com.creepersan.memorialday.application.DaymarkApplication
 import com.creepersan.memorialday.constance.MDScheduler
 import com.creepersan.memorialday.utils.chinese_calendar.definition.NumberEqual
 import com.creepersan.memorialday.utils.chinese_calendar.definition.NumberLessThen
@@ -65,7 +65,7 @@ object ChineseCalendarUtils {
         } catch (e: Exception) {
             // 数据库不存在，拷贝数据库
             e.printStackTrace()
-            val assetDatabaseFileInputStream = MemorialDayApplication.instance.assets.open(
+            val assetDatabaseFileInputStream = DaymarkApplication.instance.assets.open(
                 PATH_ASSETS_DATABASE
             )
             val innerDatabaseFileOutputStream = FileOutputStream(PATH_INNER_DATABASE)

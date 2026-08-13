@@ -101,14 +101,6 @@ private fun LoginPage(
             supportingText = null,
             isError = false
         )
-//        CSButtonText(
-//            text = "忘记密码？",
-//            onClick = {
-//                scope.launch {
-//                    CSNavigator.toForgotPassword(context as LoginActivity).collect {}
-//                }
-//            }
-//        )
         if (uiState.loading) {
             CSButtonLoading(text = "登录中", fullWidth = true)
         } else {
@@ -118,8 +110,6 @@ private fun LoginPage(
                 onClick = viewModel::login
             )
         }
-//        CSAuthDivider()
-//        CSAuthUnavailableSocialLogin()
     }
 }
 }

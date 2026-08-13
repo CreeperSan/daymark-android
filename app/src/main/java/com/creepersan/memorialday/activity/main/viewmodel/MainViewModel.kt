@@ -3,7 +3,7 @@ package com.creepersan.memorialday.activity.main.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.creepersan.memorialday.activity.main.model.MemorialDayMainModel
-import com.creepersan.memorialday.application.MemorialDayApplication
+import com.creepersan.memorialday.application.DaymarkApplication
 import com.creepersan.memorialday.constance.MDScheduler
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.Disposable
@@ -27,7 +27,7 @@ class MainViewModel: ViewModel() {
     @Suppress("KotlinConstantConditions")
     fun loadData() {
         loadDataDisposable = Observable.just(Unit).observeOn(MDScheduler.database).map {
-            MemorialDayApplication.instance.databaseManager.memorialDatabase.memorialDayDao()
+            DaymarkApplication.instance.databaseManager.memorialDatabase.memorialDayDao()
         }.map {  dao ->
             dao.getAll()
         }.flatMap { databaseMemorialDayList ->

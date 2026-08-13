@@ -13,7 +13,7 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true"
         android:theme="@style/Theme.MemorialDay"
-        android:name=".application.MemorialDayApplication"
+        android:name=".application.DaymarkApplication"
         tools:targetApi="31"
         tools:ignore="LockedOrientationActivity">
 
