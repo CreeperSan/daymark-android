@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.lifecycleScope
+import com.creepersan.memorialday.activity.index.IndexActivity
 import com.creepersan.memorialday.activity.intro.IntroActivity
 import com.creepersan.memorialday.activity.main.MainActivity
 import com.creepersan.memorialday.application.DaymarkApplication.InitializeState
@@ -15,6 +16,7 @@ import com.creepersan.memorialday.common.storage.kv.KVStorageApplication_AppMode
 import com.creepersan.memorialday.module.route.navigator.CSNavigator
 import com.creepersan.memorialday.module.storage.kv.get
 import com.creepersan.memorialday.module.storage.kv.set
+import com.creepersan.memorialday.store.UserStore
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -60,7 +62,14 @@ class LaunchActivity : BaseActivity() {
 			}
 			/* 服务器版 */
 			AppMode.Server -> {
-				startActivity(Intent(this, IntroActivity::class.java))
+				when (userStore.loginState) {
+					is UserStore.LoginState.LoginSuccess -> {
+						startActivity(Intent(this, IndexActivity::class.java))
+					}
+					else -> {
+						startActivity(Intent(this, IntroActivity::class.java))
+					}
+				}
 			}
 			/* 未确定 */
 			AppMode.NotDecide -> {
