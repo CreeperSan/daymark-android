@@ -18,6 +18,7 @@ import com.creepersan.memorialday.activity.business.CSBusinessActivity
 import com.creepersan.memorialday.module.route.navigator.CSNavigator
 import com.creepersan.memorialday.module.route.navigator.CSPageExitModel
 import com.creepersan.memorialday.module.route.navigator.CSPageOutcome
+import com.creepersan.memorialday.store.UserStore
 import com.creepersan.memorialday.ui.theme.MemorialDayTheme
 import com.creepersan.memorialday.widget.composable.CSButton
 import com.creepersan.memorialday.widget.composable.CSButtonLoading
@@ -62,6 +63,7 @@ private fun LoginPage(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val loginState by userStore.loginStateStateFlow.collectAsStateWithLifecycle()
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -101,7 +103,7 @@ private fun LoginPage(
             supportingText = null,
             isError = false
         )
-        if (uiState.loading) {
+        if (loginState is UserStore.LoginState.Logging) {
             CSButtonLoading(text = "登录中", fullWidth = true)
         } else {
             CSButton(

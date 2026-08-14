@@ -45,6 +45,14 @@ val KVStorageUser_UserID = KVDefinition(
     defaultValue = 0L,
 )
 
+// 帐号
+val KVStorageUser_Account = KVDefinition(
+    module = KVStorageApplication_Module,
+    type = KVType.DataStore,
+    key = "account",
+    defaultValue = "",
+)
+
 // 昵称
 val KVStorageUser_NickName = KVDefinition(
     module = KVStorageApplication_Module,

@@ -10,6 +10,8 @@ import kotlinx.coroutines.withContext
 
 abstract class BaseStore {
 
+    protected val tag by lazy { this.javaClass.simpleName }
+
 
     private val initializeMutex = Mutex()
     private var initialized = false

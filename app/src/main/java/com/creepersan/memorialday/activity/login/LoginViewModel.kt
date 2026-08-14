@@ -1,14 +1,21 @@
 package com.creepersan.memorialday.activity.login
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
+import com.creepersan.memorialday.application.DaymarkApplication
+import com.creepersan.memorialday.business.network.Network
+import com.creepersan.memorialday.business.network.prefab.login
+import com.creepersan.memorialday.module.log.Logger
 import com.creepersan.memorialday.module.network.host.account.AccountRepositoryFactory
-import com.creepersan.memorialday.module.network.host.account.AccountResult
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -64,18 +71,18 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
 		if (state.loading) return
 
 		viewModelScope.launch {
-			_uiState.update { it.copy(loading = true, error = null) }
-			when (val result = repository.login(state.account, state.password)) {
-				is AccountResult.Success -> {
-					_uiState.update { it.copy(loading = false) }
-					_events.emit(LoginEvent.Succeeded(result.data.account ?: state.account))
-				}
+			Logger.info("LoginViewModel", "开始登录")
+			DaymarkApplication.instance.userStore.actionLogin(
+				account = if (state.loginMethod == LoginMethod.Account) state.account else "",
+				email = if (state.loginMethod == LoginMethod.Email) state.account else "",
+				password = state.password,
+			).map { response ->
+				_events.emit(LoginEvent.Succeeded(response.user.account))
+				Logger.info("LoginViewModel", "登录成功，账号：${response.user.account}")
+			}.catch {
+				Logger.info("LoginViewModel", "登录失败: ${it.message}")
+			}.collect{
 
-				is AccountResult.Failure -> {
-					_uiState.update {
-						it.copy(loading = false, error = result.error.message)
-					}
-				}
 			}
 		}
 	}

@@ -5,14 +5,18 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.LifecycleCoroutineScope
+import androidx.lifecycle.lifecycleScope
 import com.creepersan.memorialday.activity.intro.IntroActivity
 import com.creepersan.memorialday.activity.main.MainActivity
+import com.creepersan.memorialday.application.DaymarkApplication.InitializeState
 import com.creepersan.memorialday.common.activity.BaseActivity
 import com.creepersan.memorialday.common.definitions.AppMode
 import com.creepersan.memorialday.common.storage.kv.KVStorageApplication_AppMode
 import com.creepersan.memorialday.module.route.navigator.CSNavigator
 import com.creepersan.memorialday.module.storage.kv.get
 import com.creepersan.memorialday.module.storage.kv.set
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 /**
  * 统一路由处理页面
@@ -32,6 +36,18 @@ class LaunchActivity : BaseActivity() {
 		installSplashScreen()
 		super.onCreate(savedInstanceState)
 
+		lifecycleScope.launch {
+			val initializeResult = daymarkApplication.initializeState.first { it.isFinish() }
+			if (initializeResult is InitializeState.Success) {
+				onInitializeFinish(intent)
+			} else {
+				onInitializeFail()
+			}
+		}
+	}
+
+
+	private fun onInitializeFinish(intent: Intent) {
 		// 信息收集
 		val appMode = KVStorageApplication_AppMode.get()
 
@@ -57,7 +73,12 @@ class LaunchActivity : BaseActivity() {
 			}
 		}
 
+		// 关闭当前页面
 		finish()
+	}
+
+	private fun onInitializeFail() {
+
 	}
 
 

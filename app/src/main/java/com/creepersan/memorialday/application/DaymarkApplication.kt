@@ -68,6 +68,8 @@ class DaymarkApplication : Application() {
 
         applicationScope.value.launch {
             try {
+                // 初始化基础功能模块
+                KVStorageManager.initialize(this@DaymarkApplication)
                 // 先初始化 appStateStore
                 appStateStore.awaitInitialization()
                 // 后同时初始化 userStore
@@ -79,14 +81,7 @@ class DaymarkApplication : Application() {
                 }
                 // 后同时初始化剩余的内容
                 coroutineScope {
-                    listOf(
-                        async(Dispatchers.IO) {
-                            KVStorageManager.initialize(this@DaymarkApplication)
-                        },
-                        async(Dispatchers.IO) {
-                            initDatabase()
-                        }
-                    ).awaitAll()
+                    initDatabase()
                 }
                 // 修改状态
                 _initializeState.value = InitializeState.Success(
@@ -129,6 +124,10 @@ class DaymarkApplication : Application() {
         data class Success(val timestamp: Long): InitializeState
 
         data class Failed(val error: List<Throwable>): InitializeState
+
+        fun isFinish(): Boolean {
+            return this is Success || this is Failed
+        }
 
     }
 

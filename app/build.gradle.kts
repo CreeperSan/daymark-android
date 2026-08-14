@@ -107,6 +107,8 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.1.1")
     implementation("com.squareup.retrofit2:retrofit:3.0.0")
     implementation("com.squareup.retrofit2:converter-gson:3.0.0")
+    // 显式声明 Gson 版本，避免仅依赖 Retrofit 转换器的传递依赖。
+    implementation("com.google.code.gson:gson:2.13.1")
     implementation("com.squareup.retrofit2:converter-protobuf:3.0.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:okhttp-sse:4.12.0")
@@ -119,7 +121,7 @@ tasks.register("verifyNetworkLayerBoundaries") {
     group = "verification"
     description = "校验网络基础设施不依赖 RxJava 或 Android UI。"
     doLast {
-        val networkSources = fileTree("src/main/java/com/creepersan/memorialday/module/network") {
+        val networkSources = fileTree("src/main/java/com/creepersan/memorialday/module/http") {
             include("**/*.kt")
         }
         val forbiddenImports = listOf("io.reactivex", "android.view", "androidx.compose", "android.widget")

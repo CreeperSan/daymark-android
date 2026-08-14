@@ -2,7 +2,6 @@ package com.creepersan.memorialday.store
 
 import android.content.Context
 import android.os.Build
-import android.provider.Settings
 import com.creepersan.memorialday.common.storage.kv.KVStorageApplication_DeviceID
 import com.creepersan.memorialday.module.storage.kv.get
 import com.creepersan.memorialday.module.storage.kv.set
@@ -13,30 +12,31 @@ import java.util.UUID
 
 class DeviceInfoStore(context: Context) : BaseStore() {
 
-    private val applicationContext = context.applicationContext
+    private val _deviceCodeStateFlow = MutableStateFlow("")
+    val deviceCodeStateFlow = _deviceCodeStateFlow.asStateFlow()
+    val deviceCode get() = deviceCodeStateFlow.value
 
-    private val _deviceCode = MutableStateFlow("")
-    private val deviceCode = _deviceCode.asStateFlow()
+    private val _deviceNameStateFlow = MutableStateFlow("")
+    val deviceNameStateFlow = _deviceNameStateFlow.asStateFlow()
+    val deviceName get() = deviceNameStateFlow.value
 
-    private val _deviceName = MutableStateFlow("")
-    private val deviceName = _deviceName.asStateFlow()
-
-    private val _devicePlatform = MutableStateFlow("")
-    private val devicePlatform = _devicePlatform.asStateFlow()
+    private val _devicePlatformStateFlow = MutableStateFlow("")
+    val devicePlatformStateFlow = _devicePlatformStateFlow.asStateFlow()
+    val devicePlatform get() = devicePlatformStateFlow.value
 
 
     override suspend fun onInitialize() {
         // 初始化平台
-        _devicePlatform.update {
+        _devicePlatformStateFlow.update {
             "Android"
         }
         // 初始化设备名称
-        _deviceName.update {
+        _deviceNameStateFlow.update {
             buildDeviceName()
         }
         // 初始化设备唯一标识码
-        _deviceCode.update {
-            getDeviceCode()
+        _deviceCodeStateFlow.update {
+            buildDeviceCode()
         }
     }
 
@@ -52,7 +52,7 @@ class DeviceInfoStore(context: Context) : BaseStore() {
         }
     }
 
-    private fun getDeviceCode(): String {
+    private fun buildDeviceCode(): String {
         val cacheDeviceID = KVStorageApplication_DeviceID.get()
         if (!cacheDeviceID.isBlank()) {
             return cacheDeviceID
