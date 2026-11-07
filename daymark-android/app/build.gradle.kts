@@ -7,14 +7,14 @@ plugins {
 
 android {
     namespace = "com.creepersan.memorialday"
-    compileSdk = 33
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.creepersan.memorialday"
         minSdk = 26
-        targetSdk = 33
-        versionCode = 20001
-        versionName = "2.0.1"
+        targetSdk = 37
+        versionCode = 30000
+        versionName = "3.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -81,6 +81,11 @@ dependencies {
     // 引入 RxJava
     implementation("io.reactivex.rxjava3:rxandroid:3.0.2")
     implementation("io.reactivex.rxjava3:rxjava:3.1.5")
+
+    // 网络请求与 JSON 序列化
+    implementation("com.squareup.okhttp3:okhttp:5.5.1")
+    implementation("com.google.code.gson:gson:2.15.0")
+    testImplementation("com.squareup.okhttp3:mockwebserver:5.5.1")
 
     // 引入 ConstraintLayout
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
