@@ -4,7 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import com.creepersan.memorialday.databinding.DialogDatePickerBinding
 import com.creepersan.memorialday.extension.setVisible
-import com.creepersan.memorialday.utils.chinese_calendar.model.ChineseCalendar
+import com.creepersan.memorialday.module.chinese_calendar.model.ChineseCalendar
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.util.Calendar
 

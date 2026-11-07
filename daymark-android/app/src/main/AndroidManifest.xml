@@ -6,6 +6,7 @@
 
     <application
         android:allowBackup="true"
+        android:usesCleartextTraffic="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher_02"
@@ -17,7 +18,7 @@
         tools:ignore="LockedOrientationActivity">
 
         <activity
-            android:name=".activity.main.MainActivity"
+            android:name=".activity.dispatch.DispatchActivity"
             android:exported="true"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.MemorialDay">
@@ -28,6 +29,13 @@
             </intent-filter>
 
         </activity>
+
+        <activity android:name=".activity.main.MainActivity" android:screenOrientation="portrait" />
+        <activity android:name=".activity.select_mode.SelectModeActivity" android:exported="false" />
+        <activity android:name=".activity.login.LoginActivity" android:exported="false" />
+        <activity android:name=".activity.anniversary.AnniversaryEditActivity" android:exported="false" />
+        <activity android:name=".activity.home.HomeActivity" android:exported="false" />
+        <activity android:name=".activity.setting.SettingActivity" android:exported="false" />
 
         <activity
             android:name=".activity.add.AddEditMemorialDayActivity"

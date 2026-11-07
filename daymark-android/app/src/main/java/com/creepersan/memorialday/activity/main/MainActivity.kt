@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.AbsoluteSizeSpan
-import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,7 +24,6 @@ import com.creepersan.memorialday.databinding.ItemMainMemorialDayBinding
 import com.creepersan.memorialday.extension.setVisible
 import com.creepersan.memorialday.extension.spi
 import com.creepersan.memorialday.ui.system.StatusBarManager
-import com.creepersan.memorialday.utils.chinese_calendar.ChineseCalendarUtils
 import com.google.android.material.color.MaterialColors
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.consumeAsFlow

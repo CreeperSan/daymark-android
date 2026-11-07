@@ -1,18 +1,19 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
     kotlin("kapt")
     id("com.google.devtools.ksp")
 }
 
 android {
     namespace = "com.creepersan.memorialday"
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.creepersan.memorialday"
         minSdk = 26
-        targetSdk = 37
+        targetSdk = 36
         versionCode = 30000
         versionName = "3.0.0"
 
@@ -39,10 +40,8 @@ android {
         jvmTarget = "17"
     }
     buildFeatures {
+        buildConfig = true
         compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.3"
     }
     packaging {
         resources {
@@ -72,6 +71,9 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
+    // 公历、农历及闰月换算
+    implementation("cn.6tail:tyme4kt:1.5.0")
+
     // 引入 Room
     val versionRoom = "2.5.2"
     implementation("androidx.room:room-runtime:$versionRoom")
@@ -83,9 +85,9 @@ dependencies {
     implementation("io.reactivex.rxjava3:rxjava:3.1.5")
 
     // 网络请求与 JSON 序列化
-    implementation("com.squareup.okhttp3:okhttp:5.5.1")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.google.code.gson:gson:2.15.0")
-    testImplementation("com.squareup.okhttp3:mockwebserver:5.5.1")
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
 
     // 引入 ConstraintLayout
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")

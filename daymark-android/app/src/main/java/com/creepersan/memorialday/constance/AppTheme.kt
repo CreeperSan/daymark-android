@@ -1,6 +1,6 @@
 package com.creepersan.memorialday.constance
 
-import com.creepersan.memorialday.utils.kv.KVSerializable
+import com.creepersan.memorialday.module.kv.KVSerializable
 
 /** 应用主题；存储标识固定，避免重命名枚举时影响已保存的数据。 */
 enum class AppTheme(private val storageValue: String) : KVSerializable<AppTheme> {
