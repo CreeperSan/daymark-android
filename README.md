@@ -1,16 +1,7 @@
-# daymark
+# Daymark
 
-A new Flutter project.
+纪念日应用的原生客户端及公共资源仓库。
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- `daymark-android/`：Android 原生工程。
+- `daymark-ios/`：iOS 原生工程占位目录。
+- `daymark/`：公共资源占位目录。
