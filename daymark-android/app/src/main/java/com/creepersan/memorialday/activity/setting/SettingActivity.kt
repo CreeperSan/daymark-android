@@ -6,6 +6,8 @@ import android.net.Uri
 import android.os.SystemClock
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -59,87 +61,112 @@ class SettingViewModel : ViewModel() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-/** 主题、语言和开发者代理设置。 */
+/** 设置页；标题栏固定，设置项通过模态弹窗编辑。 */
 class SettingActivity : BaseComposeActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val model = ViewModelProvider(this)[SettingViewModel::class.java]
         setContent {
-            var languageMenu by remember { mutableStateOf(false) }
+            var dialog by remember { mutableStateOf<String?>(null) }
             var hostMessage by remember { mutableStateOf<Int?>(null) }
             val languages = listOf("system" to getString(R.string.system), "zh-CN" to "简体中文（中国）", "zh-TW" to "繁體中文（台灣）", "yue-Hans-CN" to "简体粤语（广东）", "yue-Hant-HK" to "繁體粵語（香港）", "en" to "English", "ja" to "日本語", "ko" to "한국어")
-            var themeExpanded by remember { mutableStateOf(false) }
-            key(model.theme) { GlassPage {
-                Column(Modifier.verticalScroll(rememberScrollState())) {
-                    Row(Modifier.fillMaxWidth().padding(bottom = 18.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Text("‹", fontSize = 28.sp, modifier = Modifier.clickable { finish() })
-                        Text(getString(R.string.settings), fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.clickable { model.tapTitle() }.padding(top = 5.dp))
-                    }
-                    if (UserManager.session() != null) {
-                        Text(getString(R.string.settings_personal), style = MaterialTheme.typography.bodySmall)
-                        GlassCard {
-                            Text(UserManager.session()?.name.orEmpty(), modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp))
-                            Text(getString(R.string.logout), color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable {
+            val themes = listOf(AppTheme.System.name to getString(R.string.system), AppTheme.Light.name to getString(R.string.light), AppTheme.Dark.name to getString(R.string.dark))
+            fun developing() = android.widget.Toast.makeText(this@SettingActivity, getString(R.string.feature_developing), android.widget.Toast.LENGTH_SHORT).show()
+            fun developerLocked() = android.widget.Toast.makeText(this@SettingActivity, getString(R.string.developer_locked), android.widget.Toast.LENGTH_SHORT).show()
+            key(model.theme) { GlassPage(horizontalPadding = 20.dp) {
+                GlassNavigationBar(getString(R.string.settings), { finish() }, { model.tapTitle() })
+                Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    SettingsSection(getString(R.string.settings_personal)) {
+                        SettingsRow(getString(R.string.settings_avatar), onClick = { developing() })
+                        SettingsRow(getString(R.string.settings_username), UserManager.session()?.name.orEmpty().ifBlank { "—" }, onClick = { developing() })
+                        SettingsRow(getString(R.string.account_email), "—", onClick = { developing() })
+                        SettingsRow(getString(R.string.settings_change_password), onClick = { developing() })
+                        SettingsRow(getString(R.string.settings_delete_account), danger = true, onClick = { developing() })
+                        SettingsRow(getString(R.string.logout), danger = true, centered = true, onClick = {
+                            if (UserManager.session() == null) { developing() } else {
                                 UserManager.clear()
-                                val intent = Intent(this@SettingActivity, LoginActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                                startActivity(intent)
+                                startActivity(Intent(this@SettingActivity, LoginActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
                                 finish()
-                            }.padding(vertical = 12.dp))
-                        }
-                    }
-                    Text(getString(R.string.settings_application), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 14.dp))
-                    GlassCard {
-                        Row(Modifier.fillMaxWidth().clickable { themeExpanded = !themeExpanded }.padding(vertical = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(getString(R.string.theme)); Text(getString(when (model.theme) { AppTheme.System -> R.string.system; AppTheme.Light -> R.string.light; AppTheme.Dark -> R.string.dark }), color = MaterialTheme.colorScheme.primary)
-                        }
-                        if (themeExpanded) {
-                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
-                                listOf(AppTheme.System to R.string.system, AppTheme.Light to R.string.light, AppTheme.Dark to R.string.dark).forEach { (value, label) ->
-                                    GlassChoice(getString(label), model.theme == value, { model.changeTheme(value) }, Modifier.weight(1f))
-                                }
                             }
-                        }
-                        Row(Modifier.fillMaxWidth().clickable { languageMenu = !languageMenu }.padding(vertical = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(getString(R.string.language)); Text(languages.firstOrNull { it.first == model.language }?.second ?: languages.first().second, color = MaterialTheme.colorScheme.primary)
-                        }
-                        if (languageMenu) languages.forEach { (value, label) ->
-                            Text(label, modifier = Modifier.fillMaxWidth().clickable { languageMenu = false; model.changeLanguage(value); recreate() }.padding(vertical = 9.dp), color = if (value == model.language) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface)
-                        }
-                        if (UserManager.session() != null) Row(Modifier.fillMaxWidth().clickable { startActivity(Intent(this@SettingActivity, ImportLegacyActivity::class.java)) }.padding(vertical = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(getString(R.string.import_legacy)); Text("›", color = MaterialTheme.colorScheme.primary)
-                        }
-                        Row(Modifier.fillMaxWidth().clickable { startActivity(Intent(this@SettingActivity, SelectModeActivity::class.java)) }.padding(vertical = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(getString(R.string.select_mode)); Text("›", color = MaterialTheme.colorScheme.primary)
-                        }
+                        })
                     }
-                    if (model.developer) {
-                        Text(getString(R.string.developer_mode), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 14.dp))
-                        GlassCard {
-                            Text(getString(R.string.proxy_description), style = MaterialTheme.typography.bodySmall)
-                            Spacer(Modifier.height(12.dp))
-                            GlassTextField(model.accountHost, { model.accountHost = it }, getString(R.string.account_server))
-                            Spacer(Modifier.height(8.dp))
-                            GlassTextField(model.serverHost, { model.serverHost = it }, getString(R.string.daymark_server))
-                            GlassButton(getString(R.string.save), { hostMessage = if (model.saveHosts()) R.string.saved else R.string.invalid_url })
-                            hostMessage?.let { Text(getString(it)) }
-                            Text(getString(R.string.disable_developer), modifier = Modifier.clickable { model.disableDeveloper() }.padding(top = 12.dp))
-                        }
+                    SettingsSection(getString(R.string.settings_application)) {
+                        SettingsRow(getString(R.string.theme), themes.first { it.first == model.theme.name }.second, onClick = { dialog = "theme" })
+                        SettingsRow(getString(R.string.language), languages.firstOrNull { it.first == model.language }?.second ?: languages.first().second, onClick = { dialog = "language" })
+                        SettingsRow(getString(R.string.settings_mode), getString(if (KV.get(KV_APPLICATION_MODE) == AppMode.Classic) R.string.classic_version else R.string.new_version), onClick = { dialog = "mode" })
+                        if (UserManager.session() != null) SettingsRow(getString(R.string.import_legacy), onClick = { startActivity(Intent(this@SettingActivity, ImportLegacyActivity::class.java)) })
                     }
-                    Text(getString(R.string.settings_other), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 14.dp))
-                    GlassCard {
-                        Text(getString(R.string.app_version, com.creepersan.memorialday.BuildConfig.VERSION_NAME), modifier = Modifier.padding(vertical = 12.dp))
-                        Row(Modifier.fillMaxWidth().clickable { startActivity(Intent(this@SettingActivity, AboutActivity::class.java)) }.padding(vertical = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(getString(R.string.about_app)); Text("›", color = MaterialTheme.colorScheme.primary)
+                    SettingsSection(getString(R.string.settings_developer)) {
+                        SettingsRow(getString(R.string.account_server), onClick = { if (model.developer) dialog = "account_host" else developerLocked() })
+                        SettingsRow(getString(R.string.daymark_server), onClick = { if (model.developer) dialog = "server_host" else developerLocked() })
+                        if (model.developer) SettingsRow(getString(R.string.disable_developer), onClick = { model.disableDeveloper() })
+                    }
+                    SettingsSection(getString(R.string.settings_other)) {
+                        SettingsRow(getString(R.string.settings_version), com.creepersan.memorialday.BuildConfig.VERSION_NAME, showArrow = false)
+                        SettingsRow(getString(R.string.about_app), onClick = { startActivity(Intent(this@SettingActivity, AboutActivity::class.java)) })
+                        SettingsRow(getString(R.string.agreement_privacy), onClick = { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(LEGAL_DOCUMENT_URL))) })
+                        SettingsRow(getString(R.string.agreement_terms), onClick = { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(LEGAL_DOCUMENT_URL))) })
+                    }
+                    Text(getString(R.string.settings_copyright), color = glassSecondaryColor(), fontSize = 11.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp))
+                }
+                when (dialog) {
+                    "theme" -> GlassSelectionDialog(getString(R.string.theme), themes, model.theme.name, { value -> dialog = null; model.changeTheme(AppTheme.valueOf(value)) }, { dialog = null })
+                    "language" -> GlassSelectionDialog(getString(R.string.language), languages, model.language, { value -> dialog = null; model.changeLanguage(value); recreate() }, { dialog = null })
+                    "mode" -> GlassSelectionDialog(getString(R.string.settings_mode), listOf(AppMode.Default.name to getString(R.string.new_version), AppMode.Classic.name to getString(R.string.classic_version)), KV.get(KV_APPLICATION_MODE).name, { value ->
+                        dialog = null
+                        val mode = AppMode.valueOf(value)
+                        if (mode != KV.get(KV_APPLICATION_MODE)) {
+                            KV.set(KV_APPLICATION_MODE, mode)
+                            startActivity(Intent(this@SettingActivity, com.creepersan.memorialday.activity.dispatch.DispatchActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+                            finish()
                         }
-                        listOf(R.string.agreement_terms, R.string.agreement_privacy).forEach { label ->
-                            Row(Modifier.fillMaxWidth().clickable { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(LEGAL_DOCUMENT_URL))) }.padding(vertical = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(getString(label)); Text("›", color = MaterialTheme.colorScheme.primary)
+                    }, { dialog = null })
+                    "account_host", "server_host" -> {
+                        val account = dialog == "account_host"
+                        var value by remember(dialog) { mutableStateOf(if (account) model.accountHost else model.serverHost) }
+                        androidx.compose.ui.window.Dialog(onDismissRequest = { dialog = null; hostMessage = null }) {
+                            GlassCard(solid = true) {
+                                Text(getString(if (account) R.string.account_server else R.string.daymark_server), fontSize = 17.sp)
+                                Text(getString(R.string.proxy_description), fontSize = 12.sp, color = glassSecondaryColor(), modifier = Modifier.padding(vertical = 12.dp))
+                                GlassTextField(value, { value = it }, getString(if (account) R.string.account_server else R.string.daymark_server))
+                                hostMessage?.let { Text(getString(it), fontSize = 12.sp) }
+                                GlassButton(getString(R.string.save), {
+                                    val old = if (account) model.accountHost else model.serverHost
+                                    if (account) model.accountHost = value else model.serverHost = value
+                                    if (model.saveHosts()) { dialog = null; hostMessage = null } else {
+                                        if (account) model.accountHost = old else model.serverHost = old
+                                        hostMessage = R.string.invalid_url
+                                    }
+                                })
                             }
                         }
                     }
                 }
             } }
         }
+    }
+}
+
+/** 设置分组使用设计稿中的半透明卡片。 */
+@Composable
+private fun SettingsSection(title: String, content: @Composable ColumnScope.() -> Unit) {
+    Column {
+        Text(title, fontSize = 12.sp, color = glassSecondaryColor(), modifier = Modifier.padding(bottom = 8.dp))
+        val shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
+        Column(Modifier.fillMaxWidth().background(androidx.compose.ui.graphics.Color.White.copy(alpha = if (isGlassDark()) 0.08f else 0.35f), shape).border(1.dp, androidx.compose.ui.graphics.Color.White.copy(alpha = if (isGlassDark()) 0.14f else 0.65f), shape).padding(6.dp), content = content)
+    }
+}
+
+/** 设置项保留整行点击区域，状态值和箭头使用次要色。 */
+@Composable
+private fun SettingsRow(label: String, value: String = "", danger: Boolean = false, centered: Boolean = false, showArrow: Boolean = true, onClick: (() -> Unit)? = null) {
+    val secondary = glassSecondaryColor()
+    Row(Modifier.fillMaxWidth().height(56.dp).then(if (onClick != null) Modifier.clickable { onClick() } else Modifier).padding(horizontal = 12.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+        if (centered) Spacer(Modifier.weight(1f))
+        Text(label, fontSize = 14.sp, color = if (danger) androidx.compose.ui.graphics.Color(0xFFE07866) else MaterialTheme.colorScheme.onBackground)
+        if (!centered) Spacer(Modifier.weight(1f))
+        if (value.isNotEmpty()) Text(value, fontSize = 13.sp, color = secondary, maxLines = 1)
+        if (showArrow && !centered) Text("›", fontSize = 21.sp, color = secondary, modifier = Modifier.padding(start = 8.dp))
+        if (centered) Spacer(Modifier.weight(1f))
     }
 }

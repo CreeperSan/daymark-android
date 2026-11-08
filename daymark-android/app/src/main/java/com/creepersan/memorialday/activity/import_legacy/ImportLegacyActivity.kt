@@ -5,6 +5,16 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.window.Dialog
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -87,14 +97,11 @@ class ImportLegacyActivity : BaseComposeActivity() {
         setContent {
             BackHandler(enabled = model.importing) { }
             GlassPage {
-                Row(Modifier.fillMaxWidth().padding(bottom = 20.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Text("‹", fontSize = 28.sp, modifier = Modifier.clickable(enabled = !model.importing) { finish() })
-                    Text(getString(R.string.import_legacy), fontSize = 20.sp, modifier = Modifier.padding(top = 6.dp))
-                }
-                Text(getString(R.string.import_hint), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
+                GlassNavigationBar(getString(R.string.import_legacy), { if (!model.importing) finish() })
+                Text(getString(R.string.import_hint), fontSize = 13.sp, color = glassSecondaryColor(), modifier = Modifier.padding(top = 8.dp))
                 Row(Modifier.fillMaxWidth().padding(vertical = 16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(getString(R.string.import_selected, model.selected.size, model.items.size))
-                    Text(getString(R.string.import_select_all), color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable(enabled = !model.importing) { model.selectAll() })
+                    Text(getString(R.string.import_selected, model.selected.size, model.items.size), fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+                    Text(getString(R.string.import_select_all), fontSize = 12.sp, color = glassSecondaryColor(), modifier = Modifier.clickable(enabled = !model.importing) { model.selectAll() })
                 }
                 if (model.loading) Text(getString(R.string.account_wait))
                 model.error?.let {
@@ -102,18 +109,34 @@ class ImportLegacyActivity : BaseComposeActivity() {
                     if (model.total > 0) Text(getString(R.string.import_uncertain), color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
                     else Text(getString(R.string.retry), color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable { model.load() }.padding(top = 8.dp))
                 }
-                LazyColumn(Modifier.weight(1f)) {
+                LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(model.items, key = { it.id }) { item ->
-                        GlassCard {
-                            Row(Modifier.fillMaxWidth().clickable(enabled = !model.importing) { model.toggle(item.id) }, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                                Text(if (item.id in model.selected) "●" else "○", color = MaterialTheme.colorScheme.primary)
-                                Text(item.title)
+                        val shape = RoundedCornerShape(16.dp)
+                        val selected = item.id in model.selected
+                        Row(Modifier.fillMaxWidth().height(64.dp).background(Color.White.copy(alpha = if (isGlassDark()) 0.1f else 0.5f), shape).border(1.dp, Color.White.copy(alpha = 0.45f), shape).clickable(enabled = !model.importing) { model.toggle(item.id) }.padding(horizontal = 14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Box(Modifier.size(22.dp).background(if (selected) MaterialTheme.colorScheme.primary else Color.Transparent, RoundedCornerShape(7.dp)).border(1.dp, if (selected) MaterialTheme.colorScheme.primary else glassSecondaryColor(), RoundedCornerShape(7.dp)), contentAlignment = Alignment.Center) {
+                                if (selected) Text("✓", color = Color.White, fontSize = 14.sp)
+                            }
+                            Column(Modifier.weight(1f)) {
+                                Text(item.title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                                val date = Instant.ofEpochMilli(item.time).atZone(ZoneId.systemDefault()).toLocalDate().format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
+                                Text(if (item.timeType == MemorialDay.TIME_TYPE_LUNAR) "$date · ${getString(R.string.anniversary_lunar)}" else date, fontSize = 12.sp, color = glassSecondaryColor())
                             }
                         }
                     }
                 }
-                if (model.importing) Text(getString(R.string.import_progress, model.processed, model.total))
                 GlassButton(getString(R.string.import_count, model.selected.size), { model.importSelected() }, !model.importing && model.selected.isNotEmpty() && (model.error == null || model.total == 0))
+                Spacer(Modifier.height(12.dp))
+                if (model.importing) Dialog(onDismissRequest = { }) {
+                    GlassCard(solid = true) {
+                        Text(getString(R.string.import_in_progress), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                        Text(getString(R.string.import_progress, model.processed, model.total), fontSize = 13.sp, color = glassSecondaryColor(), modifier = Modifier.padding(top = 8.dp, bottom = 16.dp))
+                        val progress = if (model.total > 0) model.processed.toFloat() / model.total else 0f
+                        Box(Modifier.fillMaxWidth().height(6.dp).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), RoundedCornerShape(3.dp))) {
+                            Box(Modifier.fillMaxWidth(progress.coerceIn(0f, 1f)).height(6.dp).background(MaterialTheme.colorScheme.primary, RoundedCornerShape(3.dp)))
+                        }
+                    }
+                }
             }
         }
     }

@@ -22,7 +22,7 @@ private val WHEEL_ITEM_HEIGHT = 40.dp
 
 /** 三行滚轮；中央行对应 firstVisibleItemIndex 指向的数值。 */
 @Composable
-fun GlassWheelPicker(min: Int, max: Int, state: LazyListState, modifier: Modifier = Modifier) {
+fun GlassWheelPicker(min: Int, max: Int, state: LazyListState, modifier: Modifier = Modifier, label: (Int) -> String = { it.toString() }) {
     val scope = rememberCoroutineScope()
     // 停止滚动时吸附到最近的一行，保证中央显示的值与确认值一致。
     LaunchedEffect(state) {
@@ -44,7 +44,7 @@ fun GlassWheelPicker(min: Int, max: Int, state: LazyListState, modifier: Modifie
                 }, contentAlignment = Alignment.Center) {
                     if (index in 1..(max - min + 1)) {
                         val selected = index == state.firstVisibleItemIndex + 1
-                        Text((min + index - 1).toString(), color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f), fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal)
+                        Text(label(min + index - 1), color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f), fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal)
                     }
                 }
             }

@@ -3,6 +3,10 @@ package com.creepersan.memorialday.activity.anniversary
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -14,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -71,6 +76,12 @@ class AnniversaryEditViewModel : ViewModel() {
         calendarType = value; invalidDate = false
     }
 
+    /** 保存日期弹窗中已经校验过的日期和历法。 */
+    fun setDate(yearValue: Int, monthValue: Int, dayValue: Int, calendar: String, isLeap: Boolean) {
+        year = yearValue.toString(); month = monthValue.toString(); day = dayValue.toString()
+        calendarType = calendar; leap = isLeap; invalidDate = false
+    }
+
     /** 校验日期后提交；提交期间防止重复请求。 */
     fun save() {
         if (saving || !loaded || name.isBlank()) return
@@ -97,10 +108,9 @@ class AnniversaryEditActivity : BaseComposeActivity() {
             if (model.success) LaunchedEffect(Unit) { setResult(RESULT_OK); finish() }
             var dateDialog by remember { mutableStateOf(false) }
             GlassPage {
-                Row(Modifier.fillMaxWidth().padding(bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Text("‹", fontSize = 28.sp, modifier = Modifier.clickable { finish() })
-                    Text(getString(if (id > 0) R.string.anniversary_edit else R.string.anniversary_add), fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 6.dp))
-                }
+                GlassNavigationBar(getString(if (id > 0) R.string.anniversary_edit else R.string.anniversary_add), { finish() }, action = {
+                    Text(getString(R.string.save), fontSize = 14.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable(enabled = model.loaded && !model.saving && model.name.isNotBlank()) { model.save() })
+                })
                 if (model.loading) Text(getString(R.string.account_wait))
                 if (!model.loaded && !model.loading) { model.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }; GlassButton(getString(R.string.retry), { model.load(id) }) }
                 if (model.loaded) {
@@ -110,23 +120,18 @@ class AnniversaryEditActivity : BaseComposeActivity() {
                         Text(getString(R.string.anniversary_description), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 16.dp, bottom = 8.dp))
                         GlassTextField(model.description, { model.description = it }, getString(R.string.anniversary_description), modifier = Modifier.heightIn(min = 92.dp), singleLine = false)
                         Text(getString(R.string.anniversary_calendar), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 16.dp, bottom = 8.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            listOf(Anniversary.CALENDAR_SOLAR to R.string.anniversary_solar, Anniversary.CALENDAR_LUNAR to R.string.anniversary_lunar).forEach { (value, label) ->
-                                GlassChoice(getString(label), model.calendarType == value, { model.changeCalendar(value) }, Modifier.weight(1f))
-                            }
-                        }
+                        GlassSegments(listOf(Anniversary.CALENDAR_SOLAR to getString(R.string.anniversary_solar), Anniversary.CALENDAR_LUNAR to getString(R.string.anniversary_lunar)), model.calendarType) { model.changeCalendar(it) }
                         Text(getString(R.string.anniversary_date), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 16.dp, bottom = 8.dp))
-                        GlassCard {
-                            Row(Modifier.fillMaxWidth().clickable { dateDialog = true }, horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text("${model.year}.${model.month}.${model.day}${if (model.leap) " · ${getString(R.string.anniversary_leap)}" else ""}")
-                                Text("›", color = MaterialTheme.colorScheme.primary)
-                            }
+                        val dateShape = RoundedCornerShape(14.dp)
+                        Row(Modifier.fillMaxWidth().height(48.dp).background(Color.White.copy(alpha = if (isGlassDark()) 0.10f else 0.55f), dateShape).border(1.dp, Color.White.copy(alpha = 0.45f), dateShape).clickable { dateDialog = true }.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Text("${model.year}.${model.month}.${model.day}${if (model.leap) " · ${getString(R.string.anniversary_leap)}" else ""}", fontSize = 14.sp)
+                            Text("›", fontSize = 20.sp, color = glassSecondaryColor())
                         }
                         if (model.invalidDate) Text(getString(R.string.anniversary_invalid_date), color = MaterialTheme.colorScheme.error)
                         Text(getString(R.string.anniversary_repeat), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 16.dp, bottom = 8.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             listOf(Anniversary.LOOP_NONE to R.string.anniversary_no_repeat, Anniversary.LOOP_MONTHLY to R.string.anniversary_monthly, Anniversary.LOOP_YEARLY to R.string.anniversary_yearly).forEach { (value, label) ->
-                                GlassChoice(getString(label), model.loopType == value, { model.loopType = value }, Modifier.weight(1f))
+                                GlassChoice(getString(label), model.loopType == value, { model.loopType = value }, Modifier.weight(1f).height(64.dp))
                             }
                         }
                         model.error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 12.dp)) }
@@ -138,6 +143,8 @@ class AnniversaryEditActivity : BaseComposeActivity() {
                     val monthState = rememberLazyListState((model.month.toIntOrNull() ?: 1).coerceIn(1, 12) - 1)
                     val dayState = rememberLazyListState((model.day.toIntOrNull() ?: 1).coerceIn(1, 31) - 1)
                     var leap by remember { mutableStateOf(model.leap) }
+                    var selectedCalendar by remember { mutableStateOf(model.calendarType) }
+                    val pickerScope = rememberCoroutineScope()
                     var invalid by remember { mutableStateOf(false) }
                     Dialog(onDismissRequest = { dateDialog = false }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
                         Box(Modifier.fillMaxSize().navigationBarsPadding().padding(start = 12.dp, end = 12.dp, top = 16.dp, bottom = 24.dp), contentAlignment = Alignment.BottomCenter) {
@@ -147,20 +154,36 @@ class AnniversaryEditActivity : BaseComposeActivity() {
                                     Text(getString(R.string.anniversary_date), fontWeight = FontWeight.SemiBold)
                                     Text(getString(R.string.confirm), color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable(enabled = !yearState.isScrollInProgress && !monthState.isScrollInProgress && !dayState.isScrollInProgress) {
                                         val y = yearState.firstVisibleItemIndex + 1; val m = monthState.firstVisibleItemIndex + 1; val d = dayState.firstVisibleItemIndex + 1
-                                        if (AnniversaryCalendar.isValid(y, m, d, model.calendarType == Anniversary.CALENDAR_LUNAR, leap)) {
-                                            model.year = y.toString(); model.month = m.toString(); model.day = d.toString(); model.leap = leap; model.invalidDate = false; dateDialog = false
+                                        if (AnniversaryCalendar.isValid(y, m, d, selectedCalendar == Anniversary.CALENDAR_LUNAR, leap)) {
+                                            model.setDate(y, m, d, selectedCalendar, leap); dateDialog = false
                                         } else invalid = true
                                     })
                                 }
                                 Spacer(Modifier.height(16.dp))
-                                if (model.calendarType == Anniversary.CALENDAR_LUNAR) {
-                                    GlassChoice(getString(R.string.anniversary_leap), leap, { leap = !leap }, Modifier.fillMaxWidth())
+                                GlassSegments(listOf(Anniversary.CALENDAR_SOLAR to getString(R.string.anniversary_solar), Anniversary.CALENDAR_LUNAR to getString(R.string.anniversary_lunar)), selectedCalendar) { target ->
+                                    if (target != selectedCalendar && !yearState.isScrollInProgress && !monthState.isScrollInProgress && !dayState.isScrollInProgress) {
+                                        val y = yearState.firstVisibleItemIndex + 1; val m = monthState.firstVisibleItemIndex + 1; val d = dayState.firstVisibleItemIndex + 1
+                                        try {
+                                            val converted = AnniversaryCalendar.convert(y, m, d, selectedCalendar == Anniversary.CALENDAR_LUNAR, leap)
+                                            selectedCalendar = target; leap = converted.leap; invalid = false
+                                            pickerScope.launch {
+                                                yearState.scrollToItem(converted.year - 1)
+                                                monthState.scrollToItem(converted.month - 1)
+                                                dayState.scrollToItem(converted.day - 1)
+                                            }
+                                        } catch (_: Exception) { invalid = true }
+                                    }
+                                }
+                                Spacer(Modifier.height(12.dp))
+                                if (selectedCalendar == Anniversary.CALENDAR_LUNAR) {
+                                    GlassSwitchRow(getString(R.string.anniversary_leap_record), leap) { leap = it }
                                     Spacer(Modifier.height(12.dp))
                                 }
                                 Row(Modifier.fillMaxWidth()) {
                                     GlassWheelPicker(1, 9999, yearState, Modifier.weight(1f))
-                                    GlassWheelPicker(1, 12, monthState, Modifier.weight(1f))
-                                    GlassWheelPicker(1, 31, dayState, Modifier.weight(1f))
+                                    val chineseLunar = selectedCalendar == Anniversary.CALENDAR_LUNAR && resources.configuration.locales[0].language == "zh"
+                                    GlassWheelPicker(1, 12, monthState, Modifier.weight(1f)) { if (chineseLunar) LunarDateLabels.month(it) else it.toString() }
+                                    GlassWheelPicker(1, 31, dayState, Modifier.weight(1f)) { if (chineseLunar) LunarDateLabels.day(it) else it.toString() }
                                 }
                                 if (invalid) Text(getString(R.string.anniversary_invalid_date), color = MaterialTheme.colorScheme.error)
                             }

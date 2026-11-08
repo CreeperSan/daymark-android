@@ -30,12 +30,14 @@ class SelectModeActivity : BaseComposeActivity() {
         val model = ViewModelProvider(this)[SelectModeViewModel::class.java]
         fun select(mode: AppMode) { model.select(mode); startActivity(Intent(this, DispatchActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)); finish() }
         setContent { GlassPage {
-            Spacer(Modifier.height(32.dp))
+            GlassNavigationBar("", { finish() })
+            Spacer(Modifier.height(16.dp))
             Text(getString(R.string.select_mode), fontSize = 30.sp, fontWeight = FontWeight.Bold)
             Text(getString(R.string.select_mode_description), modifier = Modifier.padding(top = 10.dp, bottom = 24.dp), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
             GlassCard {
                 Text(getString(R.string.new_version), fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
                 Text(getString(R.string.new_description), modifier = Modifier.padding(top = 10.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+                Text(getString(R.string.mode_features), fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(top = 8.dp))
             }
             GlassCard {
                 Text(getString(R.string.classic_version), fontSize = 20.sp, fontWeight = FontWeight.SemiBold)

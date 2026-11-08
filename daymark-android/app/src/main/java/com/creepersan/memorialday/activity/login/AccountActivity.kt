@@ -7,6 +7,7 @@ import android.os.SystemClock
 import androidx.activity.compose.setContent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -61,7 +62,7 @@ class AccountViewModel : ViewModel() {
 
     /** 将验证码和表单一起交给服务端验证。 */
     fun submit(register: Boolean) {
-        if (loading || code.isBlank() || password.length < MIN_PASSWORD_LENGTH) return
+        if (loading || code.length != UserManager.AUTH_CODE_LENGTH || password.length < MIN_PASSWORD_LENGTH) return
         loading = true; error = null
         val action = if (register) UserManager.register(account.trim(), email.trim(), password, code.trim()) else UserManager.resetPassword(email.trim(), password, code.trim())
         request = action.observeOn(AndroidSchedulers.mainThread()).subscribe({
@@ -90,9 +91,15 @@ class AccountActivity : BaseComposeActivity() {
             }
             BackHandler(enabled = model.verification && !model.done) { model.verification = false }
             GlassPage {
-                Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                    Text("‹", fontSize = 32.sp, modifier = Modifier.clickable { if (model.verification && !model.done) model.verification = false else finish() })
-                    Spacer(Modifier.height(28.dp))
+                GlassNavigationBar("", { if (model.verification && !model.done) model.verification = false else finish() })
+                Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+                    Spacer(Modifier.height(16.dp))
+                    if (!model.verification && !model.done) {
+                        Box(Modifier.size(60.dp).background(androidx.compose.ui.graphics.Color.White.copy(alpha = if (isGlassDark()) 0.12f else 0.55f), androidx.compose.foundation.shape.RoundedCornerShape(20.dp)), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                            Text(if (register) "♥" else "⌑", color = MaterialTheme.colorScheme.primary, fontSize = 25.sp)
+                        }
+                        Spacer(Modifier.height(16.dp))
+                    }
                     Text(if (model.done) getString(R.string.account_done) else if (model.verification) getString(R.string.account_enter_code) else if (register) getString(R.string.account_create) else getString(R.string.account_reset), fontSize = 30.sp, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(10.dp))
                     Text(if (model.done) getString(R.string.account_done_description) else if (model.verification) getString(R.string.account_code_sent, model.email) else if (register) getString(R.string.account_register_description) else getString(R.string.account_reset_description), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
@@ -100,15 +107,14 @@ class AccountActivity : BaseComposeActivity() {
                     if (model.done) {
                         GlassButton(getString(R.string.account_back_login), { finish() })
                     } else {
-                        GlassCard {
+                        AccountFormSurface(flat = model.verification) {
                             if (model.verification) {
-                                GlassTextField(model.code, { model.code = it }, getString(R.string.account_email_code))
+                                GlassVerificationCode(model.code, { model.code = it })
                                 if (!register) {
                                     Spacer(Modifier.height(12.dp))
                                     GlassTextField(model.password, { model.password = it }, getString(R.string.account_new_password), password = true)
                                 }
                                 Spacer(Modifier.height(12.dp))
-                                GlassButton(if (model.loading) getString(R.string.account_wait) else getString(R.string.account_confirm), { model.submit(register) }, !model.loading && model.code.isNotBlank() && model.password.length >= MIN_PASSWORD_LENGTH)
                                 Text(if (resendSeconds > 0) getString(R.string.account_resend_wait, resendSeconds) else getString(R.string.account_resend), color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable(enabled = !model.loading && resendSeconds == 0L) { model.sendCode(register) }.padding(top = 12.dp))
                             } else {
                                 if (register) {
@@ -145,9 +151,36 @@ class AccountActivity : BaseComposeActivity() {
                             }
                             model.error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 12.dp)) }
                         }
+                        if (register && !model.verification) {
+                            Spacer(Modifier.height(22.dp))
+                            GlassSocialOptions(getString(R.string.social_register)) { android.widget.Toast.makeText(this@AccountActivity, getString(R.string.feature_developing), android.widget.Toast.LENGTH_SHORT).show() }
+                        }
+                        if (!register && !model.verification) Text(getString(R.string.reset_hint), fontSize = 12.sp, color = glassSecondaryColor(), modifier = Modifier.padding(top = 20.dp))
                     }
+                }
+                if (model.verification && !model.done) {
+                    GlassButton(if (model.loading) getString(R.string.account_wait) else getString(R.string.account_confirm), { model.submit(register) }, !model.loading && model.code.length == UserManager.AUTH_CODE_LENGTH && model.password.length >= MIN_PASSWORD_LENGTH)
+                    Spacer(Modifier.height(16.dp))
+                }
+                if (!model.verification && !model.done) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                        Text(getString(if (register) R.string.account_existing else R.string.login_no_account), fontSize = 13.sp, color = glassSecondaryColor())
+                        Text(getString(if (register) R.string.account_go_login else R.string.account_create), fontSize = 13.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable {
+                            if (register) finish() else {
+                                startActivity(Intent(this@AccountActivity, AccountActivity::class.java).putExtra(EXTRA_REGISTER, true))
+                                finish()
+                            }
+                        }.padding(8.dp))
+                    }
+                    Spacer(Modifier.height(16.dp))
                 }
             }
         }
     }
+}
+
+/** 验证码页使用开放式布局，其余账号表单使用玻璃卡片。 */
+@Composable
+private fun AccountFormSurface(flat: Boolean, content: @Composable ColumnScope.() -> Unit) {
+    if (flat) Column(Modifier.fillMaxWidth(), content = content) else GlassCard(content = content)
 }

@@ -4,11 +4,17 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -29,6 +35,8 @@ import com.creepersan.memorialday.activity.setting.SettingActivity
 import com.creepersan.memorialday.base.activity.BaseComposeActivity
 import com.creepersan.memorialday.module.anniversary.Anniversary
 import com.creepersan.memorialday.module.anniversary.AnniversaryRepository
+import com.creepersan.memorialday.module.anniversary.AnniversaryCalendar
+import com.creepersan.memorialday.module.anniversary.LunarDateLabels
 import com.creepersan.memorialday.module.anniversary.AnniversaryCountdown
 import com.creepersan.memorialday.module.user.UserManager
 import com.creepersan.memorialday.ui.glass.*
@@ -39,6 +47,7 @@ import java.time.Duration
 import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 /** 首页列表状态；刷新失败时保留已显示的数据。 */
 class HomeViewModel : ViewModel() {
@@ -91,14 +100,27 @@ class HomeActivity : BaseComposeActivity() {
                     }
                 }
             }
-            GlassPage {
-                Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(getString(R.string.home_title), fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
-                    Box(Modifier.size(38.dp).background(Color.White.copy(alpha = 0.35f), CircleShape).clickable { startActivity(Intent(this@HomeActivity, SettingActivity::class.java)) }, contentAlignment = Alignment.Center) { Text("⚙", color = MaterialTheme.colorScheme.onBackground, fontSize = 18.sp) }
+            GlassPage(horizontalPadding = 20.dp) {
+                Row(Modifier.fillMaxWidth().height(52.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(getString(R.string.home_title), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onBackground)
+                    val iconColor = MaterialTheme.colorScheme.onBackground
+                    Box(Modifier.size(36.dp).border(1.dp, Color.White.copy(alpha = 0.75f), CircleShape).background(Color.White.copy(alpha = if (isGlassDark()) 0.1f else 0.4f), CircleShape).clickable { startActivity(Intent(this@HomeActivity, SettingActivity::class.java)) }, contentAlignment = Alignment.Center) {
+                        // 用线条绘制设置图标，避免不同字体的字符外观不一致。
+                        Canvas(Modifier.size(16.dp)) {
+                            val center = Offset(size.width / 2, size.height / 2)
+                            drawCircle(iconColor, radius = size.minDimension * 0.26f, center = center, style = Stroke(1.4.dp.toPx()))
+                            drawCircle(iconColor, radius = size.minDimension * 0.07f, center = center)
+                            for (i in 0 until 8) {
+                                val angle = i * Math.PI / 4
+                                val dx = kotlin.math.cos(angle).toFloat(); val dy = kotlin.math.sin(angle).toFloat()
+                                drawLine(iconColor, center + Offset(dx * size.minDimension * 0.28f, dy * size.minDimension * 0.28f), center + Offset(dx * size.minDimension * 0.4f, dy * size.minDimension * 0.4f), strokeWidth = 1.4.dp.toPx())
+                            }
+                        }
+                    }
                 }
-                if (model.loading) Text(getString(R.string.account_wait), style = MaterialTheme.typography.bodySmall)
-                model.error?.let { Text(it, color = MaterialTheme.colorScheme.error); Text(getString(R.string.retry), color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable { model.load() }.padding(vertical = 8.dp)) }
-                if (model.loaded && model.items.isEmpty()) Text(getString(R.string.anniversary_empty), modifier = Modifier.padding(vertical = 24.dp))
+                if (model.loading) Text(getString(R.string.account_wait), fontSize = 12.sp, color = glassSecondaryColor())
+                model.error?.let { Text(it, color = MaterialTheme.colorScheme.error, fontSize = 12.sp); Text(getString(R.string.retry), color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable { model.load() }.padding(vertical = 8.dp)) }
+                if (model.loaded && model.items.isEmpty()) Text(getString(R.string.anniversary_empty), fontSize = 14.sp, color = glassSecondaryColor(), modifier = Modifier.padding(vertical = 24.dp))
                 val sortedItems = remember(model.items, model.today) { AnniversaryCountdown.sort(model.items, model.today, ZoneId.systemDefault()) }
                 val groups = listOf(
                     R.string.home_today to sortedItems.filter { it.second == 0L },
@@ -107,18 +129,18 @@ class HomeActivity : BaseComposeActivity() {
                     R.string.home_other to sortedItems.filter { it.second == null }
                 )
                 Box(Modifier.weight(1f).fillMaxWidth()) {
-                LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 88.dp)) {
-                    groups.forEach { (title, entries) ->
-                        if (entries.isNotEmpty()) {
-                            item { Text(getString(title), fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 18.dp, bottom = 6.dp)) }
-                            items(entries, key = { it.first.id }) { (item, days) ->
-                                GlassCard {
-                                    Row(Modifier.fillMaxWidth().clickable { startActivity(Intent(this@HomeActivity, AnniversaryEditActivity::class.java).putExtra(AnniversaryEditActivity.EXTRA_ID, item.id)) }, horizontalArrangement = Arrangement.SpaceBetween) {
+                    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(top = 8.dp, bottom = 100.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        groups.forEach { (title, entries) ->
+                            if (entries.isNotEmpty()) {
+                                item { Text(getString(title), fontSize = 12.sp, fontWeight = FontWeight.Medium, color = glassSecondaryColor()) }
+                                items(entries, key = { it.first.id }) { (item, days) ->
+                                    val dark = isGlassDark()
+                                    val shape = RoundedCornerShape(20.dp)
+                                    val outline = if (days == 0L) Color(0xFFFF947B) else Color.White.copy(alpha = if (dark) 0.16f else 0.75f)
+                                    Row(Modifier.fillMaxWidth().border(1.dp, outline, shape).background(Color.White.copy(alpha = if (dark) 0.10f else 0.48f), shape).clickable { startActivity(Intent(this@HomeActivity, AnniversaryEditActivity::class.java).putExtra(AnniversaryEditActivity.EXTRA_ID, item.id)) }.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                                         Column(Modifier.weight(1f)) {
-                                            Text(item.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                                            val calendar = getString(if (item.calendarType == Anniversary.CALENDAR_LUNAR) R.string.anniversary_lunar else R.string.anniversary_solar)
-                                            val leap = if (item.isLeapMonth == 1) getString(R.string.anniversary_leap_prefix) else ""
-                                            Text(getString(R.string.anniversary_date_format, calendar, item.year, leap, item.month, item.day), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 4.dp))
+                                            Text(item.name, fontSize = 15.sp, lineHeight = 21.sp, fontWeight = if (days != null && days < 0) FontWeight.Medium else FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onBackground)
+                                            Text(formatDate(item), fontSize = 12.sp, lineHeight = 18.sp, color = glassSecondaryColor(), modifier = Modifier.padding(top = 3.dp))
                                         }
                                         val countdown = when {
                                             days == null -> getString(R.string.anniversary_countdown_unavailable)
@@ -126,18 +148,36 @@ class HomeActivity : BaseComposeActivity() {
                                             days > 0 -> resources.getQuantityString(R.plurals.anniversary_days_left, days.toInt(), days)
                                             else -> resources.getQuantityString(R.plurals.anniversary_days_ago, (-days).toInt(), -days)
                                         }
-                                        Text(countdown, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall, modifier = Modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.14f), CircleShape).padding(horizontal = 10.dp, vertical = 6.dp))
+                                        val pillColor = if (days == 0L) Color(0xFFFF6A45) else if (days != null && days < 0) Color(0xFFD7AF96).copy(alpha = 0.3f) else Color(0xFFFF6A45).copy(alpha = 0.12f)
+                                        val textColor = if (days == 0L) Color.White else if (days != null && days < 0) glassSecondaryColor() else MaterialTheme.colorScheme.primary
+                                        Text(countdown, color = textColor, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 8.dp).background(pillColor, CircleShape).padding(horizontal = 10.dp, vertical = 6.dp))
                                     }
                                 }
                             }
                         }
                     }
-                }
-                Box(Modifier.align(Alignment.BottomEnd).padding(bottom = 12.dp).size(60.dp).background(Brush.linearGradient(listOf(Color(0xFFFF995C), Color(0xFFFF6654))), CircleShape).clickable { startActivity(Intent(this@HomeActivity, AnniversaryEditActivity::class.java)) }, contentAlignment = Alignment.Center) {
-                    Text("+", color = Color.White, fontSize = 30.sp)
-                }
+                    Box(Modifier.align(Alignment.BottomEnd).padding(bottom = 24.dp).size(60.dp).background(Brush.linearGradient(listOf(Color(0xFFFF9459), Color(0xFFFF6B52))), CircleShape).clickable { startActivity(Intent(this@HomeActivity, AnniversaryEditActivity::class.java)) }, contentAlignment = Alignment.Center) {
+                        Text("+", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Light)
+                    }
                 }
             }
+        }
+    }
+    /** 按当前语言显示公历日期；农历条目同时保留其原始农历日期。 */
+    private fun formatDate(item: Anniversary): String {
+        return try {
+            val lunar = item.calendarType == Anniversary.CALENDAR_LUNAR
+            val converted = if (lunar) AnniversaryCalendar.convert(item.year, item.month, item.day, true, item.isLeapMonth == 1) else null
+            val solar = if (converted != null) LocalDate.of(converted.year, converted.month, converted.day) else LocalDate.of(item.year, item.month, item.day)
+            val locale = resources.configuration.locales[0]
+            val date = solar.format(DateTimeFormatter.ofPattern("yyyy.MM.dd", locale))
+            if (lunar) {
+                val leap = if (item.isLeapMonth == 1) getString(R.string.anniversary_leap_prefix) else ""
+                val lunarDate = if (locale.language == "zh") "$leap${LunarDateLabels.month(item.month)}${LunarDateLabels.day(item.day)}" else "$leap${item.month}/${item.day}"
+                "$date · ${getString(R.string.anniversary_lunar)}$lunarDate"
+            } else "$date · ${solar.format(DateTimeFormatter.ofPattern("EEE", locale))}"
+        } catch (_: Exception) {
+            getString(R.string.anniversary_countdown_unavailable)
         }
     }
     override fun onResume() { super.onResume(); model.updateToday(); model.load() }

@@ -33,6 +33,8 @@ private class AuthRejectedException(message: String) : IllegalStateException(mes
 
 /** 负责账号会话持久化和令牌刷新；令牌使用 Android Keystore 加密并存入 KV。 */
 object UserManager {
+    /** 账号服务发送的邮箱验证码位数。 */
+    const val AUTH_CODE_LENGTH = 6
     private const val KEY_ALIAS = "daymark_session"
     private const val TRANSFORMATION = "AES/GCM/NoPadding"
     private const val ACCOUNT_HOST = "https://account.creepersan.com"

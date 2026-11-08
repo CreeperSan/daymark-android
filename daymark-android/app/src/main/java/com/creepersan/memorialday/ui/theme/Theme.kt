@@ -3,6 +3,12 @@ package com.creepersan.memorialday.ui.theme
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.Indication
+import androidx.compose.foundation.IndicationInstance
+import androidx.compose.foundation.interaction.InteractionSource
+import androidx.compose.ui.graphics.drawscope.ContentDrawScope
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -15,6 +21,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
+/** 保留点击语义，仅绘制内容，不绘制任何水波或高亮。 */
+private object NoIndication : Indication {
+    @Composable
+    override fun rememberUpdatedInstance(interactionSource: InteractionSource): IndicationInstance = object : IndicationInstance {
+        override fun ContentDrawScope.drawIndication() { drawContent() }
+    }
+}
+
 private val DarkColorScheme = darkColorScheme(
     primary = androidx.compose.ui.graphics.Color(0xFFFFA486),
     secondary = androidx.compose.ui.graphics.Color(0xFFE2B7AD),
@@ -26,13 +40,13 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = androidx.compose.ui.graphics.Color(0xFFE87557),
+    primary = androidx.compose.ui.graphics.Color(0xFFFF6A45),
     secondary = androidx.compose.ui.graphics.Color(0xFFAA6557),
     tertiary = androidx.compose.ui.graphics.Color(0xFFB5764B),
     background = androidx.compose.ui.graphics.Color(0xFFFFF2E3),
     surface = androidx.compose.ui.graphics.Color(0xFFFFF8F3),
-    onBackground = androidx.compose.ui.graphics.Color(0xFF3D2927),
-    onSurface = androidx.compose.ui.graphics.Color(0xFF3D2927)
+    onBackground = androidx.compose.ui.graphics.Color(0xFF4A2511),
+    onSurface = androidx.compose.ui.graphics.Color(0xFF4A2511)
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -74,7 +88,9 @@ fun MemorialDayTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+        typography = Typography
+    ) {
+        // 禁止所有 Compose 页面默认的点击水波反馈。
+        CompositionLocalProvider(LocalIndication provides NoIndication, content = content)
+    }
 }
