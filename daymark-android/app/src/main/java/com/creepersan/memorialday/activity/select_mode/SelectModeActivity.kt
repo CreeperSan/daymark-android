@@ -3,7 +3,13 @@ package com.creepersan.memorialday.activity.select_mode
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.compose.material3.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -22,12 +28,24 @@ class SelectModeActivity : BaseComposeActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val model = ViewModelProvider(this)[SelectModeViewModel::class.java]
-        fun select(mode: AppMode) { model.select(mode); startActivity(Intent(this, DispatchActivity::class.java)); finish() }
+        fun select(mode: AppMode) { model.select(mode); startActivity(Intent(this, DispatchActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)); finish() }
         setContent { GlassPage {
-            Text(getString(R.string.select_mode), fontSize = 32.sp)
-            Text(getString(R.string.select_mode_description))
-            GlassCard { Text(getString(R.string.new_version), style = MaterialTheme.typography.titleLarge); Text(getString(R.string.new_description)); GlassButton(getString(R.string.open_new), { select(AppMode.Default) }) }
-            GlassCard { Text(getString(R.string.classic_version), style = MaterialTheme.typography.titleLarge); Text(getString(R.string.classic_description)); GlassButton(getString(R.string.open_classic), { select(AppMode.Classic) }) }
+            Spacer(Modifier.height(32.dp))
+            Text(getString(R.string.select_mode), fontSize = 30.sp, fontWeight = FontWeight.Bold)
+            Text(getString(R.string.select_mode_description), modifier = Modifier.padding(top = 10.dp, bottom = 24.dp), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
+            GlassCard {
+                Text(getString(R.string.new_version), fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+                Text(getString(R.string.new_description), modifier = Modifier.padding(top = 10.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+            }
+            GlassCard {
+                Text(getString(R.string.classic_version), fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+                Text(getString(R.string.classic_description), modifier = Modifier.padding(top = 10.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+            }
+            Spacer(Modifier.weight(1f))
+            GlassButton(getString(R.string.open_new), { select(AppMode.Default) })
+            Box(Modifier.fillMaxWidth().clickable { select(AppMode.Classic) }.padding(16.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                Text(getString(R.string.open_classic), color = MaterialTheme.colorScheme.primary)
+            }
         } }
     }
 }

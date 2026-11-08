@@ -9,7 +9,7 @@ import com.creepersan.memorialday.R
 import com.creepersan.memorialday.activity.home.HomeActivity
 import com.creepersan.memorialday.activity.login.LoginActivity
 import com.creepersan.memorialday.activity.main.MainActivity
-import com.creepersan.memorialday.activity.select_mode.SelectModeActivity
+import com.creepersan.memorialday.activity.onboarding.OnboardingActivity
 import com.creepersan.memorialday.base.activity.BaseComposeActivity
 import com.creepersan.memorialday.constance.*
 import com.creepersan.memorialday.module.kv.KV
@@ -32,7 +32,7 @@ class DispatchActivity : BaseComposeActivity() {
     private fun dispatch() {
         error = false
         when {
-            !KV.has(KV_APPLICATION_MODE) -> open(SelectModeActivity::class.java)
+            !KV.has(KV_APPLICATION_MODE) -> open(OnboardingActivity::class.java)
             KV.get(KV_APPLICATION_MODE) == AppMode.Classic -> open(MainActivity::class.java)
             UserManager.session() == null -> open(LoginActivity::class.java)
             else -> {

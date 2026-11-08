@@ -32,10 +32,14 @@
 
         <activity android:name=".activity.main.MainActivity" android:screenOrientation="portrait" />
         <activity android:name=".activity.select_mode.SelectModeActivity" android:exported="false" />
+        <activity android:name=".activity.onboarding.OnboardingActivity" android:exported="false" />
         <activity android:name=".activity.login.LoginActivity" android:exported="false" />
+        <activity android:name=".activity.login.AccountActivity" android:exported="false" />
         <activity android:name=".activity.anniversary.AnniversaryEditActivity" android:exported="false" />
         <activity android:name=".activity.home.HomeActivity" android:exported="false" />
         <activity android:name=".activity.setting.SettingActivity" android:exported="false" />
+        <activity android:name=".activity.about.AboutActivity" android:exported="false" />
+        <activity android:name=".activity.import_legacy.ImportLegacyActivity" android:exported="false" />
 
         <activity
             android:name=".activity.add.AddEditMemorialDayActivity"

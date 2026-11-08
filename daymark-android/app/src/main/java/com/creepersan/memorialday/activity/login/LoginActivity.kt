@@ -4,6 +4,13 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -44,17 +51,29 @@ class LoginActivity : BaseComposeActivity() {
         setContent {
             if (model.success) LaunchedEffect(Unit) { startActivity(Intent(this@LoginActivity, HomeActivity::class.java)); finish() }
             GlassPage {
-                Text(getString(R.string.login_title), fontSize = 32.sp)
-                Text(getString(R.string.login_description))
+                Spacer(Modifier.height(28.dp))
+                Box(Modifier.size(60.dp).background(Color(0xFFF28C70), RoundedCornerShape(18.dp)), contentAlignment = Alignment.Center) {
+                    Text("♥", color = Color.White, fontSize = 28.sp)
+                }
+                Spacer(Modifier.height(18.dp))
+                Text(getString(R.string.login_title), fontSize = 32.sp, fontWeight = FontWeight.Bold)
+                Text(getString(R.string.login_description), modifier = Modifier.padding(top = 8.dp), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
+                Spacer(Modifier.height(28.dp))
                 GlassCard {
-                    OutlinedTextField(value = model.account, onValueChange = { model.account = it }, label = { Text(getString(R.string.account)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                    OutlinedTextField(value = model.password, onValueChange = { model.password = it }, label = { Text(getString(R.string.password)) }, singleLine = true, visualTransformation = PasswordVisualTransformation(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), modifier = Modifier.fillMaxWidth())
+                    GlassTextField(model.account, { model.account = it }, getString(R.string.account))
+                    Spacer(Modifier.height(12.dp))
+                    GlassTextField(model.password, { model.password = it }, getString(R.string.password), password = true)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        Text(getString(R.string.forgot_password), color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable { startActivity(Intent(this@LoginActivity, AccountActivity::class.java)) }.padding(vertical = 12.dp))
+                    }
                     model.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                     GlassButton(getString(if (model.loading) R.string.logging_in else R.string.login), { model.login() }, !model.loading && model.account.isNotBlank() && model.password.isNotBlank())
                 }
-                Row { TextButton(onClick = {}, enabled = false) { Text(getString(R.string.register)) }; TextButton(onClick = {}, enabled = false) { Text(getString(R.string.forgot_password)) } }
-                Text(getString(R.string.coming_soon), style = MaterialTheme.typography.bodySmall)
-                TextButton(onClick = { startActivity(Intent(this@LoginActivity, SettingActivity::class.java)) }) { Text(getString(R.string.settings)) }
+                Spacer(Modifier.weight(1f))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    Text(getString(R.string.register), color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable { startActivity(Intent(this@LoginActivity, AccountActivity::class.java).putExtra(AccountActivity.EXTRA_REGISTER, true)) }.padding(12.dp))
+                    Text(getString(R.string.settings), color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable { startActivity(Intent(this@LoginActivity, SettingActivity::class.java)) }.padding(12.dp))
+                }
             }
         }
     }

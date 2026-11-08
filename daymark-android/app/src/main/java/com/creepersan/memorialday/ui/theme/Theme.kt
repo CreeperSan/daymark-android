@@ -16,15 +16,23 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = androidx.compose.ui.graphics.Color(0xFFFFA486),
+    secondary = androidx.compose.ui.graphics.Color(0xFFE2B7AD),
+    tertiary = androidx.compose.ui.graphics.Color(0xFFE7C29C),
+    background = androidx.compose.ui.graphics.Color(0xFF201C2A),
+    surface = androidx.compose.ui.graphics.Color(0xFF393037),
+    onBackground = androidx.compose.ui.graphics.Color(0xFFF8EBE7),
+    onSurface = androidx.compose.ui.graphics.Color(0xFFF8EBE7)
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+    primary = androidx.compose.ui.graphics.Color(0xFFE87557),
+    secondary = androidx.compose.ui.graphics.Color(0xFFAA6557),
+    tertiary = androidx.compose.ui.graphics.Color(0xFFB5764B),
+    background = androidx.compose.ui.graphics.Color(0xFFFFF2E3),
+    surface = androidx.compose.ui.graphics.Color(0xFFFFF8F3),
+    onBackground = androidx.compose.ui.graphics.Color(0xFF3D2927),
+    onSurface = androidx.compose.ui.graphics.Color(0xFF3D2927)
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -57,8 +65,10 @@ fun MemorialDayTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
+            window.statusBarColor = colorScheme.background.toArgb()
+            window.navigationBarColor = colorScheme.background.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = !darkTheme
         }
     }
 

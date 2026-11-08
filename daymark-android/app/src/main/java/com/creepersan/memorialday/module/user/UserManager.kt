@@ -38,6 +38,10 @@ object UserManager {
     private const val ACCOUNT_HOST = "https://account.creepersan.com"
     private const val LOGIN_PATH = "/api/login"
     private const val REFRESH_PATH = "/api/token/refresh"
+    private const val REGISTER_CODE_PATH = "/api/register/request_auth_code"
+    private const val REGISTER_PATH = "/api/register"
+    private const val RESET_CODE_PATH = "/api/password/reset/request_auth_code"
+    private const val RESET_PATH = "/api/password/reset"
     private const val REFRESH_AHEAD_MS = 60_000L
     private const val GCM_TAG_BITS = 128
     private val gson = Gson()
@@ -116,6 +120,18 @@ object UserManager {
         return login
     }
 
+    /** 向邮箱发送注册或重置密码验证码。 */
+    fun requestCode(email: String, register: Boolean): Single<JsonObject> =
+        request(if (register) REGISTER_CODE_PATH else RESET_CODE_PATH, mapOf("email" to email), NetworkAuthentication.None)
+
+    /** 使用邮箱验证码创建账号。 */
+    fun register(account: String, email: String, password: String, code: String): Single<JsonObject> =
+        request(REGISTER_PATH, mapOf("account" to account, "email" to email, "password" to password, "code" to code), NetworkAuthentication.None)
+
+    /** 使用邮箱验证码重置密码。 */
+    fun resetPassword(email: String, password: String, code: String): Single<JsonObject> =
+        request(RESET_PATH, mapOf("email" to email, "new_password" to password, "code" to code), NetworkAuthentication.None)
+
     /** 获取可用令牌；同一时刻的刷新请求共享结果，网络错误不删除会话。 */
     @Synchronized
     fun validSession(): Single<UserSession> {
@@ -174,7 +190,7 @@ object UserManager {
                 )
                 throw IllegalStateException(message)
             }
-            json.getAsJsonObject("data") ?: throw IllegalStateException("Invalid response")
+            json.get("data")?.takeIf { it.isJsonObject }?.asJsonObject ?: JsonObject()
         }
     }
 
