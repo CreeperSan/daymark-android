@@ -6,9 +6,9 @@ import android.net.Uri
 import android.os.SystemClock
 import androidx.activity.compose.setContent
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -27,13 +28,14 @@ import androidx.lifecycle.ViewModelProvider
 import com.creepersan.memorialday.R
 import com.creepersan.memorialday.base.activity.BaseComposeActivity
 import com.creepersan.memorialday.constance.LEGAL_DOCUMENT_URL
+import com.creepersan.memorialday.module.user.PasswordEndpointUnavailableException
 import com.creepersan.memorialday.module.user.UserManager
+import com.creepersan.memorialday.module.user.UserManager.MIN_PASSWORD_LENGTH
 import com.creepersan.memorialday.ui.glass.*
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.Disposable
 import kotlinx.coroutines.delay
 
-private const val MIN_PASSWORD_LENGTH = 8
 private const val RESEND_INTERVAL_MS = 60_000L
 private const val SECOND_MS = 1_000L
 
@@ -48,7 +50,7 @@ class AccountViewModel : ViewModel() {
     var codeSentAt by mutableStateOf(0L); private set
     var loading by mutableStateOf(false)
     var done by mutableStateOf(false)
-    var error by mutableStateOf<String?>(null)
+    var error by mutableStateOf<Throwable?>(null)
     private var request: Disposable? = null
 
     /** 请求验证码，成功后进入确认页面。 */
@@ -57,7 +59,7 @@ class AccountViewModel : ViewModel() {
         loading = true; error = null
         request = UserManager.requestCode(email.trim(), register).observeOn(AndroidSchedulers.mainThread()).subscribe({
             loading = false; codeSentAt = SystemClock.elapsedRealtime(); verification = true
-        }, { loading = false; error = it.message })
+        }, { loading = false; error = it })
     }
 
     /** 将验证码和表单一起交给服务端验证。 */
@@ -67,7 +69,7 @@ class AccountViewModel : ViewModel() {
         val action = if (register) UserManager.register(account.trim(), email.trim(), password, code.trim()) else UserManager.resetPassword(email.trim(), password, code.trim())
         request = action.observeOn(AndroidSchedulers.mainThread()).subscribe({
             loading = false; password = ""; code = ""; done = true
-        }, { loading = false; error = it.message })
+        }, { loading = false; error = it })
     }
 
     override fun onCleared() { request?.dispose() }
@@ -92,7 +94,7 @@ class AccountActivity : BaseComposeActivity() {
             BackHandler(enabled = model.verification && !model.done) { model.verification = false }
             GlassPage {
                 GlassNavigationBar("", { if (model.verification && !model.done) model.verification = false else finish() })
-                Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+                Column(Modifier.weight(1f).glassBounce().verticalScroll(rememberScrollState())) {
                     Spacer(Modifier.height(16.dp))
                     if (!model.verification && !model.done) {
                         Box(Modifier.size(60.dp).background(androidx.compose.ui.graphics.Color.White.copy(alpha = if (isGlassDark()) 0.12f else 0.55f), androidx.compose.foundation.shape.RoundedCornerShape(20.dp)), contentAlignment = androidx.compose.ui.Alignment.Center) {
@@ -115,13 +117,13 @@ class AccountActivity : BaseComposeActivity() {
                                     GlassTextField(model.password, { model.password = it }, getString(R.string.account_new_password), password = true)
                                 }
                                 Spacer(Modifier.height(12.dp))
-                                Text(if (resendSeconds > 0) getString(R.string.account_resend_wait, resendSeconds) else getString(R.string.account_resend), color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable(enabled = !model.loading && resendSeconds == 0L) { model.sendCode(register) }.padding(top = 12.dp))
+                                Text(if (resendSeconds > 0) getString(R.string.account_resend_wait, resendSeconds) else getString(R.string.account_resend), color = MaterialTheme.colorScheme.primary, modifier = Modifier.glassClickable(enabled = !model.loading && resendSeconds == 0L) { model.sendCode(register) }.padding(top = 12.dp))
                             } else {
                                 if (register) {
                                     GlassTextField(model.account, { model.account = it }, getString(R.string.account))
                                     Spacer(Modifier.height(12.dp))
                                 }
-                                GlassTextField(model.email, { model.email = it }, getString(R.string.account_email))
+                                GlassTextField(model.email, { model.email = it }, getString(R.string.account_email), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email))
                                 if (register) {
                                     Spacer(Modifier.height(12.dp))
                                     GlassTextField(model.password, { model.password = it }, getString(R.string.account_set_password), password = true)
@@ -129,7 +131,7 @@ class AccountActivity : BaseComposeActivity() {
                                 if (register) {
                                     Spacer(Modifier.height(12.dp))
                                     Row(Modifier.fillMaxWidth()) {
-                                        Text(if (model.agreed) "☑" else "□", color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable { model.agreed = !model.agreed }.padding(end = 6.dp))
+                                        Text(if (model.agreed) "☑" else "□", color = MaterialTheme.colorScheme.primary, modifier = Modifier.glassClickable { model.agreed = !model.agreed }.padding(end = 6.dp))
                                         val accent = MaterialTheme.colorScheme.primary
                                         val agreement = buildAnnotatedString {
                                             append(getString(R.string.agreement_prefix))
@@ -149,7 +151,10 @@ class AccountActivity : BaseComposeActivity() {
                                 Spacer(Modifier.height(12.dp))
                                 GlassButton(if (model.loading) getString(R.string.account_wait) else getString(R.string.account_send_code), { model.sendCode(register) }, !model.loading && model.email.isNotBlank() && (!register || model.account.isNotBlank() && model.password.length >= MIN_PASSWORD_LENGTH && model.agreed))
                             }
-                            model.error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 12.dp)) }
+                            model.error?.let { error ->
+                                val message = if (error is PasswordEndpointUnavailableException) getString(R.string.account_password_unavailable) else error.message ?: getString(R.string.connection_error)
+                                Text(message, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 12.dp))
+                            }
                         }
                         if (register && !model.verification) {
                             Spacer(Modifier.height(22.dp))
@@ -165,7 +170,7 @@ class AccountActivity : BaseComposeActivity() {
                 if (!model.verification && !model.done) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                         Text(getString(if (register) R.string.account_existing else R.string.login_no_account), fontSize = 13.sp, color = glassSecondaryColor())
-                        Text(getString(if (register) R.string.account_go_login else R.string.account_create), fontSize = 13.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable {
+                        Text(getString(if (register) R.string.account_go_login else R.string.account_create), fontSize = 13.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.glassClickable {
                             if (register) finish() else {
                                 startActivity(Intent(this@AccountActivity, AccountActivity::class.java).putExtra(EXTRA_REGISTER, true))
                                 finish()

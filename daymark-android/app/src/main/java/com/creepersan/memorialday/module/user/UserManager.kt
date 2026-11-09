@@ -31,10 +31,15 @@ data class UserSession(
 /** 服务端明确拒绝刷新令牌。 */
 private class AuthRejectedException(message: String) : IllegalStateException(message)
 
+/** 账号服务尚未部署对应的密码接口。 */
+internal class PasswordEndpointUnavailableException : IllegalStateException()
+
 /** 负责账号会话持久化和令牌刷新；令牌使用 Android Keystore 加密并存入 KV。 */
 object UserManager {
     /** 账号服务发送的邮箱验证码位数。 */
     const val AUTH_CODE_LENGTH = 6
+    /** 客户端注册、重置和修改密码共用的最少字符数。 */
+    const val MIN_PASSWORD_LENGTH = 8
     private const val KEY_ALIAS = "daymark_session"
     private const val TRANSFORMATION = "AES/GCM/NoPadding"
     private const val ACCOUNT_HOST = "https://account.creepersan.com"
@@ -44,6 +49,8 @@ object UserManager {
     private const val REGISTER_PATH = "/api/register"
     private const val RESET_CODE_PATH = "/api/password/reset/request_auth_code"
     private const val RESET_PATH = "/api/password/reset"
+    private const val CHANGE_PASSWORD_PATH = "/api/password/change"
+    private const val HTTP_NOT_FOUND = 404
     private const val REFRESH_AHEAD_MS = 60_000L
     private const val GCM_TAG_BITS = 128
     private val gson = Gson()
@@ -134,6 +141,23 @@ object UserManager {
     fun resetPassword(email: String, password: String, code: String): Single<JsonObject> =
         request(RESET_PATH, mapOf("email" to email, "new_password" to password, "code" to code), NetworkAuthentication.None)
 
+    /** 验证原密码并更新密码，成功后丢弃服务端已吊销的本机会话。 */
+    @Synchronized
+    fun changePassword(oldPassword: String, newPassword: String): Single<JsonObject> {
+        val generation = sessionGeneration
+        val userId = session()?.id ?: return Single.error(IllegalStateException("session_missing"))
+        return validSession().flatMap { current ->
+            check(current.id == userId && synchronized(this) { generation == sessionGeneration }) { "Session changed" }
+            // 将请求绑定到原账号，排队期间切换账号也不会使用新账号的令牌。
+            request(CHANGE_PASSWORD_PATH, mapOf("old_password" to oldPassword, "new_password" to newPassword), NetworkAuthentication.Token(current.token))
+        }.doOnSuccess {
+            synchronized(this) {
+                // 请求期间若账号已切换，旧账号的响应不能清除新会话。
+                if (generation == sessionGeneration && session()?.id == userId) clear()
+            }
+        }
+    }
+
     /** 获取可用令牌；同一时刻的刷新请求共享结果，网络错误不删除会话。 */
     @Synchronized
     fun validSession(): Single<UserSession> {
@@ -149,7 +173,7 @@ object UserManager {
         refreshInFlight?.let { return it }
         lateinit var refresh: Single<UserSession>
         refresh =
-            request(REFRESH_PATH, mapOf("refresh_token" to current.refreshToken), NetworkAuthentication.Refresh(current.token))
+            request(REFRESH_PATH, mapOf("refresh_token" to current.refreshToken), NetworkAuthentication.Token(current.token))
                 .map { data ->
                     synchronized(this) {
                         check(session() == current) { "Session changed" }
@@ -182,6 +206,9 @@ object UserManager {
                 authentication = authentication
             )
         ).firstOrError().map { response ->
+            if (response.responseCode == HTTP_NOT_FOUND && (path == RESET_CODE_PATH || path == RESET_PATH || path == CHANGE_PASSWORD_PATH)) {
+                throw PasswordEndpointUnavailableException()
+            }
             if (response.responseCode !in 200..299) throw IllegalStateException("HTTP ${response.responseCode}")
             val json = JsonParser.parseString(response.bodyString()).asJsonObject
             val code = json.get("code")?.asInt

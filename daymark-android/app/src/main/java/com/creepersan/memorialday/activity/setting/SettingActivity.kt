@@ -5,9 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.SystemClock
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -22,6 +19,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.creepersan.memorialday.R
 import com.creepersan.memorialday.base.activity.BaseComposeActivity
 import com.creepersan.memorialday.activity.login.LoginActivity
+import com.creepersan.memorialday.activity.login.ChangePasswordActivity
 import com.creepersan.memorialday.activity.about.AboutActivity
 import com.creepersan.memorialday.activity.import_legacy.ImportLegacyActivity
 import com.creepersan.memorialday.activity.select_mode.SelectModeActivity
@@ -33,6 +31,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 private const val DEVELOPER_TAP_COUNT = 8
 private const val DEVELOPER_TAP_INTERVAL_MS = 500L
+private val SettingsCardRadius = 20.dp
 
 /** 保存新版设置，开发者模式通过连续点击标题解锁。 */
 class SettingViewModel : ViewModel() {
@@ -69,18 +68,23 @@ class SettingActivity : BaseComposeActivity() {
         setContent {
             var dialog by remember { mutableStateOf<String?>(null) }
             var hostMessage by remember { mutableStateOf<Int?>(null) }
+            val scrollState = rememberScrollState()
             val languages = listOf("system" to getString(R.string.system), "zh-CN" to "简体中文（中国）", "zh-TW" to "繁體中文（台灣）", "yue-Hans-CN" to "简体粤语（广东）", "yue-Hant-HK" to "繁體粵語（香港）", "en" to "English", "ja" to "日本語", "ko" to "한국어")
             val themes = listOf(AppTheme.System.name to getString(R.string.system), AppTheme.Light.name to getString(R.string.light), AppTheme.Dark.name to getString(R.string.dark))
             fun developing() = android.widget.Toast.makeText(this@SettingActivity, getString(R.string.feature_developing), android.widget.Toast.LENGTH_SHORT).show()
-            fun developerLocked() = android.widget.Toast.makeText(this@SettingActivity, getString(R.string.developer_locked), android.widget.Toast.LENGTH_SHORT).show()
-            key(model.theme) { GlassPage(horizontalPadding = 20.dp) {
+            key(model.theme) { GlassScrollingPage(scrollState, header = {
                 GlassNavigationBar(getString(R.string.settings), { finish() }, { model.tapTitle() })
-                Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            }) { insets ->
+                Column(Modifier.fillMaxSize().glassBounce().verticalScroll(scrollState).padding(start = 20.dp, end = 20.dp, top = insets.calculateTopPadding(), bottom = insets.calculateBottomPadding()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     SettingsSection(getString(R.string.settings_personal)) {
                         SettingsRow(getString(R.string.settings_avatar), onClick = { developing() })
                         SettingsRow(getString(R.string.settings_username), UserManager.session()?.name.orEmpty().ifBlank { "—" }, onClick = { developing() })
                         SettingsRow(getString(R.string.account_email), "—", onClick = { developing() })
-                        SettingsRow(getString(R.string.settings_change_password), onClick = { developing() })
+                        if (UserManager.session() != null) {
+                            SettingsRow(getString(R.string.settings_change_password), onClick = {
+                                startActivity(Intent(this@SettingActivity, ChangePasswordActivity::class.java))
+                            })
+                        }
                         SettingsRow(getString(R.string.settings_delete_account), danger = true, onClick = { developing() })
                         SettingsRow(getString(R.string.logout), danger = true, centered = true, onClick = {
                             if (UserManager.session() == null) { developing() } else {
@@ -96,10 +100,12 @@ class SettingActivity : BaseComposeActivity() {
                         SettingsRow(getString(R.string.settings_mode), getString(if (KV.get(KV_APPLICATION_MODE) == AppMode.Classic) R.string.classic_version else R.string.new_version), onClick = { dialog = "mode" })
                         if (UserManager.session() != null) SettingsRow(getString(R.string.import_legacy), onClick = { startActivity(Intent(this@SettingActivity, ImportLegacyActivity::class.java)) })
                     }
-                    SettingsSection(getString(R.string.settings_developer)) {
-                        SettingsRow(getString(R.string.account_server), onClick = { if (model.developer) dialog = "account_host" else developerLocked() })
-                        SettingsRow(getString(R.string.daymark_server), onClick = { if (model.developer) dialog = "server_host" else developerLocked() })
-                        if (model.developer) SettingsRow(getString(R.string.disable_developer), onClick = { model.disableDeveloper() })
+                    if (model.developer) {
+                        SettingsSection(getString(R.string.settings_developer)) {
+                            SettingsRow(getString(R.string.account_server), onClick = { dialog = "account_host" })
+                            SettingsRow(getString(R.string.daymark_server), onClick = { dialog = "server_host" })
+                            SettingsRow(getString(R.string.disable_developer), onClick = { model.disableDeveloper() })
+                        }
                     }
                     SettingsSection(getString(R.string.settings_other)) {
                         SettingsRow(getString(R.string.settings_version), com.creepersan.memorialday.BuildConfig.VERSION_NAME, showArrow = false)
@@ -152,8 +158,7 @@ class SettingActivity : BaseComposeActivity() {
 private fun SettingsSection(title: String, content: @Composable ColumnScope.() -> Unit) {
     Column {
         Text(title, fontSize = 12.sp, color = glassSecondaryColor(), modifier = Modifier.padding(bottom = 8.dp))
-        val shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
-        Column(Modifier.fillMaxWidth().background(androidx.compose.ui.graphics.Color.White.copy(alpha = if (isGlassDark()) 0.08f else 0.35f), shape).border(1.dp, androidx.compose.ui.graphics.Color.White.copy(alpha = if (isGlassDark()) 0.14f else 0.65f), shape).padding(6.dp), content = content)
+        Column(Modifier.fillMaxWidth().glassSurface(SettingsCardRadius, isGlassDark()).padding(6.dp), content = content)
     }
 }
 
@@ -161,7 +166,7 @@ private fun SettingsSection(title: String, content: @Composable ColumnScope.() -
 @Composable
 private fun SettingsRow(label: String, value: String = "", danger: Boolean = false, centered: Boolean = false, showArrow: Boolean = true, onClick: (() -> Unit)? = null) {
     val secondary = glassSecondaryColor()
-    Row(Modifier.fillMaxWidth().height(56.dp).then(if (onClick != null) Modifier.clickable { onClick() } else Modifier).padding(horizontal = 12.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+    Row(Modifier.fillMaxWidth().height(56.dp).then(if (onClick != null) Modifier.glassClickable { onClick() } else Modifier).padding(horizontal = 12.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
         if (centered) Spacer(Modifier.weight(1f))
         Text(label, fontSize = 14.sp, color = if (danger) androidx.compose.ui.graphics.Color(0xFFE07866) else MaterialTheme.colorScheme.onBackground)
         if (!centered) Spacer(Modifier.weight(1f))

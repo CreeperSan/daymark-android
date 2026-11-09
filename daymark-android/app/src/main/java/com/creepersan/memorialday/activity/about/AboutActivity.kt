@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,7 +32,7 @@ class AboutActivity : BaseComposeActivity() {
         setContent {
             GlassPage {
                 GlassNavigationBar(getString(R.string.about_app), { finish() })
-                Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(Modifier.weight(1f).glassBounce().verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
                     Spacer(Modifier.height(12.dp))
                     Box(Modifier.size(88.dp).background(Color.White.copy(alpha = if (isGlassDark()) 0.12f else 0.5f), RoundedCornerShape(30.dp)), contentAlignment = Alignment.Center) {
                         Text("♥", color = MaterialTheme.colorScheme.primary, fontSize = 42.sp)
@@ -49,7 +48,7 @@ class AboutActivity : BaseComposeActivity() {
                         AboutRow(getString(R.string.about_developer), "—") { Toast.makeText(this@AboutActivity, getString(R.string.feature_developing), Toast.LENGTH_SHORT).show() }
                         AboutRow(getString(R.string.about_contact), "—") { Toast.makeText(this@AboutActivity, getString(R.string.feature_developing), Toast.LENGTH_SHORT).show() }
                     }
-                    Text(getString(R.string.about_legal), fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(LEGAL_DOCUMENT_URL))) }.padding(14.dp))
+                    Text(getString(R.string.about_legal), fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.glassClickable { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(LEGAL_DOCUMENT_URL))) }.padding(14.dp))
                     Text(getString(R.string.settings_copyright), fontSize = 11.sp, color = glassSecondaryColor(), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp))
                 }
             }
@@ -60,7 +59,7 @@ class AboutActivity : BaseComposeActivity() {
 /** 关于页面中的版本、开发者和联系方式行。 */
 @androidx.compose.runtime.Composable
 private fun AboutRow(label: String, value: String, onClick: (() -> Unit)? = null) {
-    Row(Modifier.fillMaxWidth().height(40.dp).then(if (onClick != null) Modifier.clickable { onClick() } else Modifier), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+    Row(Modifier.fillMaxWidth().height(40.dp).then(if (onClick != null) Modifier.glassClickable { onClick() } else Modifier), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
         Text(label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
         Text(value, fontSize = 12.sp, color = glassSecondaryColor())
     }

@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.background
@@ -54,7 +53,7 @@ class LoginActivity : BaseComposeActivity() {
             if (model.success) LaunchedEffect(Unit) { startActivity(Intent(this@LoginActivity, HomeActivity::class.java)); finish() }
             GlassPage {
                 BoxWithConstraints(Modifier.fillMaxSize()) {
-                    Column(Modifier.fillMaxWidth().heightIn(min = maxHeight).verticalScroll(rememberScrollState())) {
+                    Column(Modifier.fillMaxWidth().heightIn(min = maxHeight).glassBounce().verticalScroll(rememberScrollState())) {
                 Spacer(Modifier.height(16.dp))
                 Box(Modifier.size(60.dp).background(Color.White.copy(alpha = if (isGlassDark()) 0.12f else 0.55f), RoundedCornerShape(20.dp)), contentAlignment = Alignment.Center) {
                     Text("♥", color = MaterialTheme.colorScheme.primary, fontSize = 28.sp)
@@ -68,8 +67,8 @@ class LoginActivity : BaseComposeActivity() {
                     Spacer(Modifier.height(12.dp))
                     GlassTextField(model.password, { model.password = it }, getString(R.string.password), password = true)
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text("□  " + getString(R.string.login_remember), fontSize = 13.sp, color = glassSecondaryColor(), modifier = Modifier.clickable { android.widget.Toast.makeText(this@LoginActivity, getString(R.string.feature_developing), android.widget.Toast.LENGTH_SHORT).show() }.padding(vertical = 12.dp))
-                        Text(getString(R.string.forgot_password), fontSize = 13.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable { startActivity(Intent(this@LoginActivity, AccountActivity::class.java)) }.padding(vertical = 12.dp))
+                        Text("□  " + getString(R.string.login_remember), fontSize = 13.sp, color = glassSecondaryColor(), modifier = Modifier.glassClickable { android.widget.Toast.makeText(this@LoginActivity, getString(R.string.feature_developing), android.widget.Toast.LENGTH_SHORT).show() }.padding(vertical = 12.dp))
+                        Text(getString(R.string.forgot_password), fontSize = 13.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.glassClickable { startActivity(Intent(this@LoginActivity, AccountActivity::class.java)) }.padding(vertical = 12.dp))
                     }
                     model.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                     GlassButton(getString(if (model.loading) R.string.logging_in else R.string.login), { model.login() }, !model.loading && model.account.isNotBlank() && model.password.isNotBlank())
@@ -79,8 +78,8 @@ class LoginActivity : BaseComposeActivity() {
                 Spacer(Modifier.weight(1f))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                     Text(getString(R.string.login_no_account), fontSize = 13.sp, color = glassSecondaryColor())
-                    Text(getString(R.string.register), fontSize = 13.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable { startActivity(Intent(this@LoginActivity, AccountActivity::class.java).putExtra(AccountActivity.EXTRA_REGISTER, true)) }.padding(8.dp))
-                    Text(getString(R.string.settings), fontSize = 13.sp, color = glassSecondaryColor(), modifier = Modifier.clickable { startActivity(Intent(this@LoginActivity, SettingActivity::class.java)) }.padding(8.dp))
+                    Text(getString(R.string.register), fontSize = 13.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.glassClickable { startActivity(Intent(this@LoginActivity, AccountActivity::class.java).putExtra(AccountActivity.EXTRA_REGISTER, true)) }.padding(8.dp))
+                    Text(getString(R.string.settings), fontSize = 13.sp, color = glassSecondaryColor(), modifier = Modifier.glassClickable { startActivity(Intent(this@LoginActivity, SettingActivity::class.java)) }.padding(8.dp))
                 }
                 Spacer(Modifier.height(16.dp))
                     }

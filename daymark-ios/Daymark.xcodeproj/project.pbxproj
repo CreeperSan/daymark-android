@@ -1,0 +1,519 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0821F4CB1774B1A062DF875F /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 5F02A8D8F9D14C733624D517 /* Localizable.strings */; };
+		127FBC88002D083E381495BF /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9A83F9F5E50CD90B7CA7B53 /* SettingsView.swift */; };
+		1DE858A201CA0D7AE26E4519 /* AccountViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6C234CBE595745629C68ACB /* AccountViews.swift */; };
+		1E8AF939228BEC14B2432407 /* Anniversary.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9408946ABDD7F77C71FD5DD /* Anniversary.swift */; };
+		289B873B489A91F074B60F6A /* DaymarkAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE3B79FF5276A1ECFECCE101 /* DaymarkAPI.swift */; };
+		3C71588375DEFF18EA26E08F /* DaymarkApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01516B4746E545A520EBA9C1 /* DaymarkApp.swift */; };
+		4B170121610B45817BEB354E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 18A56D3C8D4E91FA8164D0B1 /* Foundation.framework */; };
+		642E15145FA5D636EC8DEA52 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1976D2D833043E94D88A06E /* Assets.xcassets */; };
+		662EA4C6DA8D13EA1CEB4853 /* GlassComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 106FF9782B1A38D5814769E7 /* GlassComponents.swift */; };
+		79C00EFC56537FD2AD55C6A2 /* AnniversaryCalendarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38A55C9FFE8CF06851BEBA1 /* AnniversaryCalendarTests.swift */; };
+		ACDB573F898189C3756FF7C3 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 18A56D3C8D4E91FA8164D0B1 /* Foundation.framework */; };
+		BBE5152F7906A357C6AA8FE5 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E43BD22C7A6ED0D40DEBB63 /* HomeView.swift */; };
+		C39777058D0DC8C98A719A4E /* DaymarkAPITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C549779191063DD20AFF21A0 /* DaymarkAPITests.swift */; };
+		DEF461A2646FC0FFCA830947 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0BDF473AD70E50FA355B3A /* KeychainStore.swift */; };
+		E72FD6D63D6999D70ECCC56E /* AnniversaryEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11A20BD8FC8B7CA3B1042DD /* AnniversaryEditView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		3B15E201C9D48A74E5A984E3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 703ED638FF8BE257DBDFFDEB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4865A59DCC0114E57A053736;
+			remoteInfo = Daymark;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		00E4960ACBB27578E0B5117B /* zh-Hans */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		01516B4746E545A520EBA9C1 /* DaymarkApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DaymarkApp.swift; path = App/DaymarkApp.swift; sourceTree = "<group>"; };
+		02B7C0B509F472F35ECB12D3 /* ko */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = ko; path = ko.lproj/Localizable.strings; sourceTree = "<group>"; };
+		106FF9782B1A38D5814769E7 /* GlassComponents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GlassComponents.swift; path = Views/GlassComponents.swift; sourceTree = "<group>"; };
+		18A56D3C8D4E91FA8164D0B1 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		33C8D649858780D70099B93C /* en */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		3E43BD22C7A6ED0D40DEBB63 /* HomeView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HomeView.swift; path = Views/HomeView.swift; sourceTree = "<group>"; };
+		48CF10149F6B0A05C4EEAACA /* zh-Hant */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		4B0BDF473AD70E50FA355B3A /* KeychainStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = KeychainStore.swift; path = Services/KeychainStore.swift; sourceTree = "<group>"; };
+		8A6928AC756C91A041986A18 /* DaymarkTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DaymarkTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		934C7E425D7EF2427909F8B0 /* yue-Hant */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = "yue-Hant"; path = "yue-Hant.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		A1976D2D833043E94D88A06E /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A6C234CBE595745629C68ACB /* AccountViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AccountViews.swift; path = Views/AccountViews.swift; sourceTree = "<group>"; };
+		AB12329B733067BC97CA2C9D /* Daymark.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Daymark.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE3B79FF5276A1ECFECCE101 /* DaymarkAPI.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DaymarkAPI.swift; path = Services/DaymarkAPI.swift; sourceTree = "<group>"; };
+		B11A20BD8FC8B7CA3B1042DD /* AnniversaryEditView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AnniversaryEditView.swift; path = Views/AnniversaryEditView.swift; sourceTree = "<group>"; };
+		B4341DFF8ADBD3565111DB6C /* yue-Hans */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = "yue-Hans"; path = "yue-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		C549779191063DD20AFF21A0 /* DaymarkAPITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DaymarkAPITests.swift; sourceTree = "<group>"; };
+		F38A55C9FFE8CF06851BEBA1 /* AnniversaryCalendarTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnniversaryCalendarTests.swift; sourceTree = "<group>"; };
+		F9408946ABDD7F77C71FD5DD /* Anniversary.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Anniversary.swift; path = Models/Anniversary.swift; sourceTree = "<group>"; };
+		F9A83F9F5E50CD90B7CA7B53 /* SettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = Views/SettingsView.swift; sourceTree = "<group>"; };
+		FE00F5851D6DF76262BB7F47 /* ja */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		2EF6CACCE90E4937DCC6D584 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ACDB573F898189C3756FF7C3 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		541FC74B1A2723E5AF6BE960 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4B170121610B45817BEB354E /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		19969D3B8A2A25C9A2721D7F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AB12329B733067BC97CA2C9D /* Daymark.app */,
+				8A6928AC756C91A041986A18 /* DaymarkTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		232421F487A846915A898EC0 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				F38A55C9FFE8CF06851BEBA1 /* AnniversaryCalendarTests.swift */,
+				C549779191063DD20AFF21A0 /* DaymarkAPITests.swift */,
+			);
+			name = Tests;
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		547631EAF3CD4C05EA76E54C /* Daymark */ = {
+			isa = PBXGroup;
+			children = (
+				01516B4746E545A520EBA9C1 /* DaymarkApp.swift */,
+				F9408946ABDD7F77C71FD5DD /* Anniversary.swift */,
+				AE3B79FF5276A1ECFECCE101 /* DaymarkAPI.swift */,
+				4B0BDF473AD70E50FA355B3A /* KeychainStore.swift */,
+				A6C234CBE595745629C68ACB /* AccountViews.swift */,
+				B11A20BD8FC8B7CA3B1042DD /* AnniversaryEditView.swift */,
+				106FF9782B1A38D5814769E7 /* GlassComponents.swift */,
+				3E43BD22C7A6ED0D40DEBB63 /* HomeView.swift */,
+				F9A83F9F5E50CD90B7CA7B53 /* SettingsView.swift */,
+				A1976D2D833043E94D88A06E /* Assets.xcassets */,
+				5F02A8D8F9D14C733624D517 /* Localizable.strings */,
+			);
+			name = Daymark;
+			path = Daymark;
+			sourceTree = "<group>";
+		};
+		D4B7D9761CD5CCB96C8626AC /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				DE7C77EE7AD9AA2F9F07CA5E /* iOS */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		DE7C77EE7AD9AA2F9F07CA5E /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				18A56D3C8D4E91FA8164D0B1 /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
+		E2993024952B66FA5282BAF0 = {
+			isa = PBXGroup;
+			children = (
+				19969D3B8A2A25C9A2721D7F /* Products */,
+				D4B7D9761CD5CCB96C8626AC /* Frameworks */,
+				547631EAF3CD4C05EA76E54C /* Daymark */,
+				232421F487A846915A898EC0 /* Tests */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1D75441BDA2065CD2B6ADB65 /* DaymarkTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B9CC3DFA43B9980C625DB6BD /* Build configuration list for PBXNativeTarget "DaymarkTests" */;
+			buildPhases = (
+				1E8F89BB4C253F8DAB382685 /* Sources */,
+				2EF6CACCE90E4937DCC6D584 /* Frameworks */,
+				027AEA8B9B63EE2F3D675044 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A5BCEED01E8FC6B918BA4BF6 /* PBXTargetDependency */,
+			);
+			name = DaymarkTests;
+			productName = DaymarkTests;
+			productReference = 8A6928AC756C91A041986A18 /* DaymarkTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		4865A59DCC0114E57A053736 /* Daymark */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 522A7190F90085D57FB81DE6 /* Build configuration list for PBXNativeTarget "Daymark" */;
+			buildPhases = (
+				933C3F83DF4E6BCDAC6778DD /* Sources */,
+				541FC74B1A2723E5AF6BE960 /* Frameworks */,
+				02C4648897B8B198DBAF25D4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Daymark;
+			productName = Daymark;
+			productReference = AB12329B733067BC97CA2C9D /* Daymark.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		703ED638FF8BE257DBDFFDEB /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+			};
+			buildConfigurationList = 7ADFCA757138C9D5FF27C8BE /* Build configuration list for PBXProject "Daymark" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = "zh-Hans";
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				"zh-Hans",
+				"zh-Hant",
+				"yue-Hans",
+				"yue-Hant",
+				en,
+				ja,
+				ko,
+				Base,
+			);
+			mainGroup = E2993024952B66FA5282BAF0;
+			minimizedProjectReferenceProxies = 0;
+			productRefGroup = 19969D3B8A2A25C9A2721D7F /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				4865A59DCC0114E57A053736 /* Daymark */,
+				1D75441BDA2065CD2B6ADB65 /* DaymarkTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		027AEA8B9B63EE2F3D675044 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		02C4648897B8B198DBAF25D4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				642E15145FA5D636EC8DEA52 /* Assets.xcassets in Resources */,
+				0821F4CB1774B1A062DF875F /* Localizable.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1E8F89BB4C253F8DAB382685 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				79C00EFC56537FD2AD55C6A2 /* AnniversaryCalendarTests.swift in Sources */,
+				C39777058D0DC8C98A719A4E /* DaymarkAPITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		933C3F83DF4E6BCDAC6778DD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3C71588375DEFF18EA26E08F /* DaymarkApp.swift in Sources */,
+				1E8AF939228BEC14B2432407 /* Anniversary.swift in Sources */,
+				289B873B489A91F074B60F6A /* DaymarkAPI.swift in Sources */,
+				DEF461A2646FC0FFCA830947 /* KeychainStore.swift in Sources */,
+				1DE858A201CA0D7AE26E4519 /* AccountViews.swift in Sources */,
+				E72FD6D63D6999D70ECCC56E /* AnniversaryEditView.swift in Sources */,
+				662EA4C6DA8D13EA1CEB4853 /* GlassComponents.swift in Sources */,
+				BBE5152F7906A357C6AA8FE5 /* HomeView.swift in Sources */,
+				127FBC88002D083E381495BF /* SettingsView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A5BCEED01E8FC6B918BA4BF6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Daymark;
+			target = 4865A59DCC0114E57A053736 /* Daymark */;
+			targetProxy = 3B15E201C9D48A74E5A984E3 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		5F02A8D8F9D14C733624D517 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				33C8D649858780D70099B93C /* en */,
+				FE00F5851D6DF76262BB7F47 /* ja */,
+				02B7C0B509F472F35ECB12D3 /* ko */,
+				48CF10149F6B0A05C4EEAACA /* zh-Hant */,
+				B4341DFF8ADBD3565111DB6C /* yue-Hans */,
+				934C7E425D7EF2427909F8B0 /* yue-Hant */,
+				00E4960ACBB27578E0B5117B /* zh-Hans */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		18464FE9BF548E7A56AF8B97 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		37B32C7737026551F4A7586C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 30000;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Daymark/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "纪念日";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 3.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.creepersan.memorialday;
+				PRODUCT_NAME = Daymark;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		815DD46D21EB933E69CDE981 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.creepersan.memorialday.tests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Daymark.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Daymark";
+			};
+			name = Debug;
+		};
+		8AB58D03E140B13BF7380BC4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 30000;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Daymark/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "纪念日";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 3.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.creepersan.memorialday;
+				PRODUCT_NAME = Daymark;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		DC5B3D9E7FD371517F5EFCDB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		FA211BD404FE45B7922EE117 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.creepersan.memorialday.tests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Daymark.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Daymark";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		522A7190F90085D57FB81DE6 /* Build configuration list for PBXNativeTarget "Daymark" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8AB58D03E140B13BF7380BC4 /* Release */,
+				37B32C7737026551F4A7586C /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7ADFCA757138C9D5FF27C8BE /* Build configuration list for PBXProject "Daymark" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DC5B3D9E7FD371517F5EFCDB /* Debug */,
+				18464FE9BF548E7A56AF8B97 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B9CC3DFA43B9980C625DB6BD /* Build configuration list for PBXNativeTarget "DaymarkTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FA211BD404FE45B7922EE117 /* Release */,
+				815DD46D21EB933E69CDE981 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 703ED638FF8BE257DBDFFDEB /* Project object */;
+}

@@ -6,6 +6,8 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.Indication
 import androidx.compose.foundation.IndicationInstance
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.LocalOverscrollConfiguration
 import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.runtime.CompositionLocalProvider
@@ -59,6 +61,7 @@ private val LightColorScheme = lightColorScheme(
     */
 )
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MemorialDayTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -79,8 +82,12 @@ fun MemorialDayTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.background.toArgb()
-            window.navigationBarColor = colorScheme.background.toArgb()
+            window.statusBarColor = android.graphics.Color.TRANSPARENT
+            window.navigationBarColor = android.graphics.Color.TRANSPARENT
+            // 页面已为导航栏区域绘制背景和遮罩，避免三键导航叠加系统底色。
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                window.isNavigationBarContrastEnforced = false
+            }
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
             WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = !darkTheme
         }
@@ -90,7 +97,7 @@ fun MemorialDayTheme(
         colorScheme = colorScheme,
         typography = Typography
     ) {
-        // 禁止所有 Compose 页面默认的点击水波反馈。
-        CompositionLocalProvider(LocalIndication provides NoIndication, content = content)
+        // 新版页面使用统一的淡化反馈和弹性回位，关闭系统水波与边缘拉伸。
+        CompositionLocalProvider(LocalIndication provides NoIndication, LocalOverscrollConfiguration provides null, content = content)
     }
 }

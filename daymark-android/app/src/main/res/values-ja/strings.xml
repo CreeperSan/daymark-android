@@ -20,6 +20,7 @@
     <string name="welcome">こんにちは、%1$s</string>
     <string name="home_placeholder">新しい記念日機能は準備中です。</string>
     <string name="settings">設定</string>
+    <string name="navigate_back">戻る</string>
     <string name="logout">ログアウト</string>
     <string name="theme">テーマ</string>
     <string name="system">システムに従う</string>

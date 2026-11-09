@@ -3,7 +3,6 @@ package com.creepersan.memorialday.ui.glass
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -17,28 +16,67 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.creepersan.memorialday.R
+
+internal val GlassNavigationBarHeight = 56.dp
+private val GlassNavigationButtonSize = 48.dp
+private val GlassNavigationButtonRadius = GlassNavigationButtonSize / 2
+private val GlassNavigationIconSize = 20.dp
+private val GlassNavigationChevronStroke = 2.dp
+private val GlassNavigationTitleGap = 12.dp
+private val GlassNavigationActionPadding = 12.dp
+private val GlassNavigationActionTextSize = 16.sp
+private const val NAVIGATION_ACTION_DISABLED_ALPHA = 0.40f
 
 /** 设计稿使用的次要文字色，暗色模式单独保证可读性。 */
 @Composable fun glassSecondaryColor(): Color = if (isGlassDark()) Color(0xFFD5B4A4) else Color(0xFFA5795C)
 
-/** 与设计稿一致的圆形返回按钮和页面标题。 */
+/** 统一页面标题、返回入口和右侧操作。首页可以省略返回入口。 */
 @Composable
-fun GlassNavigationBar(title: String, onBack: () -> Unit, onTitleClick: (() -> Unit)? = null, action: @Composable (() -> Unit)? = null) {
-    Row(Modifier.fillMaxWidth().height(52.dp), verticalAlignment = Alignment.CenterVertically) {
+fun GlassNavigationBar(title: String, onBack: (() -> Unit)? = null, onTitleClick: (() -> Unit)? = null, action: @Composable (() -> Unit)? = null) {
+    Row(Modifier.fillMaxWidth().height(GlassNavigationBarHeight), verticalAlignment = Alignment.CenterVertically) {
         val color = MaterialTheme.colorScheme.onBackground
-        Box(Modifier.size(36.dp).border(1.dp, Color.White.copy(alpha = 0.75f), CircleShape).background(Color.White.copy(alpha = if (isGlassDark()) 0.1f else 0.4f), CircleShape).clickable(onClick = onBack), contentAlignment = Alignment.Center) {
-            Canvas(Modifier.size(16.dp)) {
-                drawLine(color, Offset(size.width * 0.65f, size.height * 0.18f), Offset(size.width * 0.35f, size.height * 0.5f), 1.8.dp.toPx(), StrokeCap.Round)
-                drawLine(color, Offset(size.width * 0.35f, size.height * 0.5f), Offset(size.width * 0.65f, size.height * 0.82f), 1.8.dp.toPx(), StrokeCap.Round)
+        if (onBack != null) {
+            GlassNavigationIconButton(stringResource(R.string.navigate_back), onBack) { iconModifier ->
+                Canvas(iconModifier) {
+                    val stroke = GlassNavigationChevronStroke.toPx()
+                    drawLine(color, Offset(size.width * 0.65f, size.height * 0.18f), Offset(size.width * 0.35f, size.height * 0.5f), stroke, StrokeCap.Round)
+                    drawLine(color, Offset(size.width * 0.35f, size.height * 0.5f), Offset(size.width * 0.65f, size.height * 0.82f), stroke, StrokeCap.Round)
+                }
             }
+            Spacer(Modifier.width(GlassNavigationTitleGap))
         }
-        Spacer(Modifier.width(12.dp))
-        Text(title, modifier = Modifier.weight(1f).then(if (onTitleClick != null) Modifier.clickable { onTitleClick() } else Modifier), color = color, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
-        action?.invoke()
+        Text(title, modifier = Modifier.weight(1f).then(if (onTitleClick != null) Modifier.glassClickable { onTitleClick() } else Modifier), color = color, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        if (action != null) {
+            Spacer(Modifier.width(GlassNavigationTitleGap))
+            action()
+        }
+    }
+}
+
+/** 返回和图标操作共用同尺寸的玻璃按钮，读屏可直接读出操作名称。 */
+@Composable
+internal fun GlassNavigationIconButton(description: String, onClick: () -> Unit, icon: @Composable (Modifier) -> Unit) {
+    Box(Modifier.size(GlassNavigationButtonSize).glassClickable(role = Role.Button, onClick = onClick).semantics { contentDescription = description }.glassSurface(GlassNavigationButtonRadius, isGlassDark()), contentAlignment = Alignment.Center) {
+        icon(Modifier.size(GlassNavigationIconSize))
+    }
+}
+
+/** 标题栏文字操作使用胶囊背景，并保留和返回按钮一致的最小触控尺寸。 */
+@Composable
+internal fun GlassNavigationAction(text: String, enabled: Boolean = true, onClick: () -> Unit) {
+    val color = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground.copy(alpha = NAVIGATION_ACTION_DISABLED_ALPHA)
+    Box(Modifier.sizeIn(minWidth = GlassNavigationButtonSize, minHeight = GlassNavigationButtonSize).glassClickable(enabled = enabled, role = Role.Button, onClick = onClick).glassSurface(GlassNavigationButtonRadius, isGlassDark()).padding(horizontal = GlassNavigationActionPadding), contentAlignment = Alignment.Center) {
+        Text(text, color = color, fontSize = GlassNavigationActionTextSize, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -51,9 +89,9 @@ fun GlassSelectionDialog(title: String, options: List<Pair<String, String>>, sel
             Text(title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
             Spacer(Modifier.height(12.dp))
             val accent = MaterialTheme.colorScheme.primary
-            Column(Modifier.verticalScroll(rememberScrollState())) {
+            Column(Modifier.glassBounce().verticalScroll(rememberScrollState())) {
                 options.forEach { (value, label) ->
-                    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { onSelect(value) }.padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).glassClickable { onSelect(value) }.padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                         if (options.size < 5) {
                             Canvas(Modifier.size(20.dp)) {
                                 drawCircle(if (selected == value) accent else Color.Gray.copy(alpha = 0.55f), style = androidx.compose.ui.graphics.drawscope.Stroke(1.5.dp.toPx()))
@@ -82,21 +120,9 @@ fun GlassSocialOptions(label: String, onUnavailable: () -> Unit) {
     Spacer(Modifier.height(16.dp))
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
         listOf(com.creepersan.memorialday.R.drawable.social_apple to com.creepersan.memorialday.R.string.social_apple, com.creepersan.memorialday.R.drawable.social_wechat to com.creepersan.memorialday.R.string.social_wechat).forEach { (icon, description) ->
-            Box(Modifier.padding(horizontal = 8.dp).size(56.dp).border(1.dp, Color.White.copy(alpha = 0.75f), CircleShape).background(Color.White.copy(alpha = if (isGlassDark()) 0.12f else 0.5f), CircleShape).clickable(onClick = onUnavailable), contentAlignment = Alignment.Center) {
+            Box(Modifier.padding(horizontal = 8.dp).size(56.dp).glassClickable(onClick = onUnavailable).border(1.dp, Color.White.copy(alpha = 0.75f), CircleShape).background(Color.White.copy(alpha = if (isGlassDark()) 0.12f else 0.5f), CircleShape), contentAlignment = Alignment.Center) {
                 androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(icon), contentDescription = androidx.compose.ui.res.stringResource(description), modifier = Modifier.size(24.dp))
             }
-        }
-    }
-}
-
-/** 不带水波的玻璃开关，整行均可操作。 */
-@Composable
-fun GlassSwitchRow(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    val accent = MaterialTheme.colorScheme.primary
-    Row(Modifier.fillMaxWidth().height(44.dp).clickable { onCheckedChange(!checked) }, verticalAlignment = Alignment.CenterVertically) {
-        Text(label, modifier = Modifier.weight(1f), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
-        Box(Modifier.size(width = 44.dp, height = 26.dp).background(if (checked) accent else glassSecondaryColor().copy(alpha = 0.25f), CircleShape).padding(2.dp), contentAlignment = if (checked) Alignment.CenterEnd else Alignment.CenterStart) {
-            Box(Modifier.size(22.dp).background(Color.White, CircleShape))
         }
     }
 }

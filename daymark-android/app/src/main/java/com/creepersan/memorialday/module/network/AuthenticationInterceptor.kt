@@ -15,7 +15,7 @@ class AuthenticationInterceptor(private val getToken: () -> String) : Intercepto
         val authentication = request.tag(NetworkAuthentication::class.java) ?: NetworkAuthentication.Required
         val token = when (authentication) {
             NetworkAuthentication.None -> null
-            is NetworkAuthentication.Refresh -> authentication.token
+            is NetworkAuthentication.Token -> authentication.token
             NetworkAuthentication.Required -> try {
                 getToken().also { require(it.isNotBlank()) { "Empty authentication token" } }
             } catch (error: Exception) {

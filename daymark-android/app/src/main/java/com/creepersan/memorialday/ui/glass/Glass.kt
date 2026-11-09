@@ -1,15 +1,10 @@
 package com.creepersan.memorialday.ui.glass
 
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
@@ -25,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -36,10 +30,13 @@ import com.creepersan.memorialday.constance.AppTheme
 import com.creepersan.memorialday.constance.KV_APPLICATION_THEME
 import com.creepersan.memorialday.module.kv.KV
 import com.creepersan.memorialday.ui.theme.MemorialDayTheme
-import kotlin.random.Random
 
-private const val GLOW_ANIMATION_DURATION_MS = 18000
-private const val GLOW_ANIMATION_INTERVAL_MS = 2100
+// 滚动内容的留白与遮罩跟随公共标题栏高度，避免按钮放大后覆盖首项。
+private val GlassHeaderContentInset = GlassNavigationBarHeight + 8.dp
+private val GlassHeaderScrimHeight = GlassNavigationBarHeight + 24.dp
+private val GlassFooterContentInset = 24.dp
+private val GlassCardRadius = 24.dp
+private val GlassTextFieldRadius = 16.dp
 private val GlassAccent = Color(0xFFFF9459)
 private val GlassAccentEnd = Color(0xFFFF6B52)
 
@@ -51,53 +48,51 @@ fun isGlassDark(): Boolean = when (KV.get(KV_APPLICATION_THEME)) {
     AppTheme.Light -> false
 }
 
-/** 以渐变和缓慢移动的径向色块绘制设计稿中的柔和背景。 */
-@Composable
-private fun GlassBackground(dark: Boolean) {
-    val transition = rememberInfiniteTransition()
-    // 每次打开页面生成不同的活动范围，各色块使用不同周期缓慢往返。
-    val ranges = remember { List(3) { Random.nextFloat() * 0.3f to (0.7f + Random.nextFloat() * 0.3f) } }
-    val movements = ranges.mapIndexed { index, range ->
-        transition.animateFloat(range.first, range.second, infiniteRepeatable(tween(GLOW_ANIMATION_DURATION_MS + index * GLOW_ANIMATION_INTERVAL_MS), RepeatMode.Reverse))
-    }
-    val background = if (dark) listOf(Color(0xFF201C2A), Color(0xFF38272D), Color(0xFF24212D)) else listOf(Color(0xFFFFF2E3), Color(0xFFFFDEC7), Color(0xFFFFEDE0))
-    Canvas(Modifier.fillMaxSize().background(Brush.verticalGradient(background))) {
-        val opacity = if (dark) 0.28f else 0.48f
-        val radius = size.width * 0.58f
-        val glows = listOf(
-            Pair(Color(0xFFFF9E73), Offset(size.width * (0.06f + movements[0].value * 0.12f), size.height * 0.08f)),
-            Pair(Color(0xFFC9A6FF), Offset(size.width * (0.88f - movements[1].value * 0.12f), size.height * 0.34f)),
-            Pair(Color(0xFFFFC46B), Offset(size.width * (0.12f + movements[2].value * 0.1f), size.height * 0.84f))
-        )
-        glows.forEach { (color, center) ->
-            drawCircle(Brush.radialGradient(listOf(color.copy(alpha = opacity), Color.Transparent), center, radius), radius = radius, center = center)
-        }
-    }
-}
-
-/** 新版页面统一的主题、动态背景和安全区域。 */
+/** 新版页面统一的主题、柔光背景和安全区域。 */
 @Composable
 fun GlassPage(horizontalPadding: Dp = 24.dp, content: @Composable ColumnScope.() -> Unit) {
     val dark = isGlassDark()
     MemorialDayTheme(darkTheme = dark, dynamicColor = false) {
         CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onBackground) {
-            Box(Modifier.fillMaxSize()) {
-                GlassBackground(dark)
+            Box(Modifier.fillMaxSize().glassBackdrop(dark)) {
                 Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = horizontalPadding, vertical = 0.dp), content = content)
             }
         }
     }
 }
 
-/** 半透明卡片，以柔和填充和描边形成玻璃质感。 */
+/** 长页面在系统栏与标题栏下方滚动，按滚动位置为固定内容绘制渐隐遮罩。 */
+@Composable
+fun GlassScrollingPage(scrollState: ScrollableState, horizontalPadding: Dp = 20.dp, header: @Composable () -> Unit, content: @Composable BoxScope.(PaddingValues) -> Unit) {
+    val dark = isGlassDark()
+    val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val bottomPadding = bottomInset + GlassFooterContentInset
+    MemorialDayTheme(darkTheme = dark, dynamicColor = false) {
+        CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onBackground) {
+            Box(Modifier.fillMaxSize().glassBackdrop(dark)) {
+                Box(Modifier.fillMaxSize().glassScrollScrims(dark, scrollState, topInset + GlassHeaderScrimHeight, bottomPadding)) {
+                    content(PaddingValues(top = topInset + GlassHeaderContentInset, bottom = bottomPadding))
+                }
+                Box(Modifier.align(Alignment.TopCenter).statusBarsPadding().padding(horizontal = horizontalPadding)) { header() }
+            }
+        }
+    }
+}
+
+/** 页面卡片使用玻璃表面，模态卡片保留不透明底色。 */
 @Composable
 fun GlassCard(solid: Boolean = false, content: @Composable ColumnScope.() -> Unit) {
     val dark = isGlassDark()
-    val shape = RoundedCornerShape(24.dp)
-    val fill = if (solid) MaterialTheme.colorScheme.surface else if (dark) Color(0xFF4B4147).copy(alpha = 0.66f) else Color.White.copy(alpha = 0.48f)
-    val stroke = Color.White.copy(alpha = if (dark) 0.16f else 0.65f)
+    val surface = if (solid) {
+        val shape = RoundedCornerShape(GlassCardRadius)
+        val stroke = Color.White.copy(alpha = if (dark) 0.16f else 0.65f)
+        Modifier.border(1.dp, stroke, shape).background(MaterialTheme.colorScheme.surface, shape)
+    } else {
+        Modifier.glassSurface(GlassCardRadius, dark)
+    }
     CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
-        Column(Modifier.fillMaxWidth().padding(vertical = 6.dp).border(1.dp, stroke, shape).background(fill, shape).padding(20.dp), content = content)
+        Column(Modifier.fillMaxWidth().padding(vertical = 6.dp).then(surface).padding(20.dp), content = content)
     }
 }
 
@@ -106,7 +101,7 @@ fun GlassCard(solid: Boolean = false, content: @Composable ColumnScope.() -> Uni
 fun GlassButton(text: String, onClick: () -> Unit, enabled: Boolean = true) {
     val shape = RoundedCornerShape(27.dp)
     val alpha = if (enabled) 1f else 0.45f
-    Box(Modifier.fillMaxWidth().padding(vertical = 4.dp).height(54.dp).background(Brush.horizontalGradient(listOf(GlassAccent.copy(alpha = alpha), GlassAccentEnd.copy(alpha = alpha))), shape).clickable(enabled = enabled, onClick = onClick), contentAlignment = Alignment.Center) {
+    Box(Modifier.fillMaxWidth().padding(vertical = 4.dp).height(54.dp).glassClickable(enabled = enabled, onClick = onClick).background(Brush.horizontalGradient(listOf(GlassAccent.copy(alpha = alpha), GlassAccentEnd.copy(alpha = alpha))), shape), contentAlignment = Alignment.Center) {
         Text(text, color = if (enabled) Color.White else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.55f), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
     }
 }
@@ -116,12 +111,11 @@ fun GlassButton(text: String, onClick: () -> Unit, enabled: Boolean = true) {
 fun GlassTextField(value: String, onValueChange: (String) -> Unit, placeholder: String, modifier: Modifier = Modifier, password: Boolean = false, singleLine: Boolean = true, keyboardOptions: androidx.compose.foundation.text.KeyboardOptions = androidx.compose.foundation.text.KeyboardOptions.Default) {
     val dark = isGlassDark()
     val textColor = MaterialTheme.colorScheme.onSurface
-    val shape = RoundedCornerShape(16.dp)
     var passwordVisible by remember { mutableStateOf(false) }
     androidx.compose.foundation.text.BasicTextField(
         value = value,
         onValueChange = onValueChange,
-        modifier = modifier.fillMaxWidth().background(Color.White.copy(alpha = if (dark) 0.08f else 0.45f), shape).border(1.dp, Color.White.copy(alpha = if (dark) 0.13f else 0.65f), shape).padding(horizontal = 16.dp, vertical = 16.dp),
+        modifier = modifier.fillMaxWidth().glassSurface(GlassTextFieldRadius, dark).padding(horizontal = 16.dp, vertical = 16.dp),
         singleLine = singleLine,
         keyboardOptions = if (password && keyboardOptions == androidx.compose.foundation.text.KeyboardOptions.Default) androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Password) else keyboardOptions,
         textStyle = androidx.compose.ui.text.TextStyle(color = textColor, fontSize = 15.sp),
@@ -136,7 +130,7 @@ fun GlassTextField(value: String, onValueChange: (String) -> Unit, placeholder: 
                 if (password) {
                     val eyeColor = glassSecondaryColor()
                     val description = androidx.compose.ui.res.stringResource(if (passwordVisible) com.creepersan.memorialday.R.string.hide_password else com.creepersan.memorialday.R.string.show_password)
-                    Canvas(Modifier.padding(start = 10.dp).size(20.dp).clickable { passwordVisible = !passwordVisible }.then(Modifier.semantics { contentDescription = description })) {
+                    Canvas(Modifier.padding(start = 10.dp).size(20.dp).glassClickable { passwordVisible = !passwordVisible }.then(Modifier.semantics { contentDescription = description })) {
                         val path = androidx.compose.ui.graphics.Path().apply {
                             moveTo(size.width * 0.08f, size.height * 0.5f)
                             quadraticBezierTo(size.width * 0.5f, size.height * 0.02f, size.width * 0.92f, size.height * 0.5f)
@@ -157,7 +151,7 @@ fun GlassChoice(text: String, selected: Boolean, onClick: () -> Unit, modifier: 
     val shape = RoundedCornerShape(14.dp)
     val fill = if (selected) Color.White.copy(alpha = if (isGlassDark()) 0.18f else 0.72f) else Color.White.copy(alpha = if (isGlassDark()) 0.08f else 0.32f)
     val stroke = if (selected) GlassAccent.copy(alpha = 0.75f) else Color.White.copy(alpha = 0.35f)
-    Box(modifier.border(1.dp, stroke, shape).background(fill, shape).clickable(onClick = onClick).padding(horizontal = 12.dp, vertical = 14.dp), contentAlignment = Alignment.Center) {
+    Box(modifier.glassClickable(onClick = onClick).border(1.dp, stroke, shape).background(fill, shape).padding(horizontal = 12.dp, vertical = 14.dp), contentAlignment = Alignment.Center) {
         Text(text, fontSize = 13.sp, color = if (selected) MaterialTheme.colorScheme.primary else glassSecondaryColor(), fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium)
     }
 }
@@ -194,7 +188,7 @@ fun GlassSegments(options: List<Pair<String, String>>, selected: String, onSelec
     Row(Modifier.fillMaxWidth().height(44.dp).background(Color.White.copy(alpha = if (isGlassDark()) 0.08f else 0.35f), shape).border(1.dp, Color.White.copy(alpha = 0.35f), shape).padding(4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         options.forEach { (value, label) ->
             val chosen = value == selected
-            Box(Modifier.weight(1f).fillMaxHeight().background(if (chosen) Color.White.copy(alpha = if (isGlassDark()) 0.18f else 0.85f) else Color.Transparent, RoundedCornerShape(11.dp)).clickable { onSelect(value) }, contentAlignment = Alignment.Center) {
+            Box(Modifier.weight(1f).fillMaxHeight().glassClickable { onSelect(value) }.background(if (chosen) Color.White.copy(alpha = if (isGlassDark()) 0.18f else 0.85f) else Color.Transparent, RoundedCornerShape(11.dp)), contentAlignment = Alignment.Center) {
                 Text(label, fontSize = 13.sp, fontWeight = if (chosen) FontWeight.SemiBold else FontWeight.Medium, color = if (chosen) MaterialTheme.colorScheme.primary else glassSecondaryColor())
             }
         }

@@ -20,6 +20,7 @@
     <string name="welcome">안녕하세요, %1$s</string>
     <string name="home_placeholder">새 기념일 기능을 준비하고 있습니다.</string>
     <string name="settings">설정</string>
+    <string name="navigate_back">뒤로</string>
     <string name="logout">로그아웃</string>
     <string name="theme">테마</string>
     <string name="system">시스템 설정</string>

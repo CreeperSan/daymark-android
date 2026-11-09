@@ -3,10 +3,7 @@ package com.creepersan.memorialday.activity.home
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.border
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.Alignment
@@ -18,6 +15,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -48,6 +46,12 @@ import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.security.cert.CertPathValidatorException
+import java.security.cert.CertificateException
+import javax.net.ssl.SSLPeerUnverifiedException
+
+private val HomeCardRadius = 20.dp
+private val HomeSettingsIconStroke = 1.6.dp
 
 /** 首页列表状态；刷新失败时保留已显示的数据。 */
 class HomeViewModel : ViewModel() {
@@ -56,7 +60,7 @@ class HomeViewModel : ViewModel() {
     var today by mutableStateOf(LocalDate.now()); private set
     var loading by mutableStateOf(false); private set
     var loaded by mutableStateOf(false); private set
-    var error by mutableStateOf<String?>(null); private set
+    var error by mutableStateOf<Throwable?>(null); private set
     private val repository = AnniversaryRepository()
     private var request: Disposable? = null
     private var reloadPending = false
@@ -70,7 +74,7 @@ class HomeViewModel : ViewModel() {
             items = it; loaded = true; loading = false
             if (reloadPending) { reloadPending = false; load() }
         }, {
-            error = it.message ?: "Request failed"; loading = false
+            error = it; loading = false
             if (reloadPending) { reloadPending = false; load() }
         })
     }
@@ -100,27 +104,27 @@ class HomeActivity : BaseComposeActivity() {
                     }
                 }
             }
-            GlassPage(horizontalPadding = 20.dp) {
-                Row(Modifier.fillMaxWidth().height(52.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(getString(R.string.home_title), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onBackground)
+            val scrollState = rememberLazyListState()
+            GlassScrollingPage(scrollState, header = {
+                GlassNavigationBar(getString(R.string.home_title), action = {
                     val iconColor = MaterialTheme.colorScheme.onBackground
-                    Box(Modifier.size(36.dp).border(1.dp, Color.White.copy(alpha = 0.75f), CircleShape).background(Color.White.copy(alpha = if (isGlassDark()) 0.1f else 0.4f), CircleShape).clickable { startActivity(Intent(this@HomeActivity, SettingActivity::class.java)) }, contentAlignment = Alignment.Center) {
+                    GlassNavigationIconButton(getString(R.string.settings), onClick = { startActivity(Intent(this@HomeActivity, SettingActivity::class.java)) }) { iconModifier ->
                         // 用线条绘制设置图标，避免不同字体的字符外观不一致。
-                        Canvas(Modifier.size(16.dp)) {
+                        Canvas(iconModifier) {
                             val center = Offset(size.width / 2, size.height / 2)
-                            drawCircle(iconColor, radius = size.minDimension * 0.26f, center = center, style = Stroke(1.4.dp.toPx()))
+                            val stroke = HomeSettingsIconStroke.toPx()
+                            drawCircle(iconColor, radius = size.minDimension * 0.26f, center = center, style = Stroke(stroke))
                             drawCircle(iconColor, radius = size.minDimension * 0.07f, center = center)
                             for (i in 0 until 8) {
                                 val angle = i * Math.PI / 4
                                 val dx = kotlin.math.cos(angle).toFloat(); val dy = kotlin.math.sin(angle).toFloat()
-                                drawLine(iconColor, center + Offset(dx * size.minDimension * 0.28f, dy * size.minDimension * 0.28f), center + Offset(dx * size.minDimension * 0.4f, dy * size.minDimension * 0.4f), strokeWidth = 1.4.dp.toPx())
+                                drawLine(iconColor, center + Offset(dx * size.minDimension * 0.28f, dy * size.minDimension * 0.28f), center + Offset(dx * size.minDimension * 0.4f, dy * size.minDimension * 0.4f), strokeWidth = stroke)
                             }
                         }
                     }
-                }
-                if (model.loading) Text(getString(R.string.account_wait), fontSize = 12.sp, color = glassSecondaryColor())
-                model.error?.let { Text(it, color = MaterialTheme.colorScheme.error, fontSize = 12.sp); Text(getString(R.string.retry), color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable { model.load() }.padding(vertical = 8.dp)) }
-                if (model.loaded && model.items.isEmpty()) Text(getString(R.string.anniversary_empty), fontSize = 14.sp, color = glassSecondaryColor(), modifier = Modifier.padding(vertical = 24.dp))
+                })
+            }) { insets ->
+                val dark = isGlassDark()
                 val sortedItems = remember(model.items, model.today) { AnniversaryCountdown.sort(model.items, model.today, ZoneId.systemDefault()) }
                 val groups = listOf(
                     R.string.home_today to sortedItems.filter { it.second == 0L },
@@ -128,16 +132,26 @@ class HomeActivity : BaseComposeActivity() {
                     R.string.home_past to sortedItems.filter { it.second != null && it.second!! < 0 },
                     R.string.home_other to sortedItems.filter { it.second == null }
                 )
-                Box(Modifier.weight(1f).fillMaxWidth()) {
-                    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(top = 8.dp, bottom = 100.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Box(Modifier.fillMaxSize()) {
+                    LazyColumn(Modifier.fillMaxSize().glassBounce(), state = scrollState, contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = insets.calculateTopPadding(), bottom = insets.calculateBottomPadding() + 80.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        if (model.loading) item { Text(getString(R.string.account_wait), fontSize = 12.sp, color = glassSecondaryColor()) }
+                        model.error?.let { error ->
+                            item {
+                                // HTTPS 握手或令牌刷新可能包装证书异常，沿原因链判断后显示可操作的提示。
+                                val certificateError = generateSequence(error) { it.cause }.any {
+                                    it is CertificateException || it is CertPathValidatorException || it is SSLPeerUnverifiedException
+                                }
+                                val message = if (certificateError) getString(R.string.certificate_connection_error) else error.message ?: getString(R.string.connection_error)
+                                Text(message, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                                Text(getString(R.string.retry), color = MaterialTheme.colorScheme.primary, modifier = Modifier.glassClickable { model.load() }.padding(vertical = 8.dp))
+                            }
+                        }
+                        if (model.loaded && model.items.isEmpty()) item { Text(getString(R.string.anniversary_empty), fontSize = 14.sp, color = glassSecondaryColor(), modifier = Modifier.padding(vertical = 24.dp)) }
                         groups.forEach { (title, entries) ->
                             if (entries.isNotEmpty()) {
                                 item { Text(getString(title), fontSize = 12.sp, fontWeight = FontWeight.Medium, color = glassSecondaryColor()) }
                                 items(entries, key = { it.first.id }) { (item, days) ->
-                                    val dark = isGlassDark()
-                                    val shape = RoundedCornerShape(20.dp)
-                                    val outline = if (days == 0L) Color(0xFFFF947B) else Color.White.copy(alpha = if (dark) 0.16f else 0.75f)
-                                    Row(Modifier.fillMaxWidth().border(1.dp, outline, shape).background(Color.White.copy(alpha = if (dark) 0.10f else 0.48f), shape).clickable { startActivity(Intent(this@HomeActivity, AnniversaryEditActivity::class.java).putExtra(AnniversaryEditActivity.EXTRA_ID, item.id)) }.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Row(Modifier.fillMaxWidth().glassClickable { startActivity(Intent(this@HomeActivity, AnniversaryEditActivity::class.java).putExtra(AnniversaryEditActivity.EXTRA_ID, item.id)) }.glassSurface(HomeCardRadius, dark, highlighted = days == 0L).padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                                         Column(Modifier.weight(1f)) {
                                             Text(item.name, fontSize = 15.sp, lineHeight = 21.sp, fontWeight = if (days != null && days < 0) FontWeight.Medium else FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onBackground)
                                             Text(formatDate(item), fontSize = 12.sp, lineHeight = 18.sp, color = glassSecondaryColor(), modifier = Modifier.padding(top = 3.dp))
@@ -156,7 +170,7 @@ class HomeActivity : BaseComposeActivity() {
                             }
                         }
                     }
-                    Box(Modifier.align(Alignment.BottomEnd).padding(bottom = 24.dp).size(60.dp).background(Brush.linearGradient(listOf(Color(0xFFFF9459), Color(0xFFFF6B52))), CircleShape).clickable { startActivity(Intent(this@HomeActivity, AnniversaryEditActivity::class.java)) }, contentAlignment = Alignment.Center) {
+                    Box(Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = insets.calculateBottomPadding()).size(60.dp).glassClickable { startActivity(Intent(this@HomeActivity, AnniversaryEditActivity::class.java)) }.background(Brush.linearGradient(listOf(Color(0xFFFF9459), Color(0xFFFF6B52))), CircleShape), contentAlignment = Alignment.Center) {
                         Text("+", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Light)
                     }
                 }

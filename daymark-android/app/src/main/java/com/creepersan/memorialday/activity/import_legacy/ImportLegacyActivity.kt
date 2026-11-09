@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -101,19 +100,19 @@ class ImportLegacyActivity : BaseComposeActivity() {
                 Text(getString(R.string.import_hint), fontSize = 13.sp, color = glassSecondaryColor(), modifier = Modifier.padding(top = 8.dp))
                 Row(Modifier.fillMaxWidth().padding(vertical = 16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(getString(R.string.import_selected, model.selected.size, model.items.size), fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
-                    Text(getString(R.string.import_select_all), fontSize = 12.sp, color = glassSecondaryColor(), modifier = Modifier.clickable(enabled = !model.importing) { model.selectAll() })
+                    Text(getString(R.string.import_select_all), fontSize = 12.sp, color = glassSecondaryColor(), modifier = Modifier.glassClickable(enabled = !model.importing) { model.selectAll() })
                 }
                 if (model.loading) Text(getString(R.string.account_wait))
                 model.error?.let {
                     Text(it, color = MaterialTheme.colorScheme.error)
                     if (model.total > 0) Text(getString(R.string.import_uncertain), color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
-                    else Text(getString(R.string.retry), color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable { model.load() }.padding(top = 8.dp))
+                    else Text(getString(R.string.retry), color = MaterialTheme.colorScheme.primary, modifier = Modifier.glassClickable { model.load() }.padding(top = 8.dp))
                 }
-                LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                LazyColumn(Modifier.weight(1f).glassBounce(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(model.items, key = { it.id }) { item ->
                         val shape = RoundedCornerShape(16.dp)
                         val selected = item.id in model.selected
-                        Row(Modifier.fillMaxWidth().height(64.dp).background(Color.White.copy(alpha = if (isGlassDark()) 0.1f else 0.5f), shape).border(1.dp, Color.White.copy(alpha = 0.45f), shape).clickable(enabled = !model.importing) { model.toggle(item.id) }.padding(horizontal = 14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Row(Modifier.fillMaxWidth().height(64.dp).glassClickable(enabled = !model.importing) { model.toggle(item.id) }.background(Color.White.copy(alpha = if (isGlassDark()) 0.1f else 0.5f), shape).border(1.dp, Color.White.copy(alpha = 0.45f), shape).padding(horizontal = 14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             Box(Modifier.size(22.dp).background(if (selected) MaterialTheme.colorScheme.primary else Color.Transparent, RoundedCornerShape(7.dp)).border(1.dp, if (selected) MaterialTheme.colorScheme.primary else glassSecondaryColor(), RoundedCornerShape(7.dp)), contentAlignment = Alignment.Center) {
                                 if (selected) Text("✓", color = Color.White, fontSize = 14.sp)
                             }

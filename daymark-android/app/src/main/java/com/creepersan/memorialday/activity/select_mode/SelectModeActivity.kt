@@ -3,7 +3,6 @@ package com.creepersan.memorialday.activity.select_mode
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -45,7 +44,7 @@ class SelectModeActivity : BaseComposeActivity() {
             }
             Spacer(Modifier.weight(1f))
             GlassButton(getString(R.string.open_new), { select(AppMode.Default) })
-            Box(Modifier.fillMaxWidth().clickable { select(AppMode.Classic) }.padding(16.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
+            Box(Modifier.fillMaxWidth().glassClickable { select(AppMode.Classic) }.padding(16.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
                 Text(getString(R.string.open_classic), color = MaterialTheme.colorScheme.primary)
             }
         } }

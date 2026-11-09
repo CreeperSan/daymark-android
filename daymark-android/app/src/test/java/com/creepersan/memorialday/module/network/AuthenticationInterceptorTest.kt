@@ -54,7 +54,7 @@ class AuthenticationInterceptorTest {
         interceptor = AuthenticationInterceptor { throw AssertionError("刷新和匿名请求不应等待认证") }
         NetworkManager.addInterceptor(interceptor)
         server.enqueue(MockResponse())
-        NetworkManager.request(NetworkRequest(server.url("/").toString(), "/refresh", authentication = NetworkAuthentication.Refresh("old-token"))).blockingFirst()
+        NetworkManager.request(NetworkRequest(server.url("/").toString(), "/refresh", authentication = NetworkAuthentication.Token("old-token"))).blockingFirst()
         assertEquals("old-token", server.takeRequest().getHeader("CS-Token"))
         server.enqueue(MockResponse())
         NetworkManager.request(NetworkRequest(server.url("/").toString(), "/login", headers = mapOf("CS-Token" to "leak"), authentication = NetworkAuthentication.None)).blockingFirst()

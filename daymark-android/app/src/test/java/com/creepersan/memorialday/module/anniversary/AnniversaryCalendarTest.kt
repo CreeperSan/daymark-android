@@ -22,4 +22,17 @@ class AnniversaryCalendarTest {
         assertFalse(AnniversaryCalendar.isValid(2023, 2, 29, lunar = false, leap = false))
         assertFalse(AnniversaryCalendar.isValid(2024, 2, 29, lunar = false, leap = true))
     }
+
+    @Test fun pickerMonthsFollowTheYearAndKeepLeapMonthBesideRegularMonth() {
+        assertEquals(listOf(1, 2, -2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), AnniversaryCalendar.monthsInYear(2023, lunar = true))
+        assertEquals((1..12).toList(), AnniversaryCalendar.monthsInYear(2024, lunar = true))
+        assertEquals(listOf(5, 6, -6, 7), AnniversaryCalendar.monthsInYear(2025, lunar = true).subList(4, 8))
+    }
+
+    @Test fun pickerDaysMatchLeapYearsAndLunarLeapMonths() {
+        assertEquals(28, AnniversaryCalendar.daysInMonth(2023, 2, lunar = false))
+        assertEquals(29, AnniversaryCalendar.daysInMonth(2024, 2, lunar = false))
+        assertEquals(30, AnniversaryCalendar.daysInMonth(2023, 2, lunar = true))
+        assertEquals(29, AnniversaryCalendar.daysInMonth(2023, -2, lunar = true))
+    }
 }

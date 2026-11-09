@@ -20,6 +20,7 @@
     <string name="welcome">你好，%1$s</string>
     <string name="home_placeholder">新版纪念日功能准备紧。</string>
     <string name="settings">设置</string>
+    <string name="navigate_back">返回</string>
     <string name="logout">退出登录</string>
     <string name="theme">主题</string>
     <string name="system">跟随系统</string>

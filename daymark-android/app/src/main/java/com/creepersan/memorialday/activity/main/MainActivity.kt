@@ -1,6 +1,7 @@
 package com.creepersan.memorialday.activity.main
 
 import android.os.Bundle
+import android.content.Intent
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.AbsoluteSizeSpan
@@ -14,6 +15,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.creepersan.memorialday.R
 import com.creepersan.memorialday.activity.MemorialDayRoute
+import com.creepersan.memorialday.activity.dispatch.DispatchActivity
+import com.creepersan.memorialday.constance.AppMode
+import com.creepersan.memorialday.constance.KV_APPLICATION_MODE
+import com.creepersan.memorialday.module.kv.KV
 import com.creepersan.memorialday.activity.main.model.MemorialDayMainModel
 import com.creepersan.memorialday.activity.main.viewmodel.MainUIEvent
 import com.creepersan.memorialday.activity.main.viewmodel.MainViewModel
@@ -70,6 +75,13 @@ class MainActivity : BaseViewBindingActivity<ActivityMainBinding>() {
         binding.addButton.setOnClickListener {
             val intent = MemorialDayRoute.toAddMemorialDayPage(this)
             toAddEditPage.launch(intent)
+        }
+
+        // 仅切换运行模式，经典版数据库和云端登录状态均保留。
+        binding.switchToNew.setOnClickListener {
+            KV.set(KV_APPLICATION_MODE, AppMode.Default)
+            startActivity(Intent(this, DispatchActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+            finish()
         }
 
         /* 初始化下拉刷新组件 */

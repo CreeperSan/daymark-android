@@ -24,6 +24,8 @@
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:clipToPadding="false"
+            android:paddingBottom="132dp"
             tools:itemCount="100"
             tools:listitem="@layout/item_main_memorial_day"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -35,12 +37,12 @@
         android:background="@drawable/bg_gradient_vertical_transparent_white"
         android:id="@+id/backgroundGradient"
         android:layout_width="match_parent"
-        android:layout_height="72dp"
+        android:layout_height="128dp"
         app:layout_constraintBottom_toBottomOf="parent" />
 
     <ImageView
         android:background="@drawable/bg_floating_action_button_circle"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="56dp"
         android:id="@+id/addButton"
         android:padding="12dp"
         android:layout_width="64dp"
@@ -51,5 +53,20 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- 保留经典版样式，在底部提供返回新版的入口。 -->
+    <TextView
+        android:id="@+id/switchToNew"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:gravity="center"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:text="@string/switch_to_new"
+        android:textColor="?attr/md_color_text_secondary"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -5,7 +5,6 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +27,7 @@ import com.creepersan.memorialday.constance.KV_APPLICATION_MODE
 import com.creepersan.memorialday.module.kv.KV
 import com.creepersan.memorialday.ui.glass.GlassButton
 import com.creepersan.memorialday.ui.glass.GlassPage
+import com.creepersan.memorialday.ui.glass.glassClickable
 
 /** 首次启动的三页引导，结束后进入模式选择。 */
 class OnboardingActivity : BaseComposeActivity() {
@@ -40,7 +40,7 @@ class OnboardingActivity : BaseComposeActivity() {
         setContent {
             var page by remember { mutableStateOf(0) }
             GlassPage {
-                Text(getString(R.string.onboarding_skip), color = MaterialTheme.colorScheme.primary, modifier = Modifier.align(Alignment.End).clickable { chooseMode() }.padding(8.dp))
+                Text(getString(R.string.onboarding_skip), color = MaterialTheme.colorScheme.primary, modifier = Modifier.align(Alignment.End).glassClickable { chooseMode() }.padding(8.dp))
                 Image(painterResource(images[page]), contentDescription = null, modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth().heightIn(max = 290.dp).weight(1f, fill = false))
                 Text(getString(titles[page]), fontSize = 26.sp, lineHeight = 34.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = 24.dp))
                 Text(getString(descriptions[page]), textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f), modifier = Modifier.fillMaxWidth().padding(top = 14.dp))
@@ -49,7 +49,7 @@ class OnboardingActivity : BaseComposeActivity() {
                     images.indices.forEach { index -> Box(Modifier.size(width = if (index == page) 16.dp else 6.dp, height = 6.dp).background(if (index == page) MaterialTheme.colorScheme.primary else Color.Gray.copy(alpha = 0.35f), RoundedCornerShape(3.dp))) }
                 }
                 GlassButton(getString(if (page == images.lastIndex) R.string.onboarding_finish else R.string.onboarding_next), { if (page == images.lastIndex) chooseMode() else page++ })
-                Text(getString(R.string.onboarding_login), color = MaterialTheme.colorScheme.primary, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().clickable {
+                Text(getString(R.string.onboarding_login), color = MaterialTheme.colorScheme.primary, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().glassClickable {
                     KV.set(KV_APPLICATION_MODE, AppMode.Default)
                     startActivity(Intent(this@OnboardingActivity, LoginActivity::class.java)); finish()
                 }.padding(14.dp))
