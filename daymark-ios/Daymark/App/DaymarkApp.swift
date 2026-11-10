@@ -5,6 +5,7 @@ enum DaymarkRoute: Hashable { case register, reset, changePassword, settings, ab
 
 @main
 struct DaymarkApp: App {
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var api = DaymarkAPI()
     @AppStorage("onboardingComplete") private var onboardingComplete = false
     @AppStorage("theme") private var theme = "system"
@@ -35,9 +36,21 @@ struct DaymarkApp: App {
                     }.toolbar(.hidden, for: .navigationBar)
                 }.background(.clear).scrollContentBackground(.hidden)
             }
+            .overlay {
+                if let message = api.toastMessage {
+                    Text(verbatim: message).font(.system(size: 16)).foregroundStyle(Color(red: 93 / 255, green: 67 / 255, blue: 60 / 255)).padding(.horizontal, 28).padding(.vertical, 18).background(Color(red: 244 / 255, green: 231 / 255, blue: 222 / 255), in: Capsule()).frame(maxWidth: .infinity, maxHeight: .infinity).ignoresSafeArea().allowsHitTesting(false)
+                }
+            }
+            .task(id: api.toastMessage) {
+                guard api.toastMessage != nil else { return }
+                do { try await Task.sleep(for: .seconds(2.5)); api.toastMessage = nil } catch { }
+            }
             .preferredColorScheme(theme == "light" ? .light : theme == "dark" ? .dark : nil)
             .environment(\.locale, language == "system" ? .current : Locale(identifier: language))
             .onChange(of: api.session?.id) { _, _ in path.removeAll() }
+            .onAppear { DaymarkLog.event("应用界面显示") }
+            .onChange(of: scenePhase) { _, phase in DaymarkLog.event("应用状态变化：\(String(describing: phase))") }
+            .onChange(of: path) { _, newPath in DaymarkLog.event("导航变化：页面层数 \(newPath.count)") }
         }
     }
 }

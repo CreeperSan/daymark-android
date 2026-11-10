@@ -25,6 +25,8 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.Disposable
 import java.time.LocalDate
 
+private val DeleteWarningColor = Color(0xFFD84A4A)
+
 /** 编辑表单状态和网络操作。 */
 class AnniversaryEditViewModel : ViewModel() {
     var name by mutableStateOf(""); var description by mutableStateOf("")
@@ -84,6 +86,12 @@ class AnniversaryEditViewModel : ViewModel() {
         val item = Anniversary(id, name.trim(), description, calendarType, loopType, y, m, d, if (lunar && leap) 1 else 0)
         request = repository.save(item).observeOn(AndroidSchedulers.mainThread()).subscribe({ saving = false; success = true }, { saving = false; error = it.message ?: "Request failed" })
     }
+    /** 二次确认后删除，期间复用保存状态防止重复操作。 */
+    fun delete() {
+        if (saving || !loaded || id <= 0) return
+        saving = true; error = null
+        request = repository.delete(id).observeOn(AndroidSchedulers.mainThread()).subscribe({ saving = false; success = true }, { saving = false; error = it.message ?: "Request failed" })
+    }
     override fun onCleared() { request?.dispose() }
 }
 
@@ -99,6 +107,7 @@ class AnniversaryEditActivity : BaseComposeActivity() {
         setContent {
             if (model.success) LaunchedEffect(Unit) { setResult(RESULT_OK); finish() }
             var dateDialog by remember { mutableStateOf(false) }
+            var deleteDialog by remember { mutableStateOf(false) }
             GlassPage {
                 GlassNavigationBar(getString(if (id > 0) R.string.anniversary_edit else R.string.anniversary_add), { finish() }, action = {
                     GlassNavigationAction(getString(R.string.save), enabled = model.loaded && !model.saving && model.name.isNotBlank()) { model.save() }
@@ -128,8 +137,10 @@ class AnniversaryEditActivity : BaseComposeActivity() {
                         }
                         model.error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 12.dp)) }
                     }
+                    if (id > 0) Box(Modifier.fillMaxWidth().padding(vertical = 4.dp).height(54.dp).glassClickable(enabled = !model.saving, role = androidx.compose.ui.semantics.Role.Button) { deleteDialog = true }.background(DeleteWarningColor.copy(alpha = if (model.saving) 0.5f else 1f), RoundedCornerShape(27.dp)), contentAlignment = Alignment.Center) { Text(getString(R.string.anniversary_delete), color = Color.White) }
                     GlassButton(getString(if (model.saving) R.string.anniversary_saving else R.string.save), { model.save() }, !model.saving && model.name.isNotBlank())
                 }
+                if (deleteDialog) AlertDialog(onDismissRequest = { deleteDialog = false }, title = { Text(getString(R.string.anniversary_delete)) }, text = { Text(getString(R.string.anniversary_delete_confirm)) }, confirmButton = { Text(getString(R.string.confirm), color = DeleteWarningColor, modifier = Modifier.glassClickable(role = androidx.compose.ui.semantics.Role.Button) { deleteDialog = false; model.delete() }.padding(12.dp)) }, dismissButton = { Text(getString(R.string.cancel), modifier = Modifier.glassClickable(role = androidx.compose.ui.semantics.Role.Button) { deleteDialog = false }.padding(12.dp)) })
                 if (dateDialog) {
                     val date = CalendarDate(model.year.toIntOrNull() ?: LocalDate.now().year, model.month.toIntOrNull() ?: 1, model.day.toIntOrNull() ?: 1, model.leap)
                     val dismiss = { dateDialog = false }

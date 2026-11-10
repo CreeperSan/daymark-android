@@ -5,7 +5,15 @@ enum GlassPalette {
     static let accent = Color(red: 1, green: 106 / 255, blue: 69 / 255)
     static let primaryLight = Color(red: 74 / 255, green: 37 / 255, blue: 17 / 255)
     static let secondaryLight = Color(red: 165 / 255, green: 121 / 255, blue: 92 / 255)
-    static let gradient = [Color(red: 1, green: 148 / 255, blue: 89 / 255), Color(red: 1, green: 107 / 255, blue: 82 / 255)]
+}
+
+/// 危险操作使用明确的红色，并沿用按下时淡化的反馈。
+struct WarningButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.foregroundStyle(.white).frame(maxWidth: .infinity, minHeight: 54)
+            .background(Color(red: 216 / 255, green: 74 / 255, blue: 74 / 255), in: Capsule())
+            .opacity(configuration.isPressed ? 0.56 : 1)
+    }
 }
 
 /// iOS 26 起使用系统 Liquid Glass；旧系统使用系统材质回退。
@@ -44,17 +52,33 @@ struct GlassBackground: View {
     }
 }
 
-/// 暖色渐变主按钮，不使用默认蓝色按钮样式。
+/// 使用系统按钮样式，旧系统回退到系统边框按钮。
+struct SystemGlassButton: ViewModifier {
+    var prominent = false
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            if prominent { content.buttonStyle(.glassProminent) }
+            else { content.buttonStyle(.glass) }
+        } else {
+            if prominent { content.buttonStyle(.borderedProminent) }
+            else { content.buttonStyle(.bordered) }
+        }
+    }
+}
+
+/// 主要操作使用系统强调按钮，保留暖色调和通栏尺寸。
 struct GlassPrimaryButton: View {
     let title: String
     var disabled = false
     let action: () -> Void
     var body: some View {
-        Button(action: action) {
-            Text(LocalizedStringKey(title)).font(.system(size: 16, weight: .semibold)).foregroundStyle(disabled ? Color.secondary : Color.white)
-                .frame(maxWidth: .infinity).frame(height: 54)
-                .background(LinearGradient(colors: GlassPalette.gradient.map { $0.opacity(disabled ? 0.4 : 1) }, startPoint: .leading, endPoint: .trailing), in: Capsule())
-        }.buttonStyle(.plain).disabled(disabled)
+        Button {
+            DaymarkLog.event("点击按钮：\(title)")
+            action()
+        } label: {
+            Text(LocalizedStringKey(title)).font(.system(size: 16, weight: .semibold))
+                .frame(maxWidth: .infinity).frame(minHeight: 36)
+        }.modifier(SystemGlassButton(prominent: true)).buttonBorderShape(.capsule).tint(GlassPalette.accent).disabled(disabled)
     }
 }
 
@@ -67,7 +91,7 @@ struct GlassHeader: View {
     var body: some View {
         HStack(spacing: 12) {
             if let back {
-                Button(action: back) { Image(systemName: "chevron.left").font(.system(size: 15, weight: .semibold)).frame(width: 36, height: 36).modifier(GlassSurface(radius: 18)) }.buttonStyle(.plain)
+                Button { DaymarkLog.event("返回页面：\(title)"); back() } label: { Image(systemName: "chevron.left").font(.system(size: 15, weight: .semibold)) }.modifier(SystemGlassButton()).buttonBorderShape(.circle)
             }
             Text(LocalizedStringKey(title)).font(.system(size: 17, weight: .semibold)).onTapGesture { onTitleTap?() }
             Spacer()
@@ -94,6 +118,49 @@ struct GlassInput: View {
 struct DevelopmentNotice: ViewModifier {
     @Binding var presented: Bool
     func body(content: Content) -> some View { content.alert("功能开发中", isPresented: $presented) { Button("好", role: .cancel) {} } }
+}
+
+/// 页面级空数据、断网和加载失败状态，不使用卡片背景。
+enum GlassPageStateKind { case empty, offline, failed }
+
+/// 状态内容随页面宽度居中，图标和文字沿用公共组件设计稿。
+struct GlassPageState: View {
+    let kind: GlassPageStateKind
+    var retry: (() -> Void)? = nil
+    @Environment(\.colorScheme) private var scheme
+    private let iconColor = Color(red: 212 / 255, green: 182 / 255, blue: 161 / 255)
+    private let accentColor = Color(red: 231 / 255, green: 160 / 255, blue: 147 / 255)
+    private let darkSecondaryColor = Color(red: 213 / 255, green: 180 / 255, blue: 164 / 255)
+    private var title: LocalizedStringKey {
+        switch kind { case .empty: return "还没有纪念日"; case .offline: return "网络连接中断"; case .failed: return "加载失败" }
+    }
+    private var description: LocalizedStringKey {
+        switch kind { case .empty: return "创建第一个，开始记录你们的时光。"; case .offline: return "检查网络后点击重试，内容不会丢失。"; case .failed: return "稍后再试，或下拉刷新这一页。" }
+    }
+    var body: some View {
+        VStack(spacing: 10) {
+            icon.scaleEffect(1.5).frame(width: 48, height: 48)
+            Text(title).font(.system(size: 18, weight: .semibold)).foregroundStyle((scheme == .dark ? Color.white : GlassPalette.primaryLight).opacity(0.7)).multilineTextAlignment(.center)
+            Text(description).font(.system(size: 14)).lineSpacing(4).foregroundStyle((scheme == .dark ? darkSecondaryColor : GlassPalette.secondaryLight).opacity(0.9)).multilineTextAlignment(.center)
+            if let retry { Button("重试", action: retry).font(.system(size: 15)).foregroundStyle(GlassPalette.accent.opacity(0.8)).padding(8) }
+        }.frame(maxWidth: .infinity).padding(.horizontal, 24)
+    }
+    @ViewBuilder private var icon: some View {
+        switch kind {
+        case .empty:
+            Image(systemName: "calendar").font(.system(size: 23)).foregroundStyle(iconColor)
+        case .offline:
+            ZStack {
+                Image(systemName: "wifi").font(.system(size: 22)).foregroundStyle(iconColor)
+                Capsule().fill(accentColor).frame(width: 27, height: 2).rotationEffect(.degrees(48))
+            }
+        case .failed:
+            ZStack {
+                Circle().stroke(iconColor, lineWidth: 2).frame(width: 21, height: 21)
+                VStack(spacing: 2) { Capsule().fill(accentColor).frame(width: 2, height: 6); Circle().fill(accentColor).frame(width: 3, height: 3) }
+            }
+        }
+    }
 }
 
 /// NavigationStack 自带背景会遮挡底层视图，页面背景必须位于导航内容自身。

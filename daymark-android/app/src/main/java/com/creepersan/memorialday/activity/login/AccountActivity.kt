@@ -156,10 +156,6 @@ class AccountActivity : BaseComposeActivity() {
                                 Text(message, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 12.dp))
                             }
                         }
-                        if (register && !model.verification) {
-                            Spacer(Modifier.height(22.dp))
-                            GlassSocialOptions(getString(R.string.social_register)) { android.widget.Toast.makeText(this@AccountActivity, getString(R.string.feature_developing), android.widget.Toast.LENGTH_SHORT).show() }
-                        }
                         if (!register && !model.verification) Text(getString(R.string.reset_hint), fontSize = 12.sp, color = glassSecondaryColor(), modifier = Modifier.padding(top = 20.dp))
                     }
                 }

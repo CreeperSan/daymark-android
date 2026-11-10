@@ -6,9 +6,10 @@ import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -21,43 +22,70 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 private const val PRESSED_ALPHA = 0.56f
-private const val PRESS_DURATION_MS = 70
+private const val PRESS_DURATION_MS = 50
 private const val RELEASE_DURATION_MS = 180
 private val BounceLimit = 76.dp
 private const val BOUNCE_DRAG_FACTOR = 0.55f
 private const val BOUNCE_FLING_RESISTANCE = 32f
 private const val BOUNCE_FLING_LIMIT = 0.45f
 
-/** 可点击内容的统一淡化反馈。置于背景等绘制修饰符之前可淡化整个控件。 */
-fun Modifier.glassClickable(enabled: Boolean = true, onClickLabel: String? = null, role: Role? = null, onClick: () -> Unit): Modifier = composed {
+/** 可点击内容的淡化反馈；不拦截触摸，点击与滚动仍由 Compose 判定。 */
+fun Modifier.glassClickable(enabled: Boolean = true, onClickLabel: String? = null, role: Role? = null, immediatePress: Boolean = false, onClick: () -> Unit): Modifier = composed {
     val interactions = remember { MutableInteractionSource() }
-    val opacity = remember { Animatable(1f) }
-    LaunchedEffect(interactions, enabled) {
-        opacity.snapTo(1f)
-        if (enabled) interactions.interactions.collectLatest { interaction ->
-            when (interaction) {
-                is PressInteraction.Press -> opacity.animateTo(PRESSED_ALPHA, tween(PRESS_DURATION_MS))
-                is PressInteraction.Release -> {
-                    // 滚动容器里的短点按可能在同一帧发出按下和抬起，也要完整显示反馈。
-                    if (opacity.value > PRESSED_ALPHA) opacity.animateTo(PRESSED_ALPHA, tween(PRESS_DURATION_MS))
-                    opacity.animateTo(1f, tween(RELEASE_DURATION_MS))
+    val progress = remember { Animatable(0f) }
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(enabled) {
+        if (!enabled) { progress.stop(); progress.snapTo(0f) }
+    }
+    pointerInput(enabled, immediatePress) {
+        if (enabled) {
+            var animation: Job? = null
+            awaitEachGesture {
+                // 在 Initial 阶段只观察按下，不消费事件，避免滚动容器延迟视觉反馈。
+                val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                animation?.cancel()
+                animation = scope.launch(start = CoroutineStart.UNDISPATCHED) {
+                    // 悬浮按钮按下时立即显示反馈，避免短按时动画还未出现就切换页面。
+                    if (immediatePress) progress.snapTo(1f) else progress.animateTo(1f, tween(PRESS_DURATION_MS))
                 }
-                is PressInteraction.Cancel -> opacity.animateTo(1f, tween(RELEASE_DURATION_MS))
+                var released = false
+                while (true) {
+                    val event = awaitPointerEvent(PointerEventPass.Final)
+                    val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                    // 同一次按下会在 Final 阶段再次到达；clickable 消费按下本身不表示滚动。
+                    if (change.pressed && !change.previousPressed) continue
+                    // clickable 会消费成功点击的抬起事件，因此先判断抬起，再检查拖动消费。
+                    if (!change.pressed) { released = true; break }
+                    if (change.isConsumed || (change.position - down.position).getDistance() > viewConfiguration.touchSlop) break
+                }
+                val press = animation
+                if (!released) press?.cancel()
+                animation = scope.launch {
+                    // 短按也完成按下动画；拖动或取消时直接恢复。
+                    if (released) press?.join()
+                    progress.animateTo(0f, tween(RELEASE_DURATION_MS))
+                }
             }
         }
-    }
-    graphicsLayer { alpha = opacity.value }.clickable(interactionSource = interactions, indication = null, enabled = enabled, onClickLabel = onClickLabel, role = role, onClick = onClick)
+    }.graphicsLayer {
+        alpha = 1f - (1f - PRESSED_ALPHA) * progress.value
+    }.clickable(interactionSource = interactions, indication = null, enabled = enabled, onClickLabel = onClickLabel, role = role, onClick = {
+        com.creepersan.memorialday.module.log.Log.info("点击玻璃控件", "Interaction")
+        onClick()
+    })
 }
 
 /** 加在滚动修饰符之前或 LazyColumn 的 modifier 上，只位移该滚动容器。 */

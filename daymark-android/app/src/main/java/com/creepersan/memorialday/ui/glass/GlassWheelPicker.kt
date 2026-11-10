@@ -11,8 +11,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.selected
@@ -39,6 +41,11 @@ internal fun LazyListState.centeredWheelIndex(): Int? {
 internal fun GlassWheelPicker(itemCount: Int, state: LazyListState, rowHeight: Dp, modifier: Modifier = Modifier, label: (Int) -> String) {
     val scope = rememberCoroutineScope()
     val centered by remember(state) { derivedStateOf { state.centeredWheelIndex() } }
+    LaunchedEffect(state) {
+        snapshotFlow { state.isScrollInProgress }.collect { scrolling ->
+            if (scrolling) com.creepersan.memorialday.module.log.Log.info("日期滚轮开始滚动", "DatePicker")
+        }
+    }
     val sidePadding = rowHeight * (WHEEL_VISIBLE_ROWS / 2)
     Box(modifier.height(rowHeight * WHEEL_VISIBLE_ROWS), contentAlignment = Alignment.Center) {
         Box(Modifier.fillMaxWidth().height(rowHeight).background(MaterialTheme.colorScheme.primary.copy(alpha = WHEEL_HIGHLIGHT_ALPHA)))

@@ -7,7 +7,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -17,6 +16,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
@@ -36,6 +39,7 @@ import com.creepersan.memorialday.module.anniversary.AnniversaryRepository
 import com.creepersan.memorialday.module.anniversary.AnniversaryCalendar
 import com.creepersan.memorialday.module.anniversary.LunarDateLabels
 import com.creepersan.memorialday.module.anniversary.AnniversaryCountdown
+import com.creepersan.memorialday.module.anniversary.AnniversaryUpdates
 import com.creepersan.memorialday.module.user.UserManager
 import com.creepersan.memorialday.ui.glass.*
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
@@ -46,11 +50,11 @@ import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.security.cert.CertPathValidatorException
-import java.security.cert.CertificateException
-import javax.net.ssl.SSLPeerUnverifiedException
+import java.io.IOException
+import javax.net.ssl.SSLException
 
 private val HomeCardRadius = 20.dp
+private val HomeFloatingButtonRadius = 30.dp
 private val HomeSettingsIconStroke = 1.6.dp
 
 /** 首页列表状态；刷新失败时保留已显示的数据。 */
@@ -63,48 +67,80 @@ class HomeViewModel : ViewModel() {
     var error by mutableStateOf<Throwable?>(null); private set
     private val repository = AnniversaryRepository()
     private var request: Disposable? = null
-    private var reloadPending = false
+    private var dayRefreshPending = false
+    private val changesDuringLoad = mutableMapOf<Long, Anniversary>()
+    private val deletedDuringLoad = mutableSetOf<Long>()
+    private val deletions = AnniversaryUpdates.observeDeletions().observeOn(AndroidSchedulers.mainThread()).subscribe { id ->
+        items = items.filterNot { it.id == id }
+        if (loading) { changesDuringLoad.remove(id); deletedDuringLoad.add(id) }
+    }
+    private val updates = AnniversaryUpdates.observe().observeOn(AndroidSchedulers.mainThread()).subscribe { item ->
+        // 保存或导入成功后直接合并服务端结果，返回首页无需重新请求。
+        items = items.filterNot { it.id == item.id } + item
+        if (loading) changesDuringLoad[item.id] = item
+    }
 
     /** 刷新服务端循环日期并读取全部列表。 */
     fun load() {
-        // 编辑返回时若前一次加载尚未结束，完成后再刷新一次，避免显示旧数据。
-        if (loading) { reloadPending = true; return }
+        if (loading) return
         loading = true; error = null
+        changesDuringLoad.clear(); deletedDuringLoad.clear()
         request = repository.list().observeOn(AndroidSchedulers.mainThread()).subscribe({
-            items = it; loaded = true; loading = false
-            if (reloadPending) { reloadPending = false; load() }
+            // 请求期间保存的数据优先于请求开始时的列表，避免旧响应覆盖新编辑。
+            items = it.filterNot { item -> item.id in changesDuringLoad || item.id in deletedDuringLoad } + changesDuringLoad.values
+            changesDuringLoad.clear(); loaded = true; loading = false
+            if (dayRefreshPending) { dayRefreshPending = false; load() }
         }, {
             error = it; loading = false
-            if (reloadPending) { reloadPending = false; load() }
+            changesDuringLoad.clear()
+            if (dayRefreshPending) { dayRefreshPending = false; load() }
         })
     }
-    /** 页面恢复或跨天时更新今天；下次加载会更新服务端循环日期。 */
+    /** 下拉时刷新日期和云端列表；已有请求完成后再执行一次，避免丢失刷新操作。 */
+    fun refresh() {
+        if (loading) return
+        com.creepersan.memorialday.module.log.Log.info("下拉刷新纪念日列表", "Home")
+        updateToday()
+        load()
+    }
+    /** 只有本地日期变化时才自动刷新，普通页面进出不请求列表。 */
+    fun refreshIfDayChanged() {
+        val current = LocalDate.now()
+        if (current != today) {
+            today = current
+            if (loading) dayRefreshPending = true else load()
+        }
+    }
+    /** 手动刷新前更新日期，保证倒计时使用当前日历日。 */
     fun updateToday() { today = LocalDate.now() }
     fun logout() { request?.dispose(); UserManager.clear() }
-    override fun onCleared() { request?.dispose() }
+    override fun onCleared() { request?.dispose(); updates.dispose(); deletions.dispose() }
 }
 
 /** 新版首页：展示纪念日并进入创建、编辑和设置。 */
+@OptIn(ExperimentalMaterialApi::class)
 class HomeActivity : BaseComposeActivity() {
     private lateinit var model: HomeViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         model = ViewModelProvider(this)[HomeViewModel::class.java]
+        // 仅首次创建时加载；从其他页面返回不重新请求。
+        if (!model.loaded && !model.loading && model.error == null) model.load()
         setContent {
             // 仅在页面可见时等待下一次本地零点，跨天后刷新循环纪念日。
             LaunchedEffect(Unit) {
                 lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                     while (true) {
-                        model.updateToday()
+                        model.refreshIfDayChanged()
                         val now = ZonedDateTime.now()
                         val nextDay = now.toLocalDate().plusDays(1).atStartOfDay(now.zone)
                         delay(Duration.between(now, nextDay).toMillis().coerceAtLeast(1L))
-                        model.updateToday()
-                        model.load()
+                        model.refreshIfDayChanged()
                     }
                 }
             }
             val scrollState = rememberLazyListState()
+            val pullRefreshState = rememberPullRefreshState(refreshing = model.loading, onRefresh = { model.refresh() })
             GlassScrollingPage(scrollState, header = {
                 GlassNavigationBar(getString(R.string.home_title), action = {
                     val iconColor = MaterialTheme.colorScheme.onBackground
@@ -133,21 +169,8 @@ class HomeActivity : BaseComposeActivity() {
                     R.string.home_other to sortedItems.filter { it.second == null }
                 )
                 Box(Modifier.fillMaxSize()) {
-                    LazyColumn(Modifier.fillMaxSize().glassBounce(), state = scrollState, contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = insets.calculateTopPadding(), bottom = insets.calculateBottomPadding() + 80.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        if (model.loading) item { Text(getString(R.string.account_wait), fontSize = 12.sp, color = glassSecondaryColor()) }
-                        model.error?.let { error ->
-                            item {
-                                // HTTPS 握手或令牌刷新可能包装证书异常，沿原因链判断后显示可操作的提示。
-                                val certificateError = generateSequence(error) { it.cause }.any {
-                                    it is CertificateException || it is CertPathValidatorException || it is SSLPeerUnverifiedException
-                                }
-                                val message = if (certificateError) getString(R.string.certificate_connection_error) else error.message ?: getString(R.string.connection_error)
-                                Text(message, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
-                                Text(getString(R.string.retry), color = MaterialTheme.colorScheme.primary, modifier = Modifier.glassClickable { model.load() }.padding(vertical = 8.dp))
-                            }
-                        }
-                        if (model.loaded && model.items.isEmpty()) item { Text(getString(R.string.anniversary_empty), fontSize = 14.sp, color = glassSecondaryColor(), modifier = Modifier.padding(vertical = 24.dp)) }
-                        groups.forEach { (title, entries) ->
+                    LazyColumn(Modifier.fillMaxSize().glassBounce().pullRefresh(pullRefreshState), state = scrollState, contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = insets.calculateTopPadding(), bottom = insets.calculateBottomPadding() + 80.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        if (model.error == null) groups.forEach { (title, entries) ->
                             if (entries.isNotEmpty()) {
                                 item { Text(getString(title), fontSize = 12.sp, fontWeight = FontWeight.Medium, color = glassSecondaryColor()) }
                                 items(entries, key = { it.first.id }) { (item, days) ->
@@ -170,7 +193,19 @@ class HomeActivity : BaseComposeActivity() {
                             }
                         }
                     }
-                    Box(Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = insets.calculateBottomPadding()).size(60.dp).glassClickable { startActivity(Intent(this@HomeActivity, AnniversaryEditActivity::class.java)) }.background(Brush.linearGradient(listOf(Color(0xFFFF9459), Color(0xFFFF6B52))), CircleShape), contentAlignment = Alignment.Center) {
+                    if (!model.loading) {
+                        val error = model.error
+                        val kind = if (error != null) {
+                            val causes = generateSequence(error) { it.cause }.toList()
+                            val offline = causes.none { it is SSLException } && causes.any { it is IOException }
+                            if (offline) GlassPageStateKind.Offline else GlassPageStateKind.Failed
+                        } else if (model.loaded && model.items.isEmpty()) GlassPageStateKind.Empty else null
+                        if (kind != null) Box(Modifier.fillMaxSize().padding(top = insets.calculateTopPadding(), bottom = insets.calculateBottomPadding()), contentAlignment = Alignment.Center) {
+                            GlassPageState(kind, onRetry = if (error != null) ({ model.load() }) else null)
+                        }
+                    }
+                    PullRefreshIndicator(model.loading, pullRefreshState, Modifier.align(Alignment.TopCenter).padding(top = insets.calculateTopPadding()), backgroundColor = MaterialTheme.colorScheme.surface, contentColor = MaterialTheme.colorScheme.primary)
+                    Box(Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = insets.calculateBottomPadding()).size(HomeFloatingButtonRadius * 2).glassClickable(immediatePress = true) { startActivity(Intent(this@HomeActivity, AnniversaryEditActivity::class.java)) }.glassSurface(HomeFloatingButtonRadius, dark, highlighted = true, accented = true), contentAlignment = Alignment.Center) {
                         Text("+", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Light)
                     }
                 }
@@ -194,5 +229,4 @@ class HomeActivity : BaseComposeActivity() {
             getString(R.string.anniversary_countdown_unavailable)
         }
     }
-    override fun onResume() { super.onResume(); model.updateToday(); model.load() }
 }

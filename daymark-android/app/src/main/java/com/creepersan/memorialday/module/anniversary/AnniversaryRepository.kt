@@ -18,6 +18,7 @@ class AnniversaryRepository(private val hostProvider: () -> String = ::defaultHo
         private const val GET_PATH = "/api/anniversary/get"
         private const val ADD_PATH = "/api/anniversary/add"
         private const val EDIT_PATH = "/api/anniversary/edit"
+        private const val DELETE_PATH = "/api/anniversary/delete"
         private const val PAGE_SIZE = 100
 
         /** 开发者模式启用时允许覆盖纪念日服务地址。 */
@@ -48,12 +49,15 @@ class AnniversaryRepository(private val hostProvider: () -> String = ::defaultHo
         return post(if (item.id > 0) EDIT_PATH else ADD_PATH, body).map { data ->
             val result = data.getAsJsonObject("date") ?: throw IllegalStateException("Invalid save response")
             gson.fromJson(result, Anniversary::class.java)
-        }
+        }.doOnSuccess { AnniversaryUpdates.publish(it) }
     }
+
+    /** 删除成功后通知首页移除对应记录。 */
+    fun delete(id: Long): Single<JsonObject> = post(DELETE_PATH, mapOf("id" to id)).doOnSuccess { AnniversaryUpdates.publishDeletion(id) }
 
     private fun post(path: String, body: Map<String, Any>, query: Map<String, Any>? = null): Single<JsonObject> {
         val host = hostProvider()
-        return NetworkManager.request(NetworkRequest(host, path, NetworkRequestMethod.Post, query = query, data = NetworkRequestBody.Json(body))).firstOrError().map { response ->
+        return NetworkManager.request(NetworkRequest(host, path, NetworkRequestMethod.Post, query = query, data = NetworkRequestBody.Json(body), headers = DevelopmentHost.headers(host, HOST))).firstOrError().map { response ->
             if (response.responseCode !in 200..299) throw IllegalStateException("HTTP ${response.responseCode}")
             val result = JsonParser.parseString(response.bodyString()).asJsonObject
             if (result.get("code")?.asInt != 200) throw IllegalStateException(result.get("msg")?.asString ?: "Request failed")

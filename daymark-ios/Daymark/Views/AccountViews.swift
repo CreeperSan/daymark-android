@@ -24,15 +24,16 @@ struct OnboardingView: View {
     }
 }
 
-/// 账号登录；第三方登录入口保留并提示尚未接入。
+/// 账号登录；仅在用户选择时保存上次登录的用户名。
 struct LoginView: View {
     @ObservedObject var api: DaymarkAPI
     @Binding var path: [DaymarkRoute]
+    @Environment(\.locale) private var locale
+    @AppStorage("rememberedAccount") private var rememberedAccount = ""
     @State private var account = ""
+    @State private var rememberAccount = false
     @State private var password = ""
     @State private var loading = false
-    @State private var error: String?
-    @State private var developing = false
     var body: some View {
         GeometryReader { proxy in
             ScrollView {
@@ -44,32 +45,36 @@ struct LoginView: View {
                         GlassInput(placeholder: "账号", text: $account)
                         GlassInput(placeholder: "请输入密码", text: $password, secure: true)
                         HStack {
-                            Button { developing = true } label: { Label("记住我", systemImage: "square") }.foregroundStyle(.secondary)
+                            Button { DaymarkLog.event("切换记住用户名"); rememberAccount.toggle() } label: { Label("记住我", systemImage: rememberAccount ? "checkmark.square.fill" : "square") }.foregroundStyle(.secondary)
                             Spacer()
-                            Button("忘记密码？") { path.append(.reset) }.foregroundStyle(GlassPalette.accent)
+                            Button("忘记密码？") { DaymarkLog.event("打开找回密码"); path.append(.reset) }.foregroundStyle(GlassPalette.accent)
                         }.font(.system(size: 13)).buttonStyle(.plain)
-                        if let error { Text(error).font(.system(size: 12)).foregroundStyle(.red).frame(maxWidth: .infinity, alignment: .leading) }
-                        GlassPrimaryButton(title: loading ? "正在登录…" : "登 录", disabled: loading || account.isEmpty || password.isEmpty) { Task { await login() } }
+                        GlassPrimaryButton(title: "登 录", disabled: loading || account.isEmpty || password.isEmpty) { Task { await login() } }
                     }.padding(20).modifier(GlassSurface(radius: 28)).padding(.top, 32)
-                    SocialOptions(label: "或使用以下方式继续") { developing = true }.padding(.top, 26)
                     Spacer(minLength: 40)
                     HStack(spacing: 6) {
                         Text("还没有账号？").foregroundStyle(.secondary)
-                        Button("立即注册") { path.append(.register) }.foregroundStyle(GlassPalette.accent)
-                        Button("设置") { path.append(.settings) }.foregroundStyle(.secondary).padding(.leading, 8)
+                        Button("立即注册") { DaymarkLog.event("打开注册"); path.append(.register) }.foregroundStyle(GlassPalette.accent)
+                        Button("设置") { DaymarkLog.event("打开设置"); path.append(.settings) }.foregroundStyle(.secondary).padding(.leading, 8)
                     }.font(.system(size: 13)).frame(maxWidth: .infinity).padding(.bottom, 16)
                 }.padding(.horizontal, 24).padding(.top, 16).frame(minHeight: proxy.size.height, alignment: .top)
             }.scrollIndicators(.hidden).scrollDismissesKeyboard(.interactively)
         }
+        .overlay {
+            if loading {
+                ZStack { Color.black.opacity(0.3).ignoresSafeArea(); HStack(spacing: 16) { ProgressView(); Text("正在登录…") }.padding(24).background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20)) }
+            }
+        }
         // 键盘上提供明确的收起入口，同时支持下滑收起。
         .toolbar { ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("完成") { UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) } } }
-        .modifier(DevelopmentNotice(presented: $developing))
+        .onAppear { account = rememberedAccount; rememberAccount = !rememberedAccount.isEmpty }
         .alert("密码修改成功，请重新登录。", isPresented: $api.passwordChangeSucceeded) { Button("好", role: .cancel) {} }
     }
     private func login() async {
+        DaymarkLog.event("提交登录")
         loading = true; defer { loading = false }
-        do { try await api.login(account: account.trimmingCharacters(in: .whitespacesAndNewlines), password: password); password = "" }
-        catch { self.error = error.localizedDescription }
+        do { try await api.login(account: account.trimmingCharacters(in: .whitespacesAndNewlines), password: password); rememberedAccount = rememberAccount ? account.trimmingCharacters(in: .whitespacesAndNewlines) : ""; password = ""; api.toastMessage = String(localized: "登录成功", locale: locale) }
+        catch { DaymarkLog.event("登录失败：\(type(of: error))"); api.toastMessage = error.localizedDescription }
     }
 }
 
@@ -94,7 +99,7 @@ struct ChangePasswordView: View {
                     GlassInput(placeholder: "设置新密码（至少 8 位）", text: $newPassword, secure: true)
                     GlassInput(placeholder: "确认新密码", text: $confirmation, secure: true)
                     if !confirmation.isEmpty && confirmation != newPassword { Text("两次输入的密码不一致").font(.system(size: 12)).foregroundStyle(.red) }
-                    if let error { Text(error).font(.system(size: 12)).foregroundStyle(.red) }
+                    if let error { Text(LocalizedStringKey(error)).font(.system(size: 12)).foregroundStyle(.red) }
                     GlassPrimaryButton(title: loading ? "请稍候…" : "确认修改", disabled: loading || oldPassword.isEmpty || newPassword.count < minimumPasswordLength || confirmation != newPassword) { Task { await submit() } }
                 }.padding(20).modifier(GlassSurface(radius: 28)).padding(24)
             }.scrollIndicators(.hidden).scrollDismissesKeyboard(.interactively)
@@ -105,6 +110,7 @@ struct ChangePasswordView: View {
     /// 仅提交有效表单；请求失败时保留输入，允许用户修正后重试。
     private func submit() async {
         guard !loading, !oldPassword.isEmpty, newPassword.count >= minimumPasswordLength, confirmation == newPassword else { return }
+        DaymarkLog.event("提交修改密码")
         loading = true; error = nil; defer { loading = false }
         do { try await api.changePassword(oldPassword: oldPassword, newPassword: newPassword) }
         catch { self.error = error.localizedDescription }
@@ -127,7 +133,6 @@ struct AccountView: View {
     @State private var loading = false
     @State private var error: String?
     @State private var sentAt: Date?
-    @State private var developing = false
     private let legalURL = URL(string: "https://blog.creepersan.com/article/61")!
     var body: some View {
         VStack(spacing: 0) {
@@ -146,7 +151,9 @@ struct AccountView: View {
                         if !isRegister { GlassInput(placeholder: "设置新密码（至少 8 位）", text: $password, secure: true).padding(.top, 14) }
                         TimelineView(.periodic(from: .now, by: 1)) { context in
                             let remaining = max(0, Int(ceil(60 - context.date.timeIntervalSince(sentAt ?? .distantPast))))
-                            Button(remaining > 0 ? "没有收到？\(remaining) 秒后可重新发送" : "重新发送验证码") { Task { await sendCode() } }
+                            Button { Task { await sendCode() } } label: {
+                                if remaining > 0 { Text("没有收到？\(remaining) 秒后可重新发送") } else { Text("重新发送验证码") }
+                            }
                                 .disabled(remaining > 0 || loading).font(.system(size: 12)).foregroundStyle(GlassPalette.accent).padding(.top, 16)
                         }
                     } else {
@@ -156,17 +163,16 @@ struct AccountView: View {
                             if isRegister {
                                 GlassInput(placeholder: "设置密码（至少 8 位）", text: $password, secure: true)
                                 HStack(alignment: .top, spacing: 8) {
-                                    Button { agreed.toggle() } label: { Image(systemName: agreed ? "checkmark.square.fill" : "square") }.foregroundStyle(GlassPalette.accent)
+                                    Button { DaymarkLog.event("切换协议同意状态"); agreed.toggle() } label: { Image(systemName: agreed ? "checkmark.square.fill" : "square") }.foregroundStyle(GlassPalette.accent)
                                     Text("我已阅读并同意 ") + Text("《用户协议》与《隐私政策》").foregroundColor(GlassPalette.accent)
                                 }.font(.system(size: 12)).frame(maxWidth: .infinity, alignment: .leading)
                                 Link("查看用户协议与隐私政策", destination: legalURL).font(.system(size: 12)).foregroundStyle(GlassPalette.accent).frame(maxWidth: .infinity, alignment: .leading)
                             } else { Text("验证码 5 分钟内有效，请注意查收邮件。").font(.system(size: 12)).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading) }
                             GlassPrimaryButton(title: loading ? "请稍候…" : "发送验证码", disabled: loading || email.isEmpty || (isRegister && (account.isEmpty || password.count < 8 || !agreed))) { Task { await sendCode() } }
                         }.padding(20).modifier(GlassSurface(radius: 28)).padding(.top, 30)
-                        if isRegister { SocialOptions(label: "或使用以下方式注册") { developing = true }.padding(.top, 22) }
-                        else { Text("还没收到验证码？请检查垃圾邮件，或稍后重新发送。").font(.system(size: 12)).foregroundStyle(.secondary).padding(.top, 20) }
+                        if !isRegister { Text("还没收到验证码？请检查垃圾邮件，或稍后重新发送。").font(.system(size: 12)).foregroundStyle(.secondary).padding(.top, 20) }
                     }
-                    if let error { Text(error).font(.system(size: 12)).foregroundStyle(.red).padding(.top, 12) }
+                    if let error { Text(LocalizedStringKey(error)).font(.system(size: 12)).foregroundStyle(.red).padding(.top, 12) }
                 }.padding(.horizontal, 24).padding(.top, 16).padding(.bottom, 24)
             }.scrollIndicators(.hidden).scrollDismissesKeyboard(.interactively)
             if verification && !done {
@@ -178,8 +184,6 @@ struct AccountView: View {
             }
         }.toolbar(.hidden, for: .navigationBar)
             .toolbar { ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("完成") { UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) } } }
-            .modifier(DevelopmentNotice(presented: $developing)
-        )
     }
     private var codeInput: some View {
         ZStack {
@@ -188,11 +192,13 @@ struct AccountView: View {
         }
     }
     private func sendCode() async {
+        DaymarkLog.event(isRegister ? "请求注册验证码" : "请求重置密码验证码")
         loading = true; error = nil; defer { loading = false }
         do { try await api.requestCode(email: email.trimmingCharacters(in: .whitespacesAndNewlines), register: isRegister); sentAt = Date(); verification = true }
         catch { self.error = error.localizedDescription }
     }
     private func submit() async {
+        DaymarkLog.event(isRegister ? "提交注册" : "提交重置密码")
         loading = true; error = nil; defer { loading = false }
         do {
             if isRegister { try await api.register(account: account.trimmingCharacters(in: .whitespacesAndNewlines), email: email.trimmingCharacters(in: .whitespacesAndNewlines), password: password, code: code) }
@@ -213,9 +219,9 @@ struct SocialOptions: View {
         VStack(spacing: 16) {
             HStack { Rectangle().frame(height: 1); Text(LocalizedStringKey(label)).fixedSize(); Rectangle().frame(height: 1) }.font(.system(size: 12)).foregroundStyle(.secondary.opacity(0.65))
             HStack(spacing: 16) {
-                Button(action: action) { Image(systemName: "apple.logo").frame(width: 56, height: 56).modifier(GlassSurface(radius: 28)) }
-                Button(action: action) { Image(systemName: "bubble.left.and.bubble.right.fill").foregroundStyle(.green).frame(width: 56, height: 56).modifier(GlassSurface(radius: 28)) }
-            }.buttonStyle(.plain)
+                Button(action: action) { Image(systemName: "apple.logo").frame(width: 36, height: 36) }.modifier(SystemGlassButton()).buttonBorderShape(.circle)
+                Button(action: action) { Image(systemName: "bubble.left.and.bubble.right.fill").frame(width: 36, height: 36) }.modifier(SystemGlassButton()).buttonBorderShape(.circle).tint(.green)
+            }
         }
     }
 }

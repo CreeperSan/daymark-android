@@ -28,5 +28,8 @@ val KV_APPLICATION_PROXY_SERVER = KVItem(kvModuleApplication, { "proxy_server" }
 
 /*************************************************************************************************** 登录信息 */
 
+// 登录成功后按用户选择保存的账号。
+val KV_REMEMBERED_ACCOUNT = KVItem(kvModuleApplication, { "remembered_account" }, { "" })
+
 // 加密后的完整用户会话；沿用原有文件及键，保留已登录用户的数据。
 val KV_USER_SESSION = KVItem("user_session", { "session" }, { "" })

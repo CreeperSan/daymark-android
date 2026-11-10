@@ -156,4 +156,22 @@
     <string name="account_existing">已有账号？</string>
     <string name="account_go_login">去登录</string>
     <string name="switch_to_new">切换到新版</string>
+    <string name="logout_confirm">确定要退出登录吗？</string>
+    <string name="delete_confirm">删除账号将导致你的账号所有数据都将永久删除，确定要继续吗？</string>
+    <string name="delete_mail_subject">请求删除我的账号</string>
+    <string name="delete_mail_body">你好，请将我的账号从服务器中永久删除，我已充分了解账号删除的后果。我的账号用户名是：%1$s，邮箱是：%2$s，用户 Id 是：%3$s</string>
+    <string name="account_missing">请填写</string>
+    <string name="mail_unavailable">无法打开邮件应用</string>
+    <string name="settings_nickname">昵称</string>
+    <string name="nickname_save_failed">保存失败，请重试。</string>
+    <string name="page_state_empty_title">还没有纪念日</string>
+    <string name="page_state_empty_description">创建第一个，开始记录你们的时光。</string>
+    <string name="page_state_offline_title">网络连接中断</string>
+    <string name="page_state_offline_description">检查网络后点击重试，内容不会丢失。</string>
+    <string name="page_state_failed_title">加载失败</string>
+    <string name="page_state_failed_description">稍后再试，或下拉刷新这一页。</string>
+    <string name="anniversary_delete">删除纪念日</string>
+    <string name="anniversary_delete_confirm">确定删除这个纪念日吗？删除后无法恢复。</string>
+    <string name="login_success">登录成功</string>
+    <string name="login_failed">登录失败</string>
 </resources>

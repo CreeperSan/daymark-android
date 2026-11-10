@@ -38,6 +38,7 @@ class CalendarView : ConstraintLayout {
 
         // 上一个月按钮点击事件
         binding.leftArrow.setOnClickListener {
+            com.creepersan.memorialday.module.log.Log.info("日历切换到上个月", "CalendarWidget")
             if (currentMonth <= 1) {
                 currentYear -= 1
                 currentMonth = 12
@@ -49,6 +50,7 @@ class CalendarView : ConstraintLayout {
 
         // 下一个月按钮点击事件
         binding.rightArrow.setOnClickListener {
+            com.creepersan.memorialday.module.log.Log.info("日历切换到下个月", "CalendarWidget")
             if (currentMonth >= 12) {
                 currentMonth = 1
                 currentYear += 1
@@ -60,6 +62,7 @@ class CalendarView : ConstraintLayout {
 
         // 日期区域
         binding.timeClickZone.setOnClickListener {
+            com.creepersan.memorialday.module.log.Log.info("打开日历日期选择器", "CalendarWidget")
             toggleShowDatePicker()
             initializePicker()
         }
@@ -76,6 +79,7 @@ class CalendarView : ConstraintLayout {
 
         // 日期选择确认按钮
         binding.btnDatePickerConfirm.setOnClickListener {
+            com.creepersan.memorialday.module.log.Log.info("确认日历日期", "CalendarWidget")
             confirmDatePickerValue()
         }
 
@@ -305,6 +309,7 @@ class CalendarView : ConstraintLayout {
                 }
                 // 点击事件
                 dayView.setOnClickListener {
+                    com.creepersan.memorialday.module.log.Log.info("选择日历日期", "CalendarWidget")
                     val chineseCalendar = currentCalendarList.safeGet(listIndex) ?: return@setOnClickListener
                     onDayClickListener?.invoke(chineseCalendar)
                 }

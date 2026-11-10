@@ -9,6 +9,8 @@ struct UserSession: Codable {
     var tokenExpire: Int64
     var refreshToken: String
     var refreshExpire: Int64
+    var account: String? = nil
+    var email: String? = nil
 }
 
 private struct ServerToken: Decodable {
@@ -18,9 +20,10 @@ private struct ServerToken: Decodable {
     let refreshTokenExpireTime: Int64
     enum CodingKeys: String, CodingKey { case token; case tokenExpireTime = "token_expire_time", refreshToken = "refresh_token", refreshTokenExpireTime = "refresh_token_expire_time" }
 }
-private struct ServerUser: Decodable { let id: Int64; let nickname: String? }
+private struct ServerUser: Decodable { let id: Int64; let nickname: String?; let account: String?; let email: String? }
 private struct LoginData: Decodable { let user: ServerUser; let token: ServerToken }
 private struct RefreshData: Decodable { let token: ServerToken }
+private struct UserUpdateData: Decodable { let user: ServerUser }
 private struct ListData: Decodable { let list: [Anniversary] }
 private struct SaveData: Decodable { let date: Anniversary }
 private struct EmptyData: Decodable {}
@@ -29,9 +32,9 @@ private struct Envelope<T: Decodable>: Decodable { let code: Int; let msg: Strin
 
 /// 网络错误包含服务端信息，令牌和密码不会被写入日志。
 enum DaymarkError: LocalizedError {
-    case response(String), server(Int, String), authentication, invalidData
+    case response(String), server(Int, String), authentication, invalidData, userUpdateUnavailable
     var errorDescription: String? {
-        switch self { case .response(let message), .server(_, let message): return message; case .authentication: return "登录已过期，请重新登录"; case .invalidData: return "服务器返回的数据无效" }
+        switch self { case .response(let message), .server(_, let message): return message; case .authentication: return "登录已过期，请重新登录"; case .invalidData: return "服务器返回的数据无效"; case .userUpdateUnavailable: return "当前账号服务尚未开放此功能。" }
     }
 }
 
@@ -46,8 +49,12 @@ final class DaymarkAPI: ObservableObject {
     private static let appVersion = "30000"
     private static let pageSize = 100
     private static let refreshAheadMilliseconds: Int64 = 60_000
+    private static let requestTimeout: TimeInterval = 30
     private static let deviceKey = "daymark.device.id"
     @Published private(set) var session: UserSession?
+    @Published private(set) var lastSavedAnniversary: Anniversary?
+    @Published private(set) var lastDeletedAnniversaryID: Int64?
+    @Published var toastMessage: String?
     @Published var passwordChangeSucceeded = false
     private var refreshTask: Task<UserSession, Error>?
     private var generation = 0
@@ -61,6 +68,13 @@ final class DaymarkAPI: ObservableObject {
         let defaults = UserDefaults.standard
         guard defaults.bool(forKey: Self.developerKey), let value = defaults.string(forKey: key), !value.isEmpty else { return fallback }
         return value
+    }
+
+    /// 直连本机名或 IP 时保留业务域名，供开发服务按 Host 分发路由。
+    static func developmentHostHeader(address: String, canonicalAddress: String) -> String? {
+        guard let hostname = URLComponents(string: address)?.host?.lowercased(), let canonical = URLComponents(string: canonicalAddress)?.host else { return nil }
+        let isIPv4 = hostname.contains(".") && hostname.allSatisfy { $0.isNumber || $0 == "." }
+        return hostname == "localhost" || hostname.contains(":") || isIPv4 ? canonical : nil
     }
 
     init(urlSession: URLSession = .shared, loadSessionData: () -> Data? = KeychainStore.load, saveSessionData: @escaping (Data) throws -> Void = KeychainStore.save, clearSessionData: @escaping () -> Void = KeychainStore.clear) {
@@ -78,7 +92,7 @@ final class DaymarkAPI: ObservableObject {
     }
 
     /// 注销仅清理本机令牌，不影响其他设备或经典版数据。
-    func logout() { generation += 1; refreshTask?.cancel(); refreshTask = nil; session = nil; clearSessionData() }
+    func logout() { DaymarkLog.event("退出登录，清除本机会话"); generation += 1; refreshTask?.cancel(); refreshTask = nil; session = nil; lastSavedAnniversary = nil; lastDeletedAnniversaryID = nil; clearSessionData() }
 
     private func request<T: Decodable>(_ host: String, _ path: String, body: [String: Any], token: String? = nil, query: [URLQueryItem] = []) async throws -> T? {
         let resolvedHost = host == Self.accountHost ? self.host(host, key: Self.accountHostKey) : self.host(host, key: Self.serverHostKey)
@@ -87,6 +101,8 @@ final class DaymarkAPI: ObservableObject {
         guard let url = components.url else { throw DaymarkError.invalidData }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
+        request.timeoutInterval = Self.requestTimeout
+        if let routingHost = Self.developmentHostHeader(address: resolvedHost, canonicalAddress: host) { request.setValue(routingHost, forHTTPHeaderField: "Host") }
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Daymark", forHTTPHeaderField: "CS-App")
@@ -95,7 +111,20 @@ final class DaymarkAPI: ObservableObject {
         request.setValue("iOS", forHTTPHeaderField: "CS-Device-Platform")
         request.setValue(Self.appVersion, forHTTPHeaderField: "CS-Version")
         if let token { request.setValue(token, forHTTPHeaderField: "CS-Token") }
-        let (data, response) = try await urlSession.data(for: request)
+        DaymarkLog.event("请求开始：POST \(path)")
+        DaymarkLog.network("请求 POST \(NetworkLogFormatter.url(url))\n路由 Host：\(request.value(forHTTPHeaderField: "Host") ?? url.host ?? "")\n参数：\(NetworkLogFormatter.json(request.httpBody))")
+        let data: Data
+        let response: URLResponse
+        do { (data, response) = try await urlSession.data(for: request) }
+        catch {
+            DaymarkLog.event("请求失败：\(path)，错误类型 \(type(of: error))")
+            DaymarkLog.network("请求失败 \(NetworkLogFormatter.url(url))：\(type(of: error))")
+            throw error
+        }
+        let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
+        DaymarkLog.event("请求完成：\(path)，HTTP \(statusCode)")
+        DaymarkLog.network("响应 \(NetworkLogFormatter.url(url))：HTTP \(statusCode)\n结果：\(NetworkLogFormatter.json(data, preserveStatusCode: true))")
+        if path == "/api/user/update" && statusCode == 404 { throw DaymarkError.userUpdateUnavailable }
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else { throw DaymarkError.response("网络请求失败") }
         // 失败响应的 data 结构可能与成功结果不同，必须先判断错误码。
         let status = try JSONDecoder().decode(ResponseStatus.self, from: data)
@@ -110,7 +139,7 @@ final class DaymarkAPI: ObservableObject {
         guard generation == currentGeneration else { throw CancellationError() }
         let token = data.token
         guard data.user.id > 0, !token.token.isEmpty, !token.refreshToken.isEmpty, token.tokenExpireTime > 0, token.refreshTokenExpireTime > 0 else { throw DaymarkError.invalidData }
-        try persist(UserSession(id: data.user.id, name: data.user.nickname ?? "", token: token.token, tokenExpire: token.tokenExpireTime, refreshToken: token.refreshToken, refreshExpire: token.refreshTokenExpireTime))
+        try persist(UserSession(id: data.user.id, name: data.user.nickname ?? "", token: token.token, tokenExpire: token.tokenExpireTime, refreshToken: token.refreshToken, refreshExpire: token.refreshTokenExpireTime, account: data.user.account, email: data.user.email))
     }
 
     func requestCode(email: String, register: Bool) async throws {
@@ -134,6 +163,21 @@ final class DaymarkAPI: ObservableObject {
         logout()
     }
 
+    /// 更新昵称并保存服务端返回的资料；账号切换后不覆盖新会话。
+    func updateNickname(_ nickname: String) async throws {
+        DaymarkLog.event("提交昵称修改")
+        let currentGeneration = generation
+        guard let userID = session?.id else { throw DaymarkError.authentication }
+        let current = try await validSession()
+        guard generation == currentGeneration, current.id == userID else { throw CancellationError() }
+        guard let data: UserUpdateData = try await request(Self.accountHost, "/api/user/update", body: ["nickname": nickname], token: current.token),
+              let nickname = data.user.nickname, data.user.id == userID else { throw DaymarkError.invalidData }
+        guard generation == currentGeneration, var latest = session, latest.id == userID else { throw CancellationError() }
+        latest.name = nickname
+        try persist(latest)
+        DaymarkLog.event("昵称修改成功")
+    }
+
     private func validSession() async throws -> UserSession {
         guard let current = session else { throw DaymarkError.authentication }
         let now = Int64(Date().timeIntervalSince1970 * 1000)
@@ -146,7 +190,10 @@ final class DaymarkAPI: ObservableObject {
             guard generation == currentGeneration else { throw CancellationError() }
             let token = data.token
             guard !token.token.isEmpty, !token.refreshToken.isEmpty, token.tokenExpireTime > 0, token.refreshTokenExpireTime > 0 else { throw DaymarkError.invalidData }
-            let updated = UserSession(id: current.id, name: current.name, token: token.token, tokenExpire: token.tokenExpireTime, refreshToken: token.refreshToken, refreshExpire: token.refreshTokenExpireTime)
+            guard var updated = session, updated.id == current.id else { throw CancellationError() }
+            // 刷新期间昵称可能已更新，保留最新资料，只替换令牌。
+            updated.token = token.token; updated.tokenExpire = token.tokenExpireTime
+            updated.refreshToken = token.refreshToken; updated.refreshExpire = token.refreshTokenExpireTime
             try persist(updated)
             return updated
         }
@@ -181,11 +228,26 @@ final class DaymarkAPI: ObservableObject {
         return item
     }
 
-    func save(_ item: Anniversary) async throws {
+    /// 删除成功后通知首页，避免旧列表响应重新显示已删除的记录。
+    func delete(id: Int64) async throws {
+        let currentGeneration = generation
         let token = try await validSession().token
+        guard currentGeneration == generation else { throw CancellationError() }
+        let _: EmptyData? = try await request(Self.daymarkHost, "/api/anniversary/delete", body: ["id": id], token: token)
+        guard currentGeneration == generation else { throw CancellationError() }
+        lastDeletedAnniversaryID = id
+    }
+
+    func save(_ item: Anniversary) async throws {
+        let currentGeneration = generation
+        let token = try await validSession().token
+        guard currentGeneration == generation else { throw CancellationError() }
         var body: [String: Any] = ["name": item.name, "description": item.description, "calendar_type": item.calendarType, "loop_type": item.loopType, "year": item.year, "month": item.month, "day": item.day, "is_leap_month": item.isLeapMonth]
         if item.id > 0 { body["id"] = item.id }
         let result: SaveData? = try await request(Self.daymarkHost, item.id > 0 ? "/api/anniversary/edit" : "/api/anniversary/add", body: body, token: token)
-        guard result != nil else { throw DaymarkError.invalidData }
+        guard let result else { throw DaymarkError.invalidData }
+        guard currentGeneration == generation else { throw CancellationError() }
+        // 将服务端返回的完整纪念日交给首页，页面返回时无需刷新列表。
+        lastSavedAnniversary = result.date
     }
 }

@@ -101,7 +101,7 @@ fun GlassCard(solid: Boolean = false, content: @Composable ColumnScope.() -> Uni
 fun GlassButton(text: String, onClick: () -> Unit, enabled: Boolean = true) {
     val shape = RoundedCornerShape(27.dp)
     val alpha = if (enabled) 1f else 0.45f
-    Box(Modifier.fillMaxWidth().padding(vertical = 4.dp).height(54.dp).glassClickable(enabled = enabled, onClick = onClick).background(Brush.horizontalGradient(listOf(GlassAccent.copy(alpha = alpha), GlassAccentEnd.copy(alpha = alpha))), shape), contentAlignment = Alignment.Center) {
+    Box(Modifier.fillMaxWidth().padding(vertical = 4.dp).height(54.dp).glassClickable(enabled = enabled, onClick = { com.creepersan.memorialday.module.log.Log.info("点击按钮：$text", "Interaction"); onClick() }).background(Brush.horizontalGradient(listOf(GlassAccent.copy(alpha = alpha), GlassAccentEnd.copy(alpha = alpha))), shape), contentAlignment = Alignment.Center) {
         Text(text, color = if (enabled) Color.White else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.55f), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
     }
 }

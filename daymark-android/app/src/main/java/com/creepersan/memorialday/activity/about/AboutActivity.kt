@@ -45,8 +45,10 @@ class AboutActivity : BaseComposeActivity() {
                     }
                     GlassCard {
                         AboutRow(getString(R.string.settings_version), BuildConfig.VERSION_NAME)
-                        AboutRow(getString(R.string.about_developer), "—") { Toast.makeText(this@AboutActivity, getString(R.string.feature_developing), Toast.LENGTH_SHORT).show() }
-                        AboutRow(getString(R.string.about_contact), "—") { Toast.makeText(this@AboutActivity, getString(R.string.feature_developing), Toast.LENGTH_SHORT).show() }
+                        AboutRow(getString(R.string.about_developer)) { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://creepersan.com"))) }
+                        AboutRow(getString(R.string.about_contact)) {
+                            try { startActivity(Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:admin@creepersan.com"))) } catch (_: android.content.ActivityNotFoundException) { Toast.makeText(this@AboutActivity, R.string.mail_unavailable, Toast.LENGTH_LONG).show() }
+                        }
                     }
                     Text(getString(R.string.about_legal), fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.glassClickable { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(LEGAL_DOCUMENT_URL))) }.padding(14.dp))
                     Text(getString(R.string.settings_copyright), fontSize = 11.sp, color = glassSecondaryColor(), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp))
@@ -58,9 +60,10 @@ class AboutActivity : BaseComposeActivity() {
 
 /** 关于页面中的版本、开发者和联系方式行。 */
 @androidx.compose.runtime.Composable
-private fun AboutRow(label: String, value: String, onClick: (() -> Unit)? = null) {
+private fun AboutRow(label: String, value: String = "", onClick: (() -> Unit)? = null) {
     Row(Modifier.fillMaxWidth().height(40.dp).then(if (onClick != null) Modifier.glassClickable { onClick() } else Modifier), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
         Text(label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
-        Text(value, fontSize = 12.sp, color = glassSecondaryColor())
+        if (onClick != null) Text("›", fontSize = 21.sp, color = glassSecondaryColor())
+        else Text(value, fontSize = 12.sp, color = glassSecondaryColor())
     }
 }

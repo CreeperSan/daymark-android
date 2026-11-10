@@ -78,6 +78,7 @@ private fun GlassDatePicker(date: CalendarDate, lunar: Boolean, chineseLunar: Bo
                     }
                     Text(title, fontWeight = FontWeight.SemiBold)
                     Box(Modifier.fillMaxHeight().glassClickable(enabled = canConfirm) {
+                        com.creepersan.memorialday.module.log.Log.info("确认日期选择", "DatePicker")
                         if (settledDay != null) onConfirm(CalendarDate(year, abs(selectedMonth), settledDay, selectedMonth < 0))
                     }, contentAlignment = Alignment.Center) {
                         Text(stringResource(R.string.confirm), color = if (canConfirm) MaterialTheme.colorScheme.primary else glassSecondaryColor())

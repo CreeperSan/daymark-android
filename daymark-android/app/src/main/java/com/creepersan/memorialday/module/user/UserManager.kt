@@ -25,7 +25,9 @@ data class UserSession(
     val token: String,
     val tokenExpire: Long,
     val refreshToken: String,
-    val refreshExpire: Long
+    val refreshExpire: Long,
+    val account: String? = null,
+    val email: String? = null
 )
 
 /** 服务端明确拒绝刷新令牌。 */
@@ -33,6 +35,9 @@ private class AuthRejectedException(message: String) : IllegalStateException(mes
 
 /** 账号服务尚未部署对应的密码接口。 */
 internal class PasswordEndpointUnavailableException : IllegalStateException()
+
+/** 当前账号服务尚未部署昵称更新接口。 */
+internal class UserUpdateEndpointUnavailableException : IllegalStateException()
 
 /** 负责账号会话持久化和令牌刷新；令牌使用 Android Keystore 加密并存入 KV。 */
 object UserManager {
@@ -50,6 +55,7 @@ object UserManager {
     private const val RESET_CODE_PATH = "/api/password/reset/request_auth_code"
     private const val RESET_PATH = "/api/password/reset"
     private const val CHANGE_PASSWORD_PATH = "/api/password/change"
+    private const val UPDATE_USER_PATH = "/api/user/update"
     private const val HTTP_NOT_FOUND = 404
     private const val REFRESH_AHEAD_MS = 60_000L
     private const val GCM_TAG_BITS = 128
@@ -158,6 +164,26 @@ object UserManager {
         }
     }
 
+    /** 更新昵称；响应只写回原账号，并保留请求期间刷新的令牌。 */
+    @Synchronized
+    fun updateNickname(nickname: String): Single<UserSession> {
+        val generation = sessionGeneration
+        val userId = session()?.id ?: return Single.error(IllegalStateException("session_missing"))
+        return validSession().flatMap { current ->
+            check(current.id == userId && synchronized(this) { generation == sessionGeneration }) { "Session changed" }
+            request(UPDATE_USER_PATH, mapOf("nickname" to nickname), NetworkAuthentication.Token(current.token))
+        }.map { data ->
+            val user = data.getAsJsonObject("user") ?: error("Missing user")
+            val updatedId = user.get("id")?.asLong ?: 0
+            val updatedName = user.get("nickname")?.takeUnless { it.isJsonNull }?.asString ?: error("Missing nickname")
+            synchronized(this) {
+                val current = session()
+                check(generation == sessionGeneration && current?.id == userId && updatedId == userId) { "Session changed" }
+                current!!.copy(name = updatedName).also(::save)
+            }
+        }
+    }
+
     /** 获取可用令牌；同一时刻的刷新请求共享结果，网络错误不删除会话。 */
     @Synchronized
     fun validSession(): Single<UserSession> {
@@ -203,12 +229,14 @@ object UserManager {
                 path,
                 NetworkRequestMethod.Post,
                 data = NetworkRequestBody.Json(body),
+                headers = DevelopmentHost.headers(host, ACCOUNT_HOST),
                 authentication = authentication
             )
         ).firstOrError().map { response ->
             if (response.responseCode == HTTP_NOT_FOUND && (path == RESET_CODE_PATH || path == RESET_PATH || path == CHANGE_PASSWORD_PATH)) {
                 throw PasswordEndpointUnavailableException()
             }
+            if (response.responseCode == HTTP_NOT_FOUND && path == UPDATE_USER_PATH) throw UserUpdateEndpointUnavailableException()
             if (response.responseCode !in 200..299) throw IllegalStateException("HTTP ${response.responseCode}")
             val json = JsonParser.parseString(response.bodyString()).asJsonObject
             val code = json.get("code")?.asInt
@@ -234,7 +262,9 @@ object UserManager {
             token.get("token")?.asString.orEmpty(),
             token.get("token_expire_time")?.asLong ?: 0,
             token.get("refresh_token")?.asString.orEmpty(),
-            token.get("refresh_token_expire_time")?.asLong ?: 0
+            token.get("refresh_token_expire_time")?.asLong ?: 0,
+            user?.get("account")?.takeUnless { it.isJsonNull }?.asString ?: previous?.account,
+            user?.get("email")?.takeUnless { it.isJsonNull }?.asString ?: previous?.email
         )
         require(result.id > 0 && result.token.isNotBlank() && result.refreshToken.isNotBlank() && result.tokenExpire > 0 && result.refreshExpire > 0) { "Invalid session" }
         return result

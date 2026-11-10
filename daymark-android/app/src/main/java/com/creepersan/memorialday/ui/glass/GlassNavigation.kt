@@ -91,7 +91,7 @@ fun GlassSelectionDialog(title: String, options: List<Pair<String, String>>, sel
             val accent = MaterialTheme.colorScheme.primary
             Column(Modifier.glassBounce().verticalScroll(rememberScrollState())) {
                 options.forEach { (value, label) ->
-                    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).glassClickable { onSelect(value) }.padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).glassClickable { com.creepersan.memorialday.module.log.Log.info("选择选项：$label", "Selection"); onSelect(value) }.padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                         if (options.size < 5) {
                             Canvas(Modifier.size(20.dp)) {
                                 drawCircle(if (selected == value) accent else Color.Gray.copy(alpha = 0.55f), style = androidx.compose.ui.graphics.drawscope.Stroke(1.5.dp.toPx()))

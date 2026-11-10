@@ -20,7 +20,7 @@ LazyColumn(Modifier.glassBounce()) {
 
 ## 点击反馈
 
-用 `glassClickable` 替换 `clickable`，保留 `enabled`、`role` 和 `onClickLabel` 等参数。按下用 70 ms 淡到 56% 不透明度，抬起或取消后用 180 ms 恢复。
+用 `glassClickable` 替换 `clickable`，保留 `enabled`、`role` 和 `onClickLabel` 等参数。按下时在 50 ms 内淡到 56% 不透明度，抬起或拖动取消后用 180 ms 恢复。悬浮按钮可设置 `immediatePress = true`，在按下时立即显示半透明效果。视觉反馈不消费触摸事件，滚动和点击仍由 Compose 判定。
 
 ```kotlin
 Box(
@@ -32,7 +32,7 @@ Box(
 }
 ```
 
-将 `glassClickable` 放在背景、边框之前，整个控件会一起变淡。放在背景之后时，只淡化后续绘制的内容。
+将 `glassClickable` 放在背景、边框之前，整个控件会一起变淡。放在背景之后时，只影响后续绘制的内容。
 
 ## 滚动页与日期选择器
 

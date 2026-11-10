@@ -26,19 +26,21 @@ import com.creepersan.memorialday.activity.home.HomeActivity
 import com.creepersan.memorialday.activity.setting.SettingActivity
 import com.creepersan.memorialday.base.activity.BaseComposeActivity
 import com.creepersan.memorialday.module.user.UserManager
+import com.creepersan.memorialday.module.kv.KV
+import com.creepersan.memorialday.constance.KV_REMEMBERED_ACCOUNT
 import com.creepersan.memorialday.ui.glass.*
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.Disposable
 
 /** 登录表单状态及请求。 */
 class LoginViewModel : ViewModel() {
-    var account by mutableStateOf(""); var password by mutableStateOf("")
+    var account by mutableStateOf(KV.get(KV_REMEMBERED_ACCOUNT)); var rememberAccount by mutableStateOf(account.isNotEmpty()); var password by mutableStateOf("")
     var loading by mutableStateOf(false); var error by mutableStateOf<String?>(null); var success by mutableStateOf(false)
     private var request: Disposable? = null
     fun login() {
         if (loading || account.isBlank() || password.isBlank()) return
         loading = true; error = null
-        request = UserManager.login(account.trim(), password).observeOn(AndroidSchedulers.mainThread()).subscribe({ loading = false; password = ""; success = true }, { loading = false; error = it.message })
+        request = UserManager.login(account.trim(), password).observeOn(AndroidSchedulers.mainThread()).subscribe({ loading = false; KV.set(KV_REMEMBERED_ACCOUNT, if (rememberAccount) account.trim() else ""); password = ""; success = true }, { loading = false; error = it.message ?: "" })
     }
     override fun onCleared() { request?.dispose() }
 }
@@ -50,7 +52,11 @@ class LoginActivity : BaseComposeActivity() {
         super.onCreate(savedInstanceState)
         val model = ViewModelProvider(this)[LoginViewModel::class.java]
         setContent {
-            if (model.success) LaunchedEffect(Unit) { startActivity(Intent(this@LoginActivity, HomeActivity::class.java)); finish() }
+            if (model.success) LaunchedEffect(Unit) { com.creepersan.memorialday.ui.toast.ToastManager.message(this@LoginActivity, getString(R.string.login_success)); startActivity(Intent(this@LoginActivity, HomeActivity::class.java)); finish() }
+            LaunchedEffect(model.error) { model.error?.let { com.creepersan.memorialday.ui.toast.ToastManager.message(this@LoginActivity, it.ifBlank { getString(R.string.login_failed) }); model.error = null } }
+            if (model.loading) androidx.compose.ui.window.Dialog(onDismissRequest = {}, properties = androidx.compose.ui.window.DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)) {
+                GlassCard(solid = true) { Row(verticalAlignment = Alignment.CenterVertically) { CircularProgressIndicator(Modifier.size(24.dp)); Spacer(Modifier.width(16.dp)); Text(getString(R.string.logging_in)) } }
+            }
             GlassPage {
                 BoxWithConstraints(Modifier.fillMaxSize()) {
                     Column(Modifier.fillMaxWidth().heightIn(min = maxHeight).glassBounce().verticalScroll(rememberScrollState())) {
@@ -67,14 +73,12 @@ class LoginActivity : BaseComposeActivity() {
                     Spacer(Modifier.height(12.dp))
                     GlassTextField(model.password, { model.password = it }, getString(R.string.password), password = true)
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text("□  " + getString(R.string.login_remember), fontSize = 13.sp, color = glassSecondaryColor(), modifier = Modifier.glassClickable { android.widget.Toast.makeText(this@LoginActivity, getString(R.string.feature_developing), android.widget.Toast.LENGTH_SHORT).show() }.padding(vertical = 12.dp))
+                        Text((if (model.rememberAccount) "☑  " else "□  ") + getString(R.string.login_remember), fontSize = 13.sp, color = glassSecondaryColor(), modifier = Modifier.glassClickable { model.rememberAccount = !model.rememberAccount }.padding(vertical = 12.dp))
                         Text(getString(R.string.forgot_password), fontSize = 13.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.glassClickable { startActivity(Intent(this@LoginActivity, AccountActivity::class.java)) }.padding(vertical = 12.dp))
                     }
-                    model.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-                    GlassButton(getString(if (model.loading) R.string.logging_in else R.string.login), { model.login() }, !model.loading && model.account.isNotBlank() && model.password.isNotBlank())
+                    GlassButton(getString(R.string.login), { model.login() }, !model.loading && model.account.isNotBlank() && model.password.isNotBlank())
                 }
                 Spacer(Modifier.height(26.dp))
-                GlassSocialOptions(getString(R.string.social_login)) { android.widget.Toast.makeText(this@LoginActivity, getString(R.string.feature_developing), android.widget.Toast.LENGTH_SHORT).show() }
                 Spacer(Modifier.weight(1f))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                     Text(getString(R.string.login_no_account), fontSize = 13.sp, color = glassSecondaryColor())

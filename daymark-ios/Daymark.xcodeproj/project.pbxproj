@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CD0000000000000000000001 /* DaymarkLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD0000000000000000000002 /* DaymarkLog.swift */; };
 		0821F4CB1774B1A062DF875F /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 5F02A8D8F9D14C733624D517 /* Localizable.strings */; };
 		127FBC88002D083E381495BF /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9A83F9F5E50CD90B7CA7B53 /* SettingsView.swift */; };
 		1DE858A201CA0D7AE26E4519 /* AccountViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6C234CBE595745629C68ACB /* AccountViews.swift */; };
@@ -35,6 +36,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		CD0000000000000000000002 /* DaymarkLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DaymarkLog.swift; path = Services/DaymarkLog.swift; sourceTree = "<group>"; };
 		00E4960ACBB27578E0B5117B /* zh-Hans */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		01516B4746E545A520EBA9C1 /* DaymarkApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DaymarkApp.swift; path = App/DaymarkApp.swift; sourceTree = "<group>"; };
 		02B7C0B509F472F35ECB12D3 /* ko */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = ko; path = ko.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -94,7 +96,6 @@
 				F38A55C9FFE8CF06851BEBA1 /* AnniversaryCalendarTests.swift */,
 				C549779191063DD20AFF21A0 /* DaymarkAPITests.swift */,
 			);
-			name = Tests;
 			path = Tests;
 			sourceTree = "<group>";
 		};
@@ -104,6 +105,7 @@
 				01516B4746E545A520EBA9C1 /* DaymarkApp.swift */,
 				F9408946ABDD7F77C71FD5DD /* Anniversary.swift */,
 				AE3B79FF5276A1ECFECCE101 /* DaymarkAPI.swift */,
+				CD0000000000000000000002 /* DaymarkLog.swift */,
 				4B0BDF473AD70E50FA355B3A /* KeychainStore.swift */,
 				A6C234CBE595745629C68ACB /* AccountViews.swift */,
 				B11A20BD8FC8B7CA3B1042DD /* AnniversaryEditView.swift */,
@@ -113,7 +115,6 @@
 				A1976D2D833043E94D88A06E /* Assets.xcassets */,
 				5F02A8D8F9D14C733624D517 /* Localizable.strings */,
 			);
-			name = Daymark;
 			path = Daymark;
 			sourceTree = "<group>";
 		};
@@ -189,6 +190,12 @@
 			attributes = {
 				LastSwiftUpdateCheck = 1500;
 				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					4865A59DCC0114E57A053736 = {
+						DevelopmentTeam = H83MN8F436;
+						ProvisioningStyle = Automatic;
+					};
+				};
 			};
 			buildConfigurationList = 7ADFCA757138C9D5FF27C8BE /* Build configuration list for PBXProject "Daymark" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -205,7 +212,6 @@
 				Base,
 			);
 			mainGroup = E2993024952B66FA5282BAF0;
-			minimizedProjectReferenceProxies = 0;
 			productRefGroup = 19969D3B8A2A25C9A2721D7F /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -252,6 +258,7 @@
 				3C71588375DEFF18EA26E08F /* DaymarkApp.swift in Sources */,
 				1E8AF939228BEC14B2432407 /* Anniversary.swift in Sources */,
 				289B873B489A91F074B60F6A /* DaymarkAPI.swift in Sources */,
+				CD0000000000000000000001 /* DaymarkLog.swift in Sources */,
 				DEF461A2646FC0FFCA830947 /* KeychainStore.swift in Sources */,
 				1DE858A201CA0D7AE26E4519 /* AccountViews.swift in Sources */,
 				E72FD6D63D6999D70ECCC56E /* AnniversaryEditView.swift in Sources */,
@@ -338,8 +345,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -352,6 +358,7 @@
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 30000;
+				DEVELOPMENT_TEAM = H83MN8F436;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Daymark/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "纪念日";
@@ -390,6 +397,7 @@
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 30000;
+				DEVELOPMENT_TEAM = H83MN8F436;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Daymark/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "纪念日";

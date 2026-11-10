@@ -1,6 +1,8 @@
 package com.creepersan.memorialday.module.network
 
 import io.reactivex.rxjava3.core.Observable
+import com.creepersan.memorialday.BuildConfig
+import com.creepersan.memorialday.module.log.Log
 import com.google.gson.Gson
 import okhttp3.Call
 import okhttp3.Callback
@@ -22,6 +24,8 @@ import java.util.concurrent.TimeUnit
 object NetworkManager {
 
     private const val DEFAULT_TIMEOUT_SECONDS = 30L
+    private const val LOG_TAG = "DaymarkNetwork"
+    private const val LOG_CHUNK_SIZE = 3000
     private const val JSON_CONTENT_TYPE = "application/json; charset=utf-8"
 
     private val gson = Gson()
@@ -54,10 +58,16 @@ object NetworkManager {
                     .readTimeout(timeout, TimeUnit.SECONDS)
                     .writeTimeout(timeout, TimeUnit.SECONDS)
                 interceptors.forEach { clientBuilder.addInterceptor(it) }
-                val call = clientBuilder.build().newCall(requestBuilder.build())
+                val prepared = requestBuilder.build()
+                val address = NetworkLogFormatter.url(prepared.url)
+                Log.info("请求开始：${request.method.value} ${prepared.url.encodedPath}", LOG_TAG)
+                if (BuildConfig.DEBUG) debugLog("请求 ${request.method.value} $address\n路由 Host：${prepared.header("Host") ?: prepared.url.host}\n参数：${NetworkLogFormatter.body(request.data)}")
+                val call = clientBuilder.build().newCall(prepared)
                 emitter.setCancellable { call.cancel() }
                 call.enqueue(object : Callback {
                     override fun onFailure(call: Call, e: IOException) {
+                        Log.warning("请求失败：${prepared.url.encodedPath}，${e.javaClass.simpleName}", LOG_TAG)
+                        if (BuildConfig.DEBUG) debugLog("请求失败 $address：${e.javaClass.simpleName}")
                         // 取消后的错误无需再通知已经取消订阅的调用方。
                         emitter.tryOnError(e)
                     }
@@ -66,20 +76,30 @@ object NetworkManager {
                         try {
                             response.use {
                                 val result = NetworkResponse(it.code, it.message, it.body?.bytes() ?: ByteArray(0), it.headers.toMultimap())
+                                Log.info("请求完成：${prepared.url.encodedPath}，HTTP ${result.responseCode}", LOG_TAG)
+                                if (BuildConfig.DEBUG) debugLog("响应 $address：HTTP ${result.responseCode}\n结果：${NetworkLogFormatter.json(result.bodyString(), preserveStatusCode = true)}")
                                 if (!emitter.isDisposed) {
                                     emitter.onNext(result)
                                     emitter.onComplete()
                                 }
                             }
                         } catch (e: IOException) {
+                            Log.warning("读取响应失败：${prepared.url.encodedPath}，${e.javaClass.simpleName}", LOG_TAG)
                             emitter.tryOnError(e)
                         }
                     }
                 })
             } catch (e: Exception) {
+                Log.error("请求准备失败：${e.javaClass.simpleName}", LOG_TAG)
                 emitter.tryOnError(e)
             }
         }
+    }
+
+    /** 长响应分段输出，避免被 Logcat 的单条长度限制截断；仅供 Debug 调用。 */
+    private fun debugLog(message: String) {
+        try { message.chunked(LOG_CHUNK_SIZE).forEach { android.util.Log.d(LOG_TAG, it) } }
+        catch (_: RuntimeException) { /* 本地 JVM 测试没有 Android Log 实现。 */ }
     }
 
     /** 添加公共拦截器；变更仅影响之后创建的请求。 */

@@ -24,10 +24,14 @@ import com.creepersan.memorialday.activity.about.AboutActivity
 import com.creepersan.memorialday.activity.import_legacy.ImportLegacyActivity
 import com.creepersan.memorialday.activity.select_mode.SelectModeActivity
 import com.creepersan.memorialday.module.user.UserManager
+import com.creepersan.memorialday.module.user.UserUpdateEndpointUnavailableException
 import com.creepersan.memorialday.constance.*
 import com.creepersan.memorialday.module.kv.KV
+import com.creepersan.memorialday.module.log.Log
 import com.creepersan.memorialday.ui.glass.*
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.disposables.Disposable
 
 private const val DEVELOPER_TAP_COUNT = 8
 private const val DEVELOPER_TAP_INTERVAL_MS = 500L
@@ -40,6 +44,11 @@ class SettingViewModel : ViewModel() {
     var developer by mutableStateOf(KV.get(KV_APPLICATION_DEV_MODE)); private set
     var accountHost by mutableStateOf(KV.get(KV_APPLICATION_PROXY_ACCOUNT))
     var serverHost by mutableStateOf(KV.get(KV_APPLICATION_PROXY_SERVER))
+    var nickname by mutableStateOf(UserManager.session()?.name.orEmpty()); private set
+    var nicknameSaving by mutableStateOf(false); private set
+    var nicknameError by mutableStateOf<Throwable?>(null); private set
+    var nicknameSaved by mutableStateOf(false); private set
+    private var nicknameRequest: Disposable? = null
     private var taps = 0
     private var lastTap = 0L
     fun changeTheme(value: AppTheme) { theme = value; KV.set(KV_APPLICATION_THEME, value) }
@@ -50,6 +59,18 @@ class SettingViewModel : ViewModel() {
         lastTap = now
         if (taps >= DEVELOPER_TAP_COUNT) { developer = true; KV.set(KV_APPLICATION_DEV_MODE, true); taps = 0 }
     }
+    /** 服务端确认后更新本地显示；失败时保留输入并展示错误。 */
+    fun saveNickname(value: String) {
+        if (nicknameSaving || value.isBlank()) { Log.warning("昵称保存被阻止：正在提交或输入为空", "Settings"); return }
+        Log.info("提交昵称修改", "Settings")
+        nicknameSaving = true; nicknameError = null; nicknameSaved = false
+        nicknameRequest = UserManager.updateNickname(value.trim()).observeOn(AndroidSchedulers.mainThread()).subscribe({
+            Log.info("昵称修改成功", "Settings")
+            nickname = it.name; nicknameSaving = false; nicknameSaved = true
+        }, { Log.error("昵称修改失败：${it.javaClass.simpleName}", "Settings"); nicknameSaving = false; nicknameError = it })
+    }
+    fun resetNicknameResult() { nicknameError = null; nicknameSaved = false }
+    override fun onCleared() { nicknameRequest?.dispose() }
     fun disableDeveloper() { developer = false; KV.set(KV_APPLICATION_DEV_MODE, false) }
     fun saveHosts(): Boolean {
         val account = accountHost.trim().trimEnd('/'); val server = serverHost.trim().trimEnd('/')
@@ -71,33 +92,28 @@ class SettingActivity : BaseComposeActivity() {
             val scrollState = rememberScrollState()
             val languages = listOf("system" to getString(R.string.system), "zh-CN" to "简体中文（中国）", "zh-TW" to "繁體中文（台灣）", "yue-Hans-CN" to "简体粤语（广东）", "yue-Hant-HK" to "繁體粵語（香港）", "en" to "English", "ja" to "日本語", "ko" to "한국어")
             val themes = listOf(AppTheme.System.name to getString(R.string.system), AppTheme.Light.name to getString(R.string.light), AppTheme.Dark.name to getString(R.string.dark))
-            fun developing() = android.widget.Toast.makeText(this@SettingActivity, getString(R.string.feature_developing), android.widget.Toast.LENGTH_SHORT).show()
             key(model.theme) { GlassScrollingPage(scrollState, header = {
                 GlassNavigationBar(getString(R.string.settings), { finish() }, { model.tapTitle() })
             }) { insets ->
                 Column(Modifier.fillMaxSize().glassBounce().verticalScroll(scrollState).padding(start = 20.dp, end = 20.dp, top = insets.calculateTopPadding(), bottom = insets.calculateBottomPadding()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    SettingsSection(getString(R.string.settings_personal)) {
-                        SettingsRow(getString(R.string.settings_avatar), onClick = { developing() })
-                        SettingsRow(getString(R.string.settings_username), UserManager.session()?.name.orEmpty().ifBlank { "—" }, onClick = { developing() })
-                        SettingsRow(getString(R.string.account_email), "—", onClick = { developing() })
+                    if (UserManager.session() != null) SettingsSection(getString(R.string.settings_personal)) {
+                        SettingsRow(getString(R.string.settings_username), UserManager.session()?.account.orEmpty().ifBlank { "—" }, showArrow = false)
+                        SettingsRow(getString(R.string.account_email), UserManager.session()?.email.orEmpty().ifBlank { "—" }, showArrow = false)
+                        SettingsRow(getString(R.string.settings_nickname), model.nickname.ifBlank { "—" }, onClick = { model.resetNicknameResult(); dialog = "nickname" })
                         if (UserManager.session() != null) {
                             SettingsRow(getString(R.string.settings_change_password), onClick = {
                                 startActivity(Intent(this@SettingActivity, ChangePasswordActivity::class.java))
                             })
                         }
-                        SettingsRow(getString(R.string.settings_delete_account), danger = true, onClick = { developing() })
+                        SettingsRow(getString(R.string.settings_delete_account), danger = true, onClick = { dialog = "delete" })
                         SettingsRow(getString(R.string.logout), danger = true, centered = true, onClick = {
-                            if (UserManager.session() == null) { developing() } else {
-                                UserManager.clear()
-                                startActivity(Intent(this@SettingActivity, LoginActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
-                                finish()
-                            }
+                            dialog = "logout"
                         })
                     }
                     SettingsSection(getString(R.string.settings_application)) {
                         SettingsRow(getString(R.string.theme), themes.first { it.first == model.theme.name }.second, onClick = { dialog = "theme" })
                         SettingsRow(getString(R.string.language), languages.firstOrNull { it.first == model.language }?.second ?: languages.first().second, onClick = { dialog = "language" })
-                        SettingsRow(getString(R.string.settings_mode), getString(if (KV.get(KV_APPLICATION_MODE) == AppMode.Classic) R.string.classic_version else R.string.new_version), onClick = { dialog = "mode" })
+                        SettingsRow(getString(R.string.settings_mode), getString(if (KV.get(KV_APPLICATION_MODE) == AppMode.Classic) R.string.classic_version else R.string.new_version), onClick = { startActivity(Intent(this@SettingActivity, SelectModeActivity::class.java)) })
                         if (UserManager.session() != null) SettingsRow(getString(R.string.import_legacy), onClick = { startActivity(Intent(this@SettingActivity, ImportLegacyActivity::class.java)) })
                     }
                     if (model.developer) {
@@ -115,18 +131,54 @@ class SettingActivity : BaseComposeActivity() {
                     }
                     Text(getString(R.string.settings_copyright), color = glassSecondaryColor(), fontSize = 11.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp))
                 }
+                if (model.nicknameSaved && dialog == "nickname") LaunchedEffect(Unit) {
+                    android.widget.Toast.makeText(this@SettingActivity, R.string.saved, android.widget.Toast.LENGTH_SHORT).show()
+                    dialog = null; model.resetNicknameResult()
+                }
                 when (dialog) {
+                    "nickname" -> {
+                        var value by remember { mutableStateOf(model.nickname) }
+                        val nicknameError = model.nicknameError?.let { error ->
+                            if (error is UserUpdateEndpointUnavailableException) getString(R.string.account_password_unavailable) else error.message?.ifBlank { null } ?: getString(R.string.nickname_save_failed)
+                        }
+                        if (nicknameError != null) LaunchedEffect(model.nicknameError) {
+                            android.widget.Toast.makeText(this@SettingActivity, nicknameError, android.widget.Toast.LENGTH_LONG).show()
+                        }
+                        AlertDialog(
+                            onDismissRequest = { if (!model.nicknameSaving) dialog = null },
+                            title = { Text(getString(R.string.settings_nickname)) },
+                            text = { Column {
+                                GlassTextField(value, { value = it }, getString(R.string.settings_nickname))
+                                nicknameError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                            } },
+                            confirmButton = { TextButton(onClick = { model.saveNickname(value) }, enabled = !model.nicknameSaving && value.isNotBlank()) { Text(getString(if (model.nicknameSaving) R.string.anniversary_saving else R.string.save)) } },
+                            dismissButton = { TextButton(onClick = { dialog = null }, enabled = !model.nicknameSaving) { Text(getString(R.string.cancel)) } }
+                        )
+                    }
+                    "logout", "delete" -> AlertDialog(
+                        onDismissRequest = { dialog = null },
+                        title = { Text(getString(if (dialog == "logout") R.string.logout else R.string.settings_delete_account)) },
+                        text = { Text(getString(if (dialog == "logout") R.string.logout_confirm else R.string.delete_confirm)) },
+                        confirmButton = { TextButton(onClick = {
+                            if (dialog == "logout") {
+                                Log.info("确认退出登录", "Settings")
+                                UserManager.clear()
+                                startActivity(Intent(this@SettingActivity, LoginActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+                                finish()
+                            } else {
+                                Log.info("确认申请删除账号", "Settings")
+                                val session = UserManager.session()
+                                val missing = getString(R.string.account_missing)
+                                val body = getString(R.string.delete_mail_body, session?.account?.ifBlank { missing } ?: missing, session?.email?.ifBlank { missing } ?: missing, session?.id?.toString() ?: missing)
+                                val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:admin@creepersan.com")).putExtra(Intent.EXTRA_SUBJECT, getString(R.string.delete_mail_subject)).putExtra(Intent.EXTRA_TEXT, body)
+                                try { startActivity(intent) } catch (_: android.content.ActivityNotFoundException) { android.widget.Toast.makeText(this@SettingActivity, R.string.mail_unavailable, android.widget.Toast.LENGTH_LONG).show() }
+                            }
+                            dialog = null
+                        }) { Text(getString(R.string.confirm)) } },
+                        dismissButton = { TextButton(onClick = { dialog = null }) { Text(getString(R.string.cancel)) } }
+                    )
                     "theme" -> GlassSelectionDialog(getString(R.string.theme), themes, model.theme.name, { value -> dialog = null; model.changeTheme(AppTheme.valueOf(value)) }, { dialog = null })
                     "language" -> GlassSelectionDialog(getString(R.string.language), languages, model.language, { value -> dialog = null; model.changeLanguage(value); recreate() }, { dialog = null })
-                    "mode" -> GlassSelectionDialog(getString(R.string.settings_mode), listOf(AppMode.Default.name to getString(R.string.new_version), AppMode.Classic.name to getString(R.string.classic_version)), KV.get(KV_APPLICATION_MODE).name, { value ->
-                        dialog = null
-                        val mode = AppMode.valueOf(value)
-                        if (mode != KV.get(KV_APPLICATION_MODE)) {
-                            KV.set(KV_APPLICATION_MODE, mode)
-                            startActivity(Intent(this@SettingActivity, com.creepersan.memorialday.activity.dispatch.DispatchActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
-                            finish()
-                        }
-                    }, { dialog = null })
                     "account_host", "server_host" -> {
                         val account = dialog == "account_host"
                         var value by remember(dialog) { mutableStateOf(if (account) model.accountHost else model.serverHost) }
@@ -166,7 +218,7 @@ private fun SettingsSection(title: String, content: @Composable ColumnScope.() -
 @Composable
 private fun SettingsRow(label: String, value: String = "", danger: Boolean = false, centered: Boolean = false, showArrow: Boolean = true, onClick: (() -> Unit)? = null) {
     val secondary = glassSecondaryColor()
-    Row(Modifier.fillMaxWidth().height(56.dp).then(if (onClick != null) Modifier.glassClickable { onClick() } else Modifier).padding(horizontal = 12.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+    Row(Modifier.fillMaxWidth().height(56.dp).then(if (onClick != null) Modifier.glassClickable { Log.info("点击设置项：$label", "Settings"); onClick() } else Modifier).padding(horizontal = 12.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
         if (centered) Spacer(Modifier.weight(1f))
         Text(label, fontSize = 14.sp, color = if (danger) androidx.compose.ui.graphics.Color(0xFFE07866) else MaterialTheme.colorScheme.onBackground)
         if (!centered) Spacer(Modifier.weight(1f))
