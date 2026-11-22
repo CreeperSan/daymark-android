@@ -1,0 +1,16 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "纪念日"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "记录值得纪念的日子"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "纪念日"
+    }
+  ]
+}

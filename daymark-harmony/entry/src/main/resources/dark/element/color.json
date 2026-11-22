@@ -1,0 +1,88 @@
+{
+  "color": [
+    {
+      "name": "start_window_background",
+      "value": "#1F1B26"
+    },
+    {
+      "name": "text_primary",
+      "value": "#F7EBE3"
+    },
+    {
+      "name": "text_secondary",
+      "value": "#D5B4A4"
+    },
+    {
+      "name": "text_on_accent",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "accent",
+      "value": "#FF7A55"
+    },
+    {
+      "name": "accent_soft",
+      "value": "#33FF7A55"
+    },
+    {
+      "name": "accent_gradient_start",
+      "value": "#FF9459"
+    },
+    {
+      "name": "accent_gradient_end",
+      "value": "#FF6B52"
+    },
+    {
+      "name": "danger",
+      "value": "#FF6B6B"
+    },
+    {
+      "name": "glass_fill",
+      "value": "#1AFFFFFF"
+    },
+    {
+      "name": "glass_fill_weak",
+      "value": "#14FFFFFF"
+    },
+    {
+      "name": "glass_stroke",
+      "value": "#2EFFFFFF"
+    },
+    {
+      "name": "glass_sheet",
+      "value": "#F2322A33"
+    },
+    {
+      "name": "segment_track",
+      "value": "#14FFFFFF"
+    },
+    {
+      "name": "segment_thumb",
+      "value": "#2EFFFFFF"
+    },
+    {
+      "name": "wheel_highlight",
+      "value": "#33FF7A55"
+    },
+    {
+      "name": "page_icon",
+      "value": "#D4B6A1"
+    },
+    {
+      "name": "page_accent",
+      "value": "#E7A093"
+    },
+    {
+      "name": "toast_background",
+      "value": "#3A3038"
+    },
+    {
+      "name": "toast_text",
+      "value": "#F1DED3"
+    },
+    {
+      "name": "input_placeholder",
+      "value": "#C3A99D"
+    }
+  ]
+}

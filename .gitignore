@@ -19,3 +19,38 @@ docs1/
 .gradle/
 local.properties
 build/
+
+# ===== HarmonyOS / DevEco Studio 工程临时文件 =====
+# 说明：hvigor 构建、ohpm 包管理、IDE 分析器都会在工程内生成缓存与产物，
+# 这些内容只跟本机环境有关，不需要入库。
+# daymark-harmony/.gitignore 里也有一份，这里兜底：换分支、拷贝工程或新增鸿蒙子工程时都不会漏。
+
+# 构建缓存与产物
+.hvigor/
+.preview/
+.test/
+.cxx/
+*.hap
+*.hsp
+*.app
+
+# 依赖与包管理缓存
+node_modules/
+oh_modules/
+.ohpm/
+.appanalyzer/
+
+# 静态分析与 NDK 生成的本地配置
+.clangd
+.clang-format
+.clang-tidy
+.clang-uml
+
+# 本地环境与签名材料（含证书口令，切勿入库）
+*.p12
+*.p7b
+*.p7s
+*.cer
+
+# 调试截图（.tools/dev.sh 的输出目录）
+.shots/
