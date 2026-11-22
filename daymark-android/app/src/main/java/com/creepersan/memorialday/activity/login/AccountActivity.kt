@@ -27,7 +27,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.creepersan.memorialday.R
 import com.creepersan.memorialday.base.activity.BaseComposeActivity
-import com.creepersan.memorialday.constance.LEGAL_DOCUMENT_URL
+import com.creepersan.memorialday.constance.USER_AGREEMENT_URL
+import com.creepersan.memorialday.constance.PRIVACY_POLICY_URL
 import com.creepersan.memorialday.module.user.PasswordEndpointUnavailableException
 import com.creepersan.memorialday.module.user.UserManager
 import com.creepersan.memorialday.module.user.UserManager.MIN_PASSWORD_LENGTH
@@ -44,6 +45,7 @@ class AccountViewModel : ViewModel() {
     var account by mutableStateOf("")
     var email by mutableStateOf("")
     var password by mutableStateOf("")
+    var passwordConfirmation by mutableStateOf("")
     var code by mutableStateOf("")
     var agreed by mutableStateOf(false)
     var verification by mutableStateOf(false)
@@ -55,7 +57,7 @@ class AccountViewModel : ViewModel() {
 
     /** 请求验证码，成功后进入确认页面。 */
     fun sendCode(register: Boolean) {
-        if (loading || email.isBlank() || (register && (account.isBlank() || password.length < MIN_PASSWORD_LENGTH || !agreed))) return
+        if (loading || email.isBlank() || (register && (account.isBlank() || password.length < MIN_PASSWORD_LENGTH || passwordConfirmation != password || !agreed))) return
         loading = true; error = null
         request = UserManager.requestCode(email.trim(), register).observeOn(AndroidSchedulers.mainThread()).subscribe({
             loading = false; codeSentAt = SystemClock.elapsedRealtime(); verification = true
@@ -64,11 +66,11 @@ class AccountViewModel : ViewModel() {
 
     /** 将验证码和表单一起交给服务端验证。 */
     fun submit(register: Boolean) {
-        if (loading || code.length != UserManager.AUTH_CODE_LENGTH || password.length < MIN_PASSWORD_LENGTH) return
+        if (loading || code.length != UserManager.AUTH_CODE_LENGTH || password.length < MIN_PASSWORD_LENGTH || (register && passwordConfirmation != password)) return
         loading = true; error = null
         val action = if (register) UserManager.register(account.trim(), email.trim(), password, code.trim()) else UserManager.resetPassword(email.trim(), password, code.trim())
         request = action.observeOn(AndroidSchedulers.mainThread()).subscribe({
-            loading = false; password = ""; code = ""; done = true
+            loading = false; password = ""; passwordConfirmation = ""; code = ""; done = true
         }, { loading = false; error = it })
     }
 
@@ -109,7 +111,7 @@ class AccountActivity : BaseComposeActivity() {
                     if (model.done) {
                         GlassButton(getString(R.string.account_back_login), { finish() })
                     } else {
-                        AccountFormSurface(flat = model.verification) {
+                        Column(Modifier.fillMaxWidth()) {
                             if (model.verification) {
                                 GlassVerificationCode(model.code, { model.code = it })
                                 if (!register) {
@@ -127,6 +129,11 @@ class AccountActivity : BaseComposeActivity() {
                                 if (register) {
                                     Spacer(Modifier.height(12.dp))
                                     GlassTextField(model.password, { model.password = it }, getString(R.string.account_set_password), password = true)
+                                    Spacer(Modifier.height(12.dp))
+                                    GlassTextField(model.passwordConfirmation, { model.passwordConfirmation = it }, getString(R.string.register_confirm_password), password = true)
+                                    if (model.passwordConfirmation.isNotEmpty() && model.passwordConfirmation != model.password) {
+                                        Text(getString(R.string.register_password_mismatch), color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 12.dp))
+                                    }
                                 }
                                 if (register) {
                                     Spacer(Modifier.height(12.dp))
@@ -135,11 +142,11 @@ class AccountActivity : BaseComposeActivity() {
                                         val accent = MaterialTheme.colorScheme.primary
                                         val agreement = buildAnnotatedString {
                                             append(getString(R.string.agreement_prefix))
-                                            pushStringAnnotation("legal", LEGAL_DOCUMENT_URL)
+                                            pushStringAnnotation("legal", USER_AGREEMENT_URL)
                                             withStyle(SpanStyle(color = accent)) { append(getString(R.string.agreement_terms)) }
                                             pop()
                                             append(getString(R.string.agreement_and))
-                                            pushStringAnnotation("legal", LEGAL_DOCUMENT_URL)
+                                            pushStringAnnotation("legal", PRIVACY_POLICY_URL)
                                             withStyle(SpanStyle(color = accent)) { append(getString(R.string.agreement_privacy)) }
                                             pop()
                                         }
@@ -149,39 +156,20 @@ class AccountActivity : BaseComposeActivity() {
                                     }
                                 }
                                 Spacer(Modifier.height(12.dp))
-                                GlassButton(if (model.loading) getString(R.string.account_wait) else getString(R.string.account_send_code), { model.sendCode(register) }, !model.loading && model.email.isNotBlank() && (!register || model.account.isNotBlank() && model.password.length >= MIN_PASSWORD_LENGTH && model.agreed))
+                                GlassButton(if (model.loading) getString(R.string.account_wait) else getString(R.string.account_send_code), { model.sendCode(register) }, !model.loading && model.email.isNotBlank() && (!register || model.account.isNotBlank() && model.password.length >= MIN_PASSWORD_LENGTH && model.passwordConfirmation == model.password && model.agreed))
                             }
                             model.error?.let { error ->
                                 val message = if (error is PasswordEndpointUnavailableException) getString(R.string.account_password_unavailable) else error.message ?: getString(R.string.connection_error)
                                 Text(message, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 12.dp))
                             }
                         }
-                        if (!register && !model.verification) Text(getString(R.string.reset_hint), fontSize = 12.sp, color = glassSecondaryColor(), modifier = Modifier.padding(top = 20.dp))
                     }
                 }
                 if (model.verification && !model.done) {
                     GlassButton(if (model.loading) getString(R.string.account_wait) else getString(R.string.account_confirm), { model.submit(register) }, !model.loading && model.code.length == UserManager.AUTH_CODE_LENGTH && model.password.length >= MIN_PASSWORD_LENGTH)
                     Spacer(Modifier.height(16.dp))
                 }
-                if (!model.verification && !model.done) {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                        Text(getString(if (register) R.string.account_existing else R.string.login_no_account), fontSize = 13.sp, color = glassSecondaryColor())
-                        Text(getString(if (register) R.string.account_go_login else R.string.account_create), fontSize = 13.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.glassClickable {
-                            if (register) finish() else {
-                                startActivity(Intent(this@AccountActivity, AccountActivity::class.java).putExtra(EXTRA_REGISTER, true))
-                                finish()
-                            }
-                        }.padding(8.dp))
-                    }
-                    Spacer(Modifier.height(16.dp))
-                }
             }
         }
     }
-}
-
-/** 验证码页使用开放式布局，其余账号表单使用玻璃卡片。 */
-@Composable
-private fun AccountFormSurface(flat: Boolean, content: @Composable ColumnScope.() -> Unit) {
-    if (flat) Column(Modifier.fillMaxWidth(), content = content) else GlassCard(content = content)
 }

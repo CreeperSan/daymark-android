@@ -3,14 +3,26 @@ import SwiftUI
 /// 应用导航入口；iOS 仅提供新版，不包含经典模式。
 enum DaymarkRoute: Hashable { case register, reset, changePassword, settings, about, edit(Int64?) }
 
+// 修改欢迎页内容并需要再次展示时，递增当前版本；旧引导对应的版本保持不变。
+private let welcomeScreenCurrentVersion = 1
+private let welcomeScreenLegacyVersion = 1
+
 @main
 struct DaymarkApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var api = DaymarkAPI()
-    @AppStorage("onboardingComplete") private var onboardingComplete = false
+    @AppStorage("welcomeScreenShowVersion") private var welcomeScreenShowVersion = 0
     @AppStorage("theme") private var theme = "system"
     @AppStorage("language") private var language = "system"
     @State private var path: [DaymarkRoute] = []
+
+    init() {
+        // 旧版已完成引导的用户迁移到旧欢迎页版本，不重复展示相同内容。
+        let defaults = UserDefaults.standard
+        if defaults.object(forKey: "welcomeScreenShowVersion") == nil && defaults.bool(forKey: "onboardingComplete") {
+            defaults.set(welcomeScreenLegacyVersion, forKey: "welcomeScreenShowVersion")
+        }
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -18,10 +30,10 @@ struct DaymarkApp: App {
                 GlassBackground()
                 NavigationStack(path: $path) {
                     Group {
-                        if !onboardingComplete { OnboardingView(onFinish: { onboardingComplete = true }, onLogin: { onboardingComplete = true }) }
+                        if welcomeScreenShowVersion < welcomeScreenCurrentVersion { OnboardingView(onFinish: { welcomeScreenShowVersion = welcomeScreenCurrentVersion }) }
                         else if api.session != nil { HomeView(api: api, path: $path) }
                         else { LoginView(api: api, path: $path) }
-                    }.modifier(GlassScreenBackground())
+                    }.modifier(GlassScreenBackground()).toolbar(.hidden, for: .navigationBar)
                     .navigationDestination(for: DaymarkRoute.self) { route in
                         Group {
                             switch route {
@@ -32,8 +44,8 @@ struct DaymarkApp: App {
                             case .about: AboutView().modifier(GlassScreenBackground())
                             case .edit(let id): AnniversaryEditView(api: api, id: id).modifier(GlassScreenBackground())
                             }
-                        }.toolbar(.hidden, for: .navigationBar)
-                    }.toolbar(.hidden, for: .navigationBar)
+                        }
+                    }
                 }.background(.clear).scrollContentBackground(.hidden)
             }
             .overlay {

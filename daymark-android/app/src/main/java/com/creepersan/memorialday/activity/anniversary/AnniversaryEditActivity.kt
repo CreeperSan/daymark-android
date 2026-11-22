@@ -6,6 +6,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalConfiguration
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -110,7 +114,9 @@ class AnniversaryEditActivity : BaseComposeActivity() {
             var deleteDialog by remember { mutableStateOf(false) }
             GlassPage {
                 GlassNavigationBar(getString(if (id > 0) R.string.anniversary_edit else R.string.anniversary_add), { finish() }, action = {
-                    GlassNavigationAction(getString(R.string.save), enabled = model.loaded && !model.saving && model.name.isNotBlank()) { model.save() }
+                    if (id > 0) GlassNavigationIconButton(getString(R.string.anniversary_delete), { if (model.loaded && !model.saving) deleteDialog = true }) { iconModifier ->
+                        Icon(painterResource(R.drawable.ic_anniversary_delete), contentDescription = null, modifier = iconModifier, tint = DeleteWarningColor.copy(alpha = if (model.loaded && !model.saving) 1f else 0.4f))
+                    }
                 })
                 if (model.loading) Text(getString(R.string.account_wait))
                 if (!model.loaded && !model.loading) { model.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }; GlassButton(getString(R.string.retry), { model.load(id) }) }
@@ -125,7 +131,17 @@ class AnniversaryEditActivity : BaseComposeActivity() {
                         Text(getString(R.string.anniversary_date), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 16.dp, bottom = 8.dp))
                         val dateShape = RoundedCornerShape(14.dp)
                         Row(Modifier.fillMaxWidth().height(48.dp).glassClickable { dateDialog = true }.background(Color.White.copy(alpha = if (isGlassDark()) 0.10f else 0.55f), dateShape).border(1.dp, Color.White.copy(alpha = 0.45f), dateShape).padding(horizontal = 16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("${model.year}.${model.month}.${model.day}${if (model.leap) " · ${getString(R.string.anniversary_leap)}" else ""}", fontSize = 14.sp)
+                            val locale = LocalConfiguration.current.locales[0]
+                            val chinese = locale.language == "zh" || locale.language == "yue"
+                            val year = model.year.toIntOrNull()
+                            val month = model.month.toIntOrNull()
+                            val day = model.day.toIntOrNull()
+                            val dateLabel = if (year != null && month != null && day != null && model.calendarType == Anniversary.CALENDAR_LUNAR && chinese) {
+                                "（$year）${LunarDateLabels.year(year)}年${if (model.leap) "闰" else ""}${LunarDateLabels.month(month)}${LunarDateLabels.day(day)}"
+                            } else if (year != null && month != null && day != null && model.calendarType == Anniversary.CALENDAR_SOLAR) {
+                                runCatching { LocalDate.of(year, month, day).format(if (chinese) DateTimeFormatter.ofPattern("yyyy 年 M 月 d 日", locale) else DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale)) }.getOrElse { "${model.year}.${model.month}.${model.day}" }
+                            } else "${model.year}.${model.month}.${model.day}${if (model.leap) " · ${getString(R.string.anniversary_leap)}" else ""}"
+                            Text(dateLabel, fontSize = 14.sp)
                             Text("›", fontSize = 20.sp, color = glassSecondaryColor())
                         }
                         if (model.invalidDate) Text(getString(R.string.anniversary_invalid_date), color = MaterialTheme.colorScheme.error)
@@ -137,7 +153,6 @@ class AnniversaryEditActivity : BaseComposeActivity() {
                         }
                         model.error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 12.dp)) }
                     }
-                    if (id > 0) Box(Modifier.fillMaxWidth().padding(vertical = 4.dp).height(54.dp).glassClickable(enabled = !model.saving, role = androidx.compose.ui.semantics.Role.Button) { deleteDialog = true }.background(DeleteWarningColor.copy(alpha = if (model.saving) 0.5f else 1f), RoundedCornerShape(27.dp)), contentAlignment = Alignment.Center) { Text(getString(R.string.anniversary_delete), color = Color.White) }
                     GlassButton(getString(if (model.saving) R.string.anniversary_saving else R.string.save), { model.save() }, !model.saving && model.name.isNotBlank())
                 }
                 if (deleteDialog) AlertDialog(onDismissRequest = { deleteDialog = false }, title = { Text(getString(R.string.anniversary_delete)) }, text = { Text(getString(R.string.anniversary_delete_confirm)) }, confirmButton = { Text(getString(R.string.confirm), color = DeleteWarningColor, modifier = Modifier.glassClickable(role = androidx.compose.ui.semantics.Role.Button) { deleteDialog = false; model.delete() }.padding(12.dp)) }, dismissButton = { Text(getString(R.string.cancel), modifier = Modifier.glassClickable(role = androidx.compose.ui.semantics.Role.Button) { deleteDialog = false }.padding(12.dp)) })

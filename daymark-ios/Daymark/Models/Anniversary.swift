@@ -29,6 +29,26 @@ enum AnniversaryCalendar {
     static var gregorian: Calendar { Calendar(identifier: .gregorian) }
     static var chinese: Calendar { Calendar(identifier: .chinese) }
 
+    /// 以 1984 甲子年为基准计算农历年的干支。
+    static func yearName(_ year: Int) -> String {
+        let stems = Array("甲乙丙丁戊己庚辛壬癸"), branches = Array("子丑寅卯辰巳午未申酉戌亥")
+        return String(stems[((year - 1984) % stems.count + stems.count) % stems.count]) + String(branches[((year - 1984) % branches.count + branches.count) % branches.count])
+    }
+
+    /// 农历日期滚轮使用中文日期名称。
+    static func dayName(_ day: Int) -> String {
+        let digits = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九"]
+        switch day {
+        case 10: return "初十"
+        case 20: return "二十"
+        case 30: return "三十"
+        case 1...9: return "初" + digits[day]
+        case 11...19: return "十" + digits[day - 10]
+        case 21...29: return "廿" + digits[day - 20]
+        default: return String(day)
+        }
+    }
+
     /// 由农历年月日查找对应公历日期；闰月必须与用户选择一致。
     static func solarDate(year: Int, month: Int, day: Int, leap: Bool) -> Date? {
         let gregorian = Self.gregorian, chinese = Self.chinese

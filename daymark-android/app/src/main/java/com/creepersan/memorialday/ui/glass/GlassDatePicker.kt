@@ -1,6 +1,7 @@
 package com.creepersan.memorialday.ui.glass
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -70,6 +71,7 @@ private fun GlassDatePicker(date: CalendarDate, lunar: Boolean, chineseLunar: Bo
     val screenInsets = WindowInsets.systemBars.union(WindowInsets.displayCutout).asPaddingValues()
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         BoxWithConstraints(Modifier.fillMaxSize().padding(screenInsets).padding(start = 12.dp, end = 12.dp, top = 16.dp, bottom = 24.dp), contentAlignment = Alignment.BottomCenter) {
+            Box(Modifier.fillMaxSize().clickable(onClick = onDismiss))
             val rowHeight = ((maxHeight - DatePickerChromeHeight) / WHEEL_VISIBLE_ROWS).coerceIn(DatePickerMinimumRowHeight, DatePickerRowHeight)
             GlassCard(solid = true) {
                 Row(Modifier.fillMaxWidth().height(DatePickerHeaderHeight), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -86,7 +88,10 @@ private fun GlassDatePicker(date: CalendarDate, lunar: Boolean, chineseLunar: Bo
                 }
                 Spacer(Modifier.height(8.dp))
                 Row(Modifier.fillMaxWidth()) {
-                    GlassWheelPicker(MAX_YEAR - MIN_YEAR + 1, yearState, rowHeight, Modifier.weight(1f)) { (it + MIN_YEAR).toString() }
+                    GlassWheelPicker(MAX_YEAR - MIN_YEAR + 1, yearState, rowHeight, Modifier.weight(if (chineseLunar) 1.5f else 1f)) {
+                        val value = it + MIN_YEAR
+                        if (chineseLunar) "（$value）${LunarDateLabels.year(value)}" else value.toString()
+                    }
                     GlassWheelPicker(months.size, monthState, rowHeight, Modifier.weight(1f)) { index ->
                         val value = months[index]
                         val label = if (chineseLunar) LunarDateLabels.month(abs(value)) else abs(value).toString()

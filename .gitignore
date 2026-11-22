@@ -5,6 +5,10 @@
 *.swp
 .DS_Store
 
+# AI 目录
+.workbuddy
+docs1/
+
 # IDE 文件
 *.iml
 *.ipr

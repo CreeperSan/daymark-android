@@ -4,23 +4,52 @@ import UIKit
 /// 首次启动的三页引导，提醒和共享功能明确标记为规划中。
 struct OnboardingView: View {
     let onFinish: () -> Void
-    let onLogin: () -> Void
-    @State private var page = 0
+    @State private var pageProgress: CGFloat = 0
     private let images = ["onboarding_record", "onboarding_remind", "onboarding_share"]
     private let titles = ["把值得记住的日子\n都留在同一个地方", "重要的日子，\n提前替你想起来", "和 TA 一起，\n写同一份回忆"]
     private let descriptions = ["相识、告白、旅行与每一个小小的纪念日，时间会替你们记得。", "提醒、日历订阅与桌面小组件功能正在规划中。", "共享纪念日功能正在规划中。"]
     var body: some View {
         VStack(spacing: 0) {
-            HStack { Spacer(); Button("跳过", action: onFinish).foregroundStyle(GlassPalette.accent) }.padding(.top, 12)
-            Spacer(minLength: 12)
-            Image(images[page]).resizable().scaledToFit().frame(maxWidth: 290, maxHeight: 290)
-            Text(LocalizedStringKey(titles[page])).font(.system(size: 26, weight: .semibold)).multilineTextAlignment(.center).padding(.top, 24)
-            Text(LocalizedStringKey(descriptions[page])).font(.system(size: 14)).foregroundStyle(.secondary).multilineTextAlignment(.center).padding(.top, 14)
-            Spacer()
-            HStack(spacing: 7) { ForEach(0..<3) { index in Capsule().fill(index == page ? GlassPalette.accent : .gray.opacity(0.3)).frame(width: index == page ? 16 : 6, height: 6) } }.padding(.bottom, 20)
-            GlassPrimaryButton(title: page == 2 ? "进入应用" : "下一步") { if page == 2 { onFinish() } else { page += 1 } }
-            Button("已有账号？直接登录", action: onLogin).font(.system(size: 13)).foregroundStyle(GlassPalette.accent).padding(.vertical, 16)
-        }.padding(.horizontal, 24).buttonStyle(.plain)
+            HStack { Spacer(); Button("跳过", action: onFinish).foregroundStyle(GlassPalette.accent)
+                .opacity(1 - max(0, min(1, pageProgress - CGFloat(images.count - 2))))
+                .allowsHitTesting(pageProgress < CGFloat(images.count - 1))
+                .accessibilityHidden(pageProgress >= CGFloat(images.count - 1))
+            }.padding(.top, 12)
+            // 分页只占用顶部和底部操作区之间的剩余空间，不能按整屏高度撑开。
+            GeometryReader { proxy in
+                ScrollView(.horizontal) {
+                    HStack(spacing: 0) {
+                        ForEach(images.indices, id: \.self) { index in
+                            VStack(spacing: 0) {
+                                Spacer(minLength: 12)
+                                Image(images[index]).resizable().scaledToFit().frame(maxWidth: 290, maxHeight: 290)
+                                Text(LocalizedStringKey(titles[index])).font(.system(size: 26, weight: .semibold)).multilineTextAlignment(.center).padding(.top, 24)
+                                Text(LocalizedStringKey(descriptions[index])).font(.system(size: 14)).foregroundStyle(.secondary).multilineTextAlignment(.center).padding(.top, 14)
+                                Spacer()
+                            }.frame(width: proxy.size.width, height: proxy.size.height)
+                        }
+                    }.scrollTargetLayout()
+                }
+                .scrollIndicators(.hidden)
+                .scrollTargetBehavior(.paging)
+                // 根据实时滚动位置计算页码，让操作区透明度跟随手势变化。
+                .onScrollGeometryChange(for: CGFloat.self) { geometry in
+                    guard geometry.containerSize.width > 0 else { return 0 }
+                    return max(0, min(CGFloat(images.count - 1), geometry.contentOffset.x / geometry.containerSize.width))
+                } action: { _, progress in pageProgress = progress }
+            }
+            // 优先为底部操作预留空间，避免分页内容将按钮挤出安全区域。
+            VStack(spacing: 0) {
+                HStack(spacing: 7) { ForEach(images.indices, id: \.self) { index in Capsule().fill(index == Int(pageProgress.rounded()) ? GlassPalette.accent : .gray.opacity(0.3)).frame(width: index == Int(pageProgress.rounded()) ? 16 : 6, height: 6) } }.padding(.bottom, 20)
+                VStack(spacing: 0) {
+                    GlassPrimaryButton(title: "进入应用", action: onFinish)
+                }
+                .opacity(max(0, min(1, pageProgress - CGFloat(images.count - 2))))
+                .allowsHitTesting(pageProgress >= CGFloat(images.count - 1))
+                .accessibilityHidden(pageProgress < CGFloat(images.count - 1))
+            }
+            .layoutPriority(1)
+        }.padding(.horizontal, 24).safeAreaPadding(.bottom, 12).buttonStyle(.plain)
     }
 }
 
@@ -42,7 +71,7 @@ struct LoginView: View {
                     Text("欢迎回来").font(.system(size: 30, weight: .semibold)).padding(.top, 16)
                     Text("登录你的纪念日，把值得记住的每一天都存下来。").font(.system(size: 15)).foregroundStyle(.secondary).padding(.top, 8)
                     VStack(spacing: 14) {
-                        GlassInput(placeholder: "账号", text: $account)
+                        GlassInput(placeholder: "账号或邮箱", text: $account).keyboardType(.emailAddress)
                         GlassInput(placeholder: "请输入密码", text: $password, secure: true)
                         HStack {
                             Button { DaymarkLog.event("切换记住用户名"); rememberAccount.toggle() } label: { Label("记住我", systemImage: rememberAccount ? "checkmark.square.fill" : "square") }.foregroundStyle(.secondary)
@@ -50,12 +79,14 @@ struct LoginView: View {
                             Button("忘记密码？") { DaymarkLog.event("打开找回密码"); path.append(.reset) }.foregroundStyle(GlassPalette.accent)
                         }.font(.system(size: 13)).buttonStyle(.plain)
                         GlassPrimaryButton(title: "登 录", disabled: loading || account.isEmpty || password.isEmpty) { Task { await login() } }
-                    }.padding(20).modifier(GlassSurface(radius: 28)).padding(.top, 32)
-                    Spacer(minLength: 40)
+                    }.padding(.top, 32)
                     HStack(spacing: 6) {
                         Text("还没有账号？").foregroundStyle(.secondary)
                         Button("立即注册") { DaymarkLog.event("打开注册"); path.append(.register) }.foregroundStyle(GlassPalette.accent)
-                        Button("设置") { DaymarkLog.event("打开设置"); path.append(.settings) }.foregroundStyle(.secondary).padding(.leading, 8)
+                    }.font(.system(size: 13)).frame(maxWidth: .infinity).padding(.top, 24)
+                    Spacer(minLength: 40)
+                    HStack(spacing: 6) {
+                        Button("设置") { DaymarkLog.event("打开设置"); path.append(.settings) }.foregroundStyle(.secondary)
                     }.font(.system(size: 13)).frame(maxWidth: .infinity).padding(.bottom, 16)
                 }.padding(.horizontal, 24).padding(.top, 16).frame(minHeight: proxy.size.height, alignment: .top)
             }.scrollIndicators(.hidden).scrollDismissesKeyboard(.interactively)
@@ -91,7 +122,6 @@ struct ChangePasswordView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            GlassHeader(title: "修改密码", back: { dismiss() })
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     Text("修改密码后，所有设备都需要重新登录。").font(.system(size: 13)).foregroundStyle(.secondary)
@@ -104,6 +134,7 @@ struct ChangePasswordView: View {
                 }.padding(20).modifier(GlassSurface(radius: 28)).padding(24)
             }.scrollIndicators(.hidden).scrollDismissesKeyboard(.interactively)
         }
+        .modifier(SystemNavigationHeader(title: "修改密码", back: { dismiss() }))
         .toolbar { ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("完成") { UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) } } }
     }
 
@@ -123,9 +154,11 @@ struct AccountView: View {
     let isRegister: Bool
     @Binding var path: [DaymarkRoute]
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     @State private var account = ""
     @State private var email = ""
     @State private var password = ""
+    @State private var passwordConfirmation = ""
     @State private var code = ""
     @State private var agreed = false
     @State private var verification = false
@@ -133,10 +166,17 @@ struct AccountView: View {
     @State private var loading = false
     @State private var error: String?
     @State private var sentAt: Date?
-    private let legalURL = URL(string: "https://blog.creepersan.com/article/61")!
+    private let minimumPasswordLength = 8
+    /// 在同一段文字中分别提供两份文档链接，支持自动换行和无障碍访问。
+    private var agreementText: AttributedString {
+        var terms = AttributedString(String(localized: "《用户协议》", locale: locale))
+        terms.link = LegalLinks.userAgreement
+        var privacy = AttributedString(String(localized: "《隐私政策》", locale: locale))
+        privacy.link = LegalLinks.privacyPolicy
+        return AttributedString(String(localized: "我已阅读并同意 ", locale: locale)) + terms + AttributedString(" " + String(localized: "与", locale: locale) + " ") + privacy
+    }
     var body: some View {
         VStack(spacing: 0) {
-            GlassHeader(title: "", back: { if verification && !done { verification = false } else { dismiss() } })
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     if !verification && !done { BrandTile(symbol: isRegister ? "heart.fill" : "lock.fill").padding(.bottom, 16) }
@@ -162,27 +202,23 @@ struct AccountView: View {
                             GlassInput(placeholder: "邮箱", text: $email).keyboardType(.emailAddress)
                             if isRegister {
                                 GlassInput(placeholder: "设置密码（至少 8 位）", text: $password, secure: true)
+                                GlassInput(placeholder: "再次输入密码", text: $passwordConfirmation, secure: true)
+                                if !passwordConfirmation.isEmpty && passwordConfirmation != password { Text("两次输入的密码不一致").font(.system(size: 12)).foregroundStyle(.red).frame(maxWidth: .infinity, alignment: .leading) }
                                 HStack(alignment: .top, spacing: 8) {
                                     Button { DaymarkLog.event("切换协议同意状态"); agreed.toggle() } label: { Image(systemName: agreed ? "checkmark.square.fill" : "square") }.foregroundStyle(GlassPalette.accent)
-                                    Text("我已阅读并同意 ") + Text("《用户协议》与《隐私政策》").foregroundColor(GlassPalette.accent)
+                                    Text(agreementText).tint(GlassPalette.accent)
                                 }.font(.system(size: 12)).frame(maxWidth: .infinity, alignment: .leading)
-                                Link("查看用户协议与隐私政策", destination: legalURL).font(.system(size: 12)).foregroundStyle(GlassPalette.accent).frame(maxWidth: .infinity, alignment: .leading)
                             } else { Text("验证码 5 分钟内有效，请注意查收邮件。").font(.system(size: 12)).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading) }
-                            GlassPrimaryButton(title: loading ? "请稍候…" : "发送验证码", disabled: loading || email.isEmpty || (isRegister && (account.isEmpty || password.count < 8 || !agreed))) { Task { await sendCode() } }
-                        }.padding(20).modifier(GlassSurface(radius: 28)).padding(.top, 30)
-                        if !isRegister { Text("还没收到验证码？请检查垃圾邮件，或稍后重新发送。").font(.system(size: 12)).foregroundStyle(.secondary).padding(.top, 20) }
+                            GlassPrimaryButton(title: loading ? "请稍候…" : "发送验证码", disabled: loading || email.isEmpty || (isRegister && (account.isEmpty || password.count < minimumPasswordLength || passwordConfirmation != password || !agreed))) { Task { await sendCode() } }
+                        }.padding(.top, 30)
                     }
                     if let error { Text(LocalizedStringKey(error)).font(.system(size: 12)).foregroundStyle(.red).padding(.top, 12) }
                 }.padding(.horizontal, 24).padding(.top, 16).padding(.bottom, 24)
             }.scrollIndicators(.hidden).scrollDismissesKeyboard(.interactively)
             if verification && !done {
-                GlassPrimaryButton(title: loading ? "请稍候…" : "确认并继续", disabled: loading || code.count != 6 || password.count < 8) { Task { await submit() } }.padding(.horizontal, 24).padding(.bottom, 16)
-            } else if !done {
-                Button(LocalizedStringKey(isRegister ? "已有账号？去登录" : "还没有账号？立即注册")) {
-                    if isRegister { path.removeAll() } else { path.append(.register) }
-                }.font(.system(size: 13)).foregroundStyle(GlassPalette.accent).padding(.bottom, 16)
+                GlassPrimaryButton(title: loading ? "请稍候…" : "确认并继续", disabled: loading || code.count != 6 || password.count < minimumPasswordLength) { Task { await submit() } }.padding(.horizontal, 24).padding(.bottom, 16)
             }
-        }.toolbar(.hidden, for: .navigationBar)
+        }.modifier(SystemNavigationHeader(title: "", back: { if verification && !done { verification = false } else { dismiss() } }))
             .toolbar { ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("完成") { UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) } } }
     }
     private var codeInput: some View {
@@ -192,18 +228,20 @@ struct AccountView: View {
         }
     }
     private func sendCode() async {
+        guard !loading, !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, !isRegister || (!account.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && password.count >= minimumPasswordLength && passwordConfirmation == password && agreed) else { return }
         DaymarkLog.event(isRegister ? "请求注册验证码" : "请求重置密码验证码")
         loading = true; error = nil; defer { loading = false }
         do { try await api.requestCode(email: email.trimmingCharacters(in: .whitespacesAndNewlines), register: isRegister); sentAt = Date(); verification = true }
         catch { self.error = error.localizedDescription }
     }
     private func submit() async {
+        guard !loading, !isRegister || passwordConfirmation == password else { return }
         DaymarkLog.event(isRegister ? "提交注册" : "提交重置密码")
         loading = true; error = nil; defer { loading = false }
         do {
             if isRegister { try await api.register(account: account.trimmingCharacters(in: .whitespacesAndNewlines), email: email.trimmingCharacters(in: .whitespacesAndNewlines), password: password, code: code) }
             else { try await api.resetPassword(email: email.trimmingCharacters(in: .whitespacesAndNewlines), password: password, code: code) }
-            password = ""; code = ""; done = true
+            password = ""; passwordConfirmation = ""; code = ""; done = true
         } catch { self.error = error.localizedDescription }
     }
 }

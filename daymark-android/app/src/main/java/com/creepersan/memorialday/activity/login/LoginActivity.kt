@@ -68,8 +68,8 @@ class LoginActivity : BaseComposeActivity() {
                 Text(getString(R.string.login_title), fontSize = 30.sp, fontWeight = FontWeight.SemiBold)
                 Text(getString(R.string.login_description), modifier = Modifier.padding(top = 8.dp), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
                 Spacer(Modifier.height(28.dp))
-                GlassCard {
-                    GlassTextField(model.account, { model.account = it }, getString(R.string.account))
+                Column {
+                    GlassTextField(model.account, { model.account = it }, getString(R.string.login_account_or_email), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email))
                     Spacer(Modifier.height(12.dp))
                     GlassTextField(model.password, { model.password = it }, getString(R.string.password), password = true)
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -77,12 +77,14 @@ class LoginActivity : BaseComposeActivity() {
                         Text(getString(R.string.forgot_password), fontSize = 13.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.glassClickable { startActivity(Intent(this@LoginActivity, AccountActivity::class.java)) }.padding(vertical = 12.dp))
                     }
                     GlassButton(getString(R.string.login), { model.login() }, !model.loading && model.account.isNotBlank() && model.password.isNotBlank())
+                    Row(Modifier.fillMaxWidth().padding(top = 24.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                        Text(getString(R.string.login_no_account), fontSize = 13.sp, color = glassSecondaryColor())
+                        Text(getString(R.string.register), fontSize = 13.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.glassClickable { startActivity(Intent(this@LoginActivity, AccountActivity::class.java).putExtra(AccountActivity.EXTRA_REGISTER, true)) }.padding(8.dp))
+                    }
                 }
                 Spacer(Modifier.height(26.dp))
                 Spacer(Modifier.weight(1f))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                    Text(getString(R.string.login_no_account), fontSize = 13.sp, color = glassSecondaryColor())
-                    Text(getString(R.string.register), fontSize = 13.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.glassClickable { startActivity(Intent(this@LoginActivity, AccountActivity::class.java).putExtra(AccountActivity.EXTRA_REGISTER, true)) }.padding(8.dp))
                     Text(getString(R.string.settings), fontSize = 13.sp, color = glassSecondaryColor(), modifier = Modifier.glassClickable { startActivity(Intent(this@LoginActivity, SettingActivity::class.java)) }.padding(8.dp))
                 }
                 Spacer(Modifier.height(16.dp))

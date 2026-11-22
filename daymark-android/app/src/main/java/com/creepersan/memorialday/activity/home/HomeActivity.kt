@@ -127,6 +127,13 @@ class HomeActivity : BaseComposeActivity() {
         // 仅首次创建时加载；从其他页面返回不重新请求。
         if (!model.loaded && !model.loading && model.error == null) model.load()
         setContent {
+            // 会话失效时转到登录页，断网等临时错误留在首页内容区重试。
+            LaunchedEffect(model.error) {
+                if (model.error != null && model.user == null) {
+                    startActivity(Intent(this@HomeActivity, LoginActivity::class.java))
+                    finish()
+                }
+            }
             // 仅在页面可见时等待下一次本地零点，跨天后刷新循环纪念日。
             LaunchedEffect(Unit) {
                 lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {

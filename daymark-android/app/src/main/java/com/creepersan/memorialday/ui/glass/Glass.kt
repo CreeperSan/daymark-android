@@ -50,11 +50,11 @@ fun isGlassDark(): Boolean = when (KV.get(KV_APPLICATION_THEME)) {
 
 /** 新版页面统一的主题、柔光背景和安全区域。 */
 @Composable
-fun GlassPage(horizontalPadding: Dp = 24.dp, content: @Composable ColumnScope.() -> Unit) {
+fun GlassPage(horizontalPadding: Dp = 24.dp, backdrop: Modifier? = null, content: @Composable ColumnScope.() -> Unit) {
     val dark = isGlassDark()
     MemorialDayTheme(darkTheme = dark, dynamicColor = false) {
         CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onBackground) {
-            Box(Modifier.fillMaxSize().glassBackdrop(dark)) {
+            Box(Modifier.fillMaxSize().then(backdrop ?: Modifier.glassBackdrop(dark))) {
                 Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = horizontalPadding, vertical = 0.dp), content = content)
             }
         }

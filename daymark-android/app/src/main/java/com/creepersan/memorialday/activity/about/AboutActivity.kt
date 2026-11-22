@@ -22,7 +22,8 @@ import androidx.compose.ui.unit.sp
 import com.creepersan.memorialday.BuildConfig
 import com.creepersan.memorialday.R
 import com.creepersan.memorialday.base.activity.BaseComposeActivity
-import com.creepersan.memorialday.constance.LEGAL_DOCUMENT_URL
+import com.creepersan.memorialday.constance.USER_AGREEMENT_URL
+import com.creepersan.memorialday.constance.PRIVACY_POLICY_URL
 import com.creepersan.memorialday.ui.glass.*
 
 /** 应用介绍及当前版本信息。 */
@@ -43,6 +44,7 @@ class AboutActivity : BaseComposeActivity() {
                         Text(getString(R.string.about_story_title), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                         Text(getString(R.string.about_story), color = glassSecondaryColor(), fontSize = 13.sp, lineHeight = 21.sp, modifier = Modifier.padding(top = 8.dp))
                     }
+                    Spacer(Modifier.height(8.dp))
                     GlassCard {
                         AboutRow(getString(R.string.settings_version), BuildConfig.VERSION_NAME)
                         AboutRow(getString(R.string.about_developer)) { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://creepersan.com"))) }
@@ -50,7 +52,11 @@ class AboutActivity : BaseComposeActivity() {
                             try { startActivity(Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:admin@creepersan.com"))) } catch (_: android.content.ActivityNotFoundException) { Toast.makeText(this@AboutActivity, R.string.mail_unavailable, Toast.LENGTH_LONG).show() }
                         }
                     }
-                    Text(getString(R.string.about_legal), fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.glassClickable { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(LEGAL_DOCUMENT_URL))) }.padding(14.dp))
+                    Row(Modifier.padding(vertical = 18.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(getString(R.string.agreement_privacy), fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.glassClickable { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_POLICY_URL))) }.padding(6.dp))
+                        Text("·", fontSize = 12.sp, color = glassSecondaryColor())
+                        Text(getString(R.string.agreement_terms), fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.glassClickable { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(USER_AGREEMENT_URL))) }.padding(6.dp))
+                    }
                     Text(getString(R.string.settings_copyright), fontSize = 11.sp, color = glassSecondaryColor(), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp))
                 }
             }
@@ -61,7 +67,7 @@ class AboutActivity : BaseComposeActivity() {
 /** 关于页面中的版本、开发者和联系方式行。 */
 @androidx.compose.runtime.Composable
 private fun AboutRow(label: String, value: String = "", onClick: (() -> Unit)? = null) {
-    Row(Modifier.fillMaxWidth().height(40.dp).then(if (onClick != null) Modifier.glassClickable { onClick() } else Modifier), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+    Row(Modifier.fillMaxWidth().height(46.dp).then(if (onClick != null) Modifier.glassClickable { onClick() } else Modifier), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
         Text(label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
         if (onClick != null) Text("›", fontSize = 21.sp, color = glassSecondaryColor())
         else Text(value, fontSize = 12.sp, color = glassSecondaryColor())

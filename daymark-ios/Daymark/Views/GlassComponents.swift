@@ -1,10 +1,17 @@
 import SwiftUI
+import UIKit
 
 /// 设计稿使用的暖色与暗色文字层级。
 enum GlassPalette {
     static let accent = Color(red: 1, green: 106 / 255, blue: 69 / 255)
     static let primaryLight = Color(red: 74 / 255, green: 37 / 255, blue: 17 / 255)
     static let secondaryLight = Color(red: 165 / 255, green: 121 / 255, blue: 92 / 255)
+}
+
+/// 两份文档暂时指向同一地址，正式地址可分别替换。
+enum LegalLinks {
+    static let userAgreement = URL(string: "https://blog.creepersan.com/article/65")!
+    static let privacyPolicy = URL(string: "https://blog.creepersan.com/article/64")!
 }
 
 /// 危险操作使用明确的红色，并沿用按下时淡化的反馈。
@@ -97,6 +104,52 @@ struct GlassHeader: View {
             Spacer()
             trailing
         }.frame(height: 52).padding(.horizontal, 20)
+    }
+}
+
+/// 使用系统导航栏放置返回和操作按钮，由系统提供标题栏样式及点击区域。
+struct SystemNavigationHeader: ViewModifier {
+    let title: String
+    let back: () -> Void
+    var trailing: AnyView? = nil
+    var onTitleTap: (() -> Void)? = nil
+
+    func body(content: Content) -> some View {
+        content
+            .navigationBarBackButtonHidden(true)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar(.visible, for: .navigationBar)
+            // 滚动时不显示系统默认的着色背景和底部分割线。
+            .toolbarBackground(.hidden, for: .navigationBar)
+            .background(InteractiveBackGesture())
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button { DaymarkLog.event("返回页面：\(title)"); back() } label: { Image(systemName: "chevron.left") }.accessibilityLabel("返回")
+                }
+                ToolbarItem(placement: .principal) {
+                    Text(LocalizedStringKey(title)).font(.system(size: 17, weight: .semibold)).onTapGesture { onTitleTap?() }
+                }
+                ToolbarItem(placement: .topBarTrailing) { trailing }
+            }
+    }
+}
+
+/// 自定义导航栏返回动作时，恢复系统的交互式边缘返回手势。
+private struct InteractiveBackGesture: UIViewControllerRepresentable {
+    func makeUIViewController(context: Context) -> InteractiveBackController { InteractiveBackController() }
+    func updateUIViewController(_ controller: InteractiveBackController, context: Context) {}
+}
+
+/// 仅在导航栈有上一页且没有转场时允许系统处理返回手势。
+private final class InteractiveBackController: UIViewController, UIGestureRecognizerDelegate {
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        navigationController?.interactivePopGestureRecognizer?.delegate = self
+    }
+
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        guard let navigationController else { return false }
+        return navigationController.viewControllers.count > 1 && navigationController.transitionCoordinator == nil
     }
 }
 

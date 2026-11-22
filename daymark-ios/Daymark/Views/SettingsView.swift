@@ -24,7 +24,6 @@ struct SettingsView: View {
     @State private var lastTitleTap = Date.distantPast
     private let developerTapCount = 8
     private let developerTapInterval: TimeInterval = 0.5
-    private let legalURL = URL(string: "https://blog.creepersan.com/article/61")!
     private let languages = [("system", "跟随系统"), ("zh-CN", "简体中文"), ("zh-TW", "繁體中文"), ("yue-Hans-CN", "简体粤语（广东）"), ("yue-Hant-HK", "繁體粵語（香港）"), ("en", "English"), ("ja", "日本語"), ("ko", "한국어")]
     enum Selection: String, Identifiable { case theme, language, nickname, accountHost, serverHost; var id: String { rawValue } }
     var body: some View {
@@ -52,16 +51,16 @@ struct SettingsView: View {
                     }
                 }
                 section("其他") {
-                    row("应用版本", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "") {}
+                    rowLabel("应用版本", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "", showArrow: false)
                     row("关于应用") { path.append(.about) }
-                    Link(destination: legalURL) { rowLabel("隐私政策") }
-                    Link(destination: legalURL) { rowLabel("服务协议") }
+                    Link(destination: LegalLinks.privacyPolicy) { rowLabel("隐私政策") }
+                    Link(destination: LegalLinks.userAgreement) { rowLabel("服务协议") }
                 }
                 Text("Copyright 2026 纪念日 · 保留所有权利").font(.system(size: 11)).foregroundStyle(.secondary).frame(maxWidth: .infinity).padding(.vertical, 12)
             }.padding(.horizontal, 20).padding(.top, 12).padding(.bottom, 24)
         }
         .scrollIndicators(.hidden)
-        .safeAreaInset(edge: .top, spacing: 0) { GlassHeader(title: "设置", back: { dismiss() }, onTitleTap: tapTitle) }
+        .modifier(SystemNavigationHeader(title: "设置", back: { dismiss() }, onTitleTap: tapTitle))
         .sheet(item: $selection) { selected in
             if selected == .nickname {
                 NicknameSheet(api: api) { selection = nil }.presentationDetents([.medium]).presentationDragIndicator(.visible)
@@ -84,7 +83,7 @@ struct SettingsView: View {
         .alert("删除账号", isPresented: $confirmDelete) {
             Button("取消", role: .cancel) {}
             Button("确定", role: .destructive) { DaymarkLog.event("确认申请删除账号"); composeDeletionMail() }
-        } message: { Text("删除账号将导致你的账号所有数据都将永久删除，确定要继续吗？") }
+        } message: { Text("将打开邮件应用，请发送邮件申请删除账号。核实身份后，我们会人工处理；账号及其云端数据删除后无法恢复。") }
         .alert("无法打开邮件应用", isPresented: $mailUnavailable) { Button("好", role: .cancel) {} }
     }
     /// 使用当前应用语言生成邮件；旧会话缺少资料时提示用户自行填写。
@@ -206,7 +205,7 @@ struct AboutView: View {
     @State private var mailUnavailable = false
     var body: some View {
         ScrollView {
-            VStack(spacing: 14) {
+            VStack(spacing: 18) {
                 Image(systemName: "heart.fill").font(.system(size: 36)).foregroundStyle(GlassPalette.accent).frame(width: 88, height: 88).modifier(GlassSurface(radius: 30))
                 Text("纪念日").font(.system(size: 24, weight: .semibold))
                 Text("把时间，过成值得纪念的样子。").font(.system(size: 14)).foregroundStyle(GlassPalette.accent)
@@ -216,13 +215,17 @@ struct AboutView: View {
                         .font(.system(size: 13)).foregroundStyle(.secondary)
                 }.frame(maxWidth: .infinity, alignment: .leading).padding(20).modifier(GlassSurface())
                 VStack(spacing: 0) {
-                    HStack { Text("当前版本"); Spacer(); Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "") }.frame(height: 40)
-                    Button { DaymarkLog.event("打开开发者网站"); openURL(developerURL) } label: { HStack { Text("开发者"); Spacer(); Image(systemName: "chevron.right").font(.system(size: 11)) }.frame(height: 40) }.buttonStyle(.plain)
-                    Button { DaymarkLog.event("打开联系邮件"); openURL(URL(string: "mailto:\(contactEmail)")!) { if !$0 { mailUnavailable = true } } } label: { HStack { Text("联系我们"); Spacer(); Image(systemName: "chevron.right").font(.system(size: 11)) }.frame(height: 40) }.buttonStyle(.plain)
+                    HStack { Text("当前版本"); Spacer(); Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "") }.frame(height: 46)
+                    Button { DaymarkLog.event("打开开发者网站"); openURL(developerURL) } label: { HStack { Text("开发者"); Spacer(); Image(systemName: "chevron.right").font(.system(size: 11)) }.frame(height: 46) }.buttonStyle(.plain)
+                    Button { DaymarkLog.event("打开联系邮件"); openURL(URL(string: "mailto:\(contactEmail)")!) { if !$0 { mailUnavailable = true } } } label: { HStack { Text("联系我们"); Spacer(); Image(systemName: "chevron.right").font(.system(size: 11)) }.frame(height: 46) }.buttonStyle(.plain)
                 }.font(.system(size: 12)).foregroundStyle(.secondary).padding(.horizontal, 16).modifier(GlassSurface(radius: 20))
-                Link("隐私政策 · 服务协议", destination: URL(string: "https://blog.creepersan.com/article/61")!).font(.system(size: 12)).foregroundStyle(GlassPalette.accent)
+                HStack(spacing: 6) {
+                    Link("隐私政策", destination: LegalLinks.privacyPolicy)
+                    Text("·")
+                    Link("服务协议", destination: LegalLinks.userAgreement)
+                }.font(.system(size: 12)).foregroundStyle(GlassPalette.accent)
                 Text("Copyright 2026 纪念日 · 保留所有权利").font(.system(size: 11)).foregroundStyle(.secondary)
             }.padding(24)
-        }.scrollIndicators(.hidden).safeAreaInset(edge: .top, spacing: 0) { GlassHeader(title: "关于应用", back: { dismiss() }) }.alert("无法打开邮件应用", isPresented: $mailUnavailable) { Button("好", role: .cancel) {} }
+        }.scrollIndicators(.hidden).modifier(SystemNavigationHeader(title: "关于应用", back: { dismiss() })).alert("无法打开邮件应用", isPresented: $mailUnavailable) { Button("好", role: .cancel) {} }
     }
 }

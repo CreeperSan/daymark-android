@@ -1,14 +1,15 @@
 <resources>
-    <string name="select_mode">Choose a mode</string>
-    <string name="select_mode_description">Choose your Daymark experience</string>
+    <string name="select_mode">Choose how to keep track</string>
+    <string name="select_mode_description">You can switch modes anytime in Settings and keep your saved entries.</string>
     <string name="new_version">New version</string>
-    <string name="new_description">Sign in to prepare for cloud sync.</string>
+    <string name="new_description">Sync entries to the cloud so they stay with you when you switch devices.</string>
     <string name="open_new">Open new version</string>
     <string name="classic_version">Classic version</string>
-    <string name="classic_description">Continue using your local anniversaries.</string>
+    <string name="classic_description">Keep your entries on this device with a simpler interface.</string>
     <string name="open_classic">Open classic</string>
     <string name="login_title">Welcome back</string>
     <string name="login_description">Sign in to use the new Daymark.</string>
+    <string name="login_account_or_email">Account or email</string>
     <string name="account">Account</string>
     <string name="password">Password</string>
     <string name="login">Sign in</string>
@@ -77,7 +78,7 @@
         <item quantity="other">%d days ago</item>
     </plurals>
     <string name="logout_confirm">Are you sure you want to sign out?</string>
-    <string name="delete_confirm">Deleting your account will permanently delete all of your account data. Are you sure you want to continue?</string>
+    <string name="delete_confirm">Your email app will open. Please send the email to request account deletion. We will process your request manually after verifying your identity. Your account and cloud data cannot be restored once deleted.</string>
     <string name="delete_mail_subject">Request to delete my account</string>
     <string name="delete_mail_body">Hello, please permanently delete my account from the server. I fully understand the consequences of deleting my account. My username is: %1$s, email address is: %2$s, and user ID is: %3$s</string>
     <string name="account_missing">Please fill in</string>
@@ -105,6 +106,8 @@
     <string name="account_confirm">Confirm and continue</string>
     <string name="account_resend">Resend code</string>
     <string name="account_email">Email</string>
+    <string name="register_confirm_password">Confirm password</string>
+    <string name="register_password_mismatch">The passwords do not match.</string>
     <string name="account_set_password">Password (at least 8 characters)</string>
     <string name="account_send_code">Send code</string>
     <string name="about_story_title">Why Daymark exists</string>
@@ -163,7 +166,11 @@
     <string name="social_login">Or continue with</string>
     <string name="social_register">Or register with</string>
     <string name="login_remember">Remember me</string>
-    <string name="mode_features">Cloud sync · Shared anniversaries · Smart reminders</string>
+    <string name="mode_features">Cloud sync</string>
+    <string name="mode_new_title">New mode</string>
+    <string name="mode_classic_title">Classic mode</string>
+    <string name="mode_recommended">Recommended</string>
+    <string name="mode_new_interface">New interface</string>
     <string name="social_apple">Sign in with Apple</string>
     <string name="social_wechat">Sign in with WeChat</string>
     <string name="page_state_empty_title">No anniversaries yet</string>

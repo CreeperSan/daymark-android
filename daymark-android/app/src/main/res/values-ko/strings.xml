@@ -1,14 +1,15 @@
 <resources>
-    <string name="select_mode">모드 선택</string>
-    <string name="select_mode_description">사용할 기념일 모드를 선택하세요</string>
+    <string name="select_mode">기록 방식 선택</string>
+    <string name="select_mode_description">설정에서 언제든지 모드를 바꿀 수 있으며, 저장한 기록은 그대로 유지됩니다.</string>
     <string name="new_version">새 버전</string>
-    <string name="new_description">로그인하여 클라우드 동기화를 준비하세요.</string>
+    <string name="new_description">클라우드 동기화로 기기를 바꿔도 기록을 유지할 수 있습니다.</string>
     <string name="open_new">새 버전 열기</string>
     <string name="classic_version">클래식 버전</string>
-    <string name="classic_description">기존 로컬 기념일을 계속 사용합니다.</string>
+    <string name="classic_description">이 기기에만 저장하며, 간결한 화면에서 기록할 수 있습니다.</string>
     <string name="open_classic">클래식 열기</string>
     <string name="login_title">다시 오신 것을 환영합니다</string>
     <string name="login_description">로그인하여 새 기념일을 시작하세요.</string>
+    <string name="login_account_or_email">계정 또는 이메일</string>
     <string name="account">계정</string>
     <string name="password">비밀번호</string>
     <string name="login">로그인</string>
@@ -66,7 +67,7 @@
         <item quantity="other">%d일 지남</item>
     </plurals>
     <string name="logout_confirm">로그아웃하시겠습니까?</string>
-    <string name="delete_confirm">계정을 삭제하면 모든 계정 데이터가 영구적으로 삭제됩니다. 계속하시겠습니까?</string>
+    <string name="delete_confirm">메일 앱이 열리면 계정 삭제 요청 메일을 보내 주세요. 본인 확인 후 수동으로 처리합니다. 삭제된 계정과 클라우드 데이터는 복구할 수 없습니다.</string>
     <string name="delete_mail_subject">계정 삭제 요청</string>
     <string name="delete_mail_body">안녕하세요. 제 계정을 서버에서 영구적으로 삭제해 주세요. 계정 삭제의 결과를 충분히 이해했습니다. 사용자 이름: %1$s, 이메일 주소: %2$s, 사용자 ID: %3$s</string>
     <string name="account_missing">입력해 주세요</string>
@@ -95,6 +96,8 @@
     <string name="account_confirm">확인하고 계속</string>
     <string name="account_resend">인증 코드 다시 보내기</string>
     <string name="account_email">이메일</string>
+    <string name="register_confirm_password">비밀번호 다시 입력</string>
+    <string name="register_password_mismatch">비밀번호가 일치하지 않습니다.</string>
     <string name="account_set_password">비밀번호 설정 (8자 이상)</string>
     <string name="account_send_code">인증 코드 보내기</string>
     <string name="about_story_title">이 앱을 만든 이유</string>
@@ -161,7 +164,11 @@
     <string name="social_login">또는 다음 방법으로 계속</string>
     <string name="social_register">또는 다음 방법으로 가입</string>
     <string name="login_remember">아이디 기억하기</string>
-    <string name="mode_features">클라우드 동기화 · 기념일 공유 · 알림</string>
+    <string name="mode_features">클라우드 동기화</string>
+    <string name="mode_new_title">새 모드</string>
+    <string name="mode_classic_title">클래식 모드</string>
+    <string name="mode_recommended">추천</string>
+    <string name="mode_new_interface">새 인터페이스</string>
     <string name="social_apple">Apple로 로그인</string>
     <string name="social_wechat">WeChat으로 로그인</string>
     <string name="page_state_empty_title">아직 기념일이 없어요</string>

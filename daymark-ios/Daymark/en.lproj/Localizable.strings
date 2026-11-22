@@ -8,6 +8,7 @@
 "继续使用原有的本地纪念日。" = "Continue using your local anniversaries.";
 "打开经典版" = "Open classic";
 "欢迎回来" = "Welcome back";
+"账号或邮箱" = "Account or email";
 "账号" = "Account";
 "密码" = "Password";
 "登录" = "Sign in";
@@ -148,13 +149,14 @@
 
 "原密码" = "Current password";
 "确认新密码" = "Confirm new password";
+"再次输入密码" = "Confirm password";
 "两次输入的密码不一致" = "Passwords do not match";
 "确认修改" = "Change password";
 "修改密码后，所有设备都需要重新登录。" = "After changing your password, all devices must sign in again.";
 "密码修改成功，请重新登录。" = "Password changed. Please sign in again.";
 
 "确定要退出登录吗？" = "Are you sure you want to sign out?";
-"删除账号将导致你的账号所有数据都将永久删除，确定要继续吗？" = "Deleting your account will permanently delete all of your account data. Are you sure you want to continue?";
+"将打开邮件应用，请发送邮件申请删除账号。核实身份后，我们会人工处理；账号及其云端数据删除后无法恢复。" = "Your email app will open. Please send the email to request account deletion. We will process your request manually after verifying your identity. Your account and cloud data cannot be restored once deleted.";
 "请求删除我的账号" = "Request to delete my account";
 "删除账号邮件内容" = "Hello, please permanently delete my account from the server. I fully understand the consequences of deleting my account. My username is: %1$@, email address is: %2$@, and user ID is: %3$@";
 "请填写" = "Please fill in";

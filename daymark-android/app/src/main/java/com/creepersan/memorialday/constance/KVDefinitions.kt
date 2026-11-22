@@ -4,6 +4,10 @@ import com.creepersan.memorialday.module.kv.KVItem
 
 private const val kvModuleApplication = "application"
 
+// 修改欢迎页内容并需要再次展示时，递增当前版本；旧引导对应的版本保持不变。
+const val WELCOME_SCREEN_CURRENT_VERSION = 1
+const val WELCOME_SCREEN_LEGACY_VERSION = 1
+
 /*************************************************************************************************** 应用设置 */
 
 // 主题设置
@@ -19,6 +23,9 @@ val KV_APPLICATION_MODE = KVItem(
     key = { "mode" },
     defaultValue = { AppMode.Default },
 )
+
+// 用户已完成或跳过的欢迎页版本；零表示尚未完成。
+val KV_WELCOME_SCREEN_SHOW_VERSION = KVItem(kvModuleApplication, { "welcomeScreenShowVersion" }, { 0 })
 
 // 新版语言和开发选项
 val KV_APPLICATION_LANGUAGE = KVItem(kvModuleApplication, { "language" }, { "system" })

@@ -1,15 +1,16 @@
 <resources>
     <string name="app_name">纪念日</string>
-    <string name="select_mode">选择使用模式</string>
-    <string name="select_mode_description">选择适合你的纪念日体验</string>
+    <string name="select_mode">选择你的记录方式</string>
+    <string name="select_mode_description">选择后随时可以在设置里切换，已记录的内容不会丢。</string>
     <string name="new_version">新版</string>
-    <string name="new_description">使用账号登录，为未来的云端同步做好准备。</string>
+    <string name="new_description">支持云端同步，换设备也不会丢。</string>
     <string name="open_new">打开新版</string>
     <string name="classic_version">经典版</string>
-    <string name="classic_description">继续使用原有的本地纪念日。</string>
+    <string name="classic_description">只保存在本机，界面更轻，适合只想安静记录的自己。</string>
     <string name="open_classic">打开经典版</string>
     <string name="login_title">欢迎回来</string>
     <string name="login_description">登录你的纪念日，把值得记住的每一天都存下来。</string>
+    <string name="login_account_or_email">账号或邮箱</string>
     <string name="account">账号</string>
     <string name="password">密码</string>
     <string name="login">登录</string>
@@ -89,6 +90,8 @@
     <string name="account_confirm">确认并继续</string>
     <string name="account_resend">重新发送验证码</string>
     <string name="account_email">邮箱</string>
+    <string name="register_confirm_password">再次输入密码</string>
+    <string name="register_password_mismatch">两次输入的密码不一致。</string>
     <string name="account_set_password">设置密码（至少 8 位）</string>
     <string name="account_send_code">发送验证码</string>
     <string name="about_story_title">为什么会有这个 App</string>
@@ -143,7 +146,11 @@
     <string name="login_no_account">还没有账号？</string>
     <string name="login_remember">记住我</string>
     <string name="reset_hint">还没收到验证码？请检查垃圾邮件，或稍后重新发送。</string>
-    <string name="mode_features">云端同步 · 共享纪念日 · 智能提醒</string>
+    <string name="mode_features">云端同步</string>
+    <string name="mode_new_title">新版模式</string>
+    <string name="mode_classic_title">经典模式</string>
+    <string name="mode_recommended">推荐</string>
+    <string name="mode_new_interface">全新界面</string>
     <string name="about_slogan">把时间，过成值得纪念的样子。</string>
     <string name="about_developer">开发者</string>
     <string name="about_contact">联系我们</string>
@@ -157,7 +164,7 @@
     <string name="account_go_login">去登录</string>
     <string name="switch_to_new">切换到新版</string>
     <string name="logout_confirm">确定要退出登录吗？</string>
-    <string name="delete_confirm">删除账号将导致你的账号所有数据都将永久删除，确定要继续吗？</string>
+    <string name="delete_confirm">将打开邮件应用，请发送邮件申请删除账号。核实身份后，我们会人工处理；账号及其云端数据删除后无法恢复。</string>
     <string name="delete_mail_subject">请求删除我的账号</string>
     <string name="delete_mail_body">你好，请将我的账号从服务器中永久删除，我已充分了解账号删除的后果。我的账号用户名是：%1$s，邮箱是：%2$s，用户 Id 是：%3$s</string>
     <string name="account_missing">请填写</string>

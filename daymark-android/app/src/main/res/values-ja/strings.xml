@@ -1,14 +1,15 @@
 <resources>
-    <string name="select_mode">モードを選択</string>
-    <string name="select_mode_description">利用するモードを選んでください</string>
+    <string name="select_mode">記録方法を選ぶ</string>
+    <string name="select_mode_description">設定からいつでも切り替えられます。保存した記録は消えません。</string>
     <string name="new_version">新バージョン</string>
-    <string name="new_description">ログインしてクラウド同期に備えましょう。</string>
+    <string name="new_description">クラウド同期に対応。機種を変更しても記録を引き継げます。</string>
     <string name="open_new">新バージョンを開く</string>
     <string name="classic_version">クラシック版</string>
-    <string name="classic_description">従来のローカル記念日を使い続けます。</string>
+    <string name="classic_description">記録はこの端末に保存されます。シンプルな画面で記録したい方に。</string>
     <string name="open_classic">クラシック版を開く</string>
     <string name="login_title">おかえりなさい</string>
     <string name="login_description">ログインして新しい記念日を始めましょう。</string>
+    <string name="login_account_or_email">アカウントまたはメールアドレス</string>
     <string name="account">アカウント</string>
     <string name="password">パスワード</string>
     <string name="login">ログイン</string>
@@ -66,7 +67,7 @@
         <item quantity="other">%d 日経過</item>
     </plurals>
     <string name="logout_confirm">ログアウトしますか？</string>
-    <string name="delete_confirm">アカウントを削除すると、すべてのデータが完全に削除されます。続行しますか？</string>
+    <string name="delete_confirm">メールアプリが開きます。アカウント削除を申請するメールを送信してください。本人確認後、手動で対応します。削除されたアカウントとクラウドデータは復元できません。</string>
     <string name="delete_mail_subject">アカウントの削除依頼</string>
     <string name="delete_mail_body">こんにちは。私のアカウントをサーバーから完全に削除してください。アカウント削除の結果を十分に理解しています。ユーザー名：%1$s、メールアドレス：%2$s、ユーザー ID：%3$s</string>
     <string name="account_missing">入力してください</string>
@@ -95,6 +96,8 @@
     <string name="account_confirm">確認して続行</string>
     <string name="account_resend">認証コードを再送</string>
     <string name="account_email">メールアドレス</string>
+    <string name="register_confirm_password">パスワードを再入力</string>
+    <string name="register_password_mismatch">パスワードが一致しません。</string>
     <string name="account_set_password">パスワードを設定（8文字以上）</string>
     <string name="account_send_code">認証コードを送信</string>
     <string name="about_story_title">このアプリについて</string>
@@ -161,7 +164,11 @@
     <string name="social_login">または次の方法で続行</string>
     <string name="social_register">または次の方法で登録</string>
     <string name="login_remember">ログイン名を記憶</string>
-    <string name="mode_features">クラウド同期 · 記念日共有 · リマインダー</string>
+    <string name="mode_features">クラウド同期</string>
+    <string name="mode_new_title">新モード</string>
+    <string name="mode_classic_title">クラシックモード</string>
+    <string name="mode_recommended">おすすめ</string>
+    <string name="mode_new_interface">新しい画面</string>
     <string name="social_apple">Apple でログイン</string>
     <string name="social_wechat">WeChat でログイン</string>
     <string name="page_state_empty_title">記念日はまだありません</string>

@@ -126,8 +126,8 @@ class SettingActivity : BaseComposeActivity() {
                     SettingsSection(getString(R.string.settings_other)) {
                         SettingsRow(getString(R.string.settings_version), com.creepersan.memorialday.BuildConfig.VERSION_NAME, showArrow = false)
                         SettingsRow(getString(R.string.about_app), onClick = { startActivity(Intent(this@SettingActivity, AboutActivity::class.java)) })
-                        SettingsRow(getString(R.string.agreement_privacy), onClick = { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(LEGAL_DOCUMENT_URL))) })
-                        SettingsRow(getString(R.string.agreement_terms), onClick = { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(LEGAL_DOCUMENT_URL))) })
+                        SettingsRow(getString(R.string.agreement_privacy), onClick = { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_POLICY_URL))) })
+                        SettingsRow(getString(R.string.agreement_terms), onClick = { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(USER_AGREEMENT_URL))) })
                     }
                     Text(getString(R.string.settings_copyright), color = glassSecondaryColor(), fontSize = 11.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp))
                 }

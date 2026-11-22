@@ -17,7 +17,6 @@ struct AnniversaryEditView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            GlassHeader(title: id == nil ? "新建纪念日" : "编辑纪念日", back: { dismiss() }, trailing: AnyView(Button("保存") { Task { await save() } }.font(.system(size: 14, weight: .semibold)).foregroundStyle(GlassPalette.accent).disabled(!loaded || saving || item.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)))
             if loading { ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity) }
             else if !loaded {
                 VStack(spacing: 12) { Text(LocalizedStringKey(error ?? "加载失败")).foregroundStyle(.secondary); GlassPrimaryButton(title: "重试") { Task { await load() } } }.padding(24)
@@ -45,25 +44,34 @@ struct AnniversaryEditView: View {
                         if let error { Text(LocalizedStringKey(error)).font(.system(size: 12)).foregroundStyle(.red) }
                     }.padding(.horizontal, 24).padding(.top, 10).padding(.bottom, 20)
                 }.scrollIndicators(.hidden)
-                if id != nil { Button("删除纪念日", role: .destructive) { confirmDelete = true }.buttonStyle(WarningButtonStyle()).disabled(saving).padding(.horizontal, 24).padding(.bottom, 8) }
                 GlassPrimaryButton(title: saving ? "保存中…" : "保存纪念日", disabled: saving || item.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) { Task { await save() } }.padding(.horizontal, 24).padding(.bottom, 16)
             }
         }
+        .modifier(SystemNavigationHeader(title: id == nil ? "新建纪念日" : "编辑纪念日", back: { dismiss() }, trailing: id == nil ? nil : AnyView(Button { confirmDelete = true } label: { Image(systemName: "trash") }.tint(.red).disabled(!loaded || saving).accessibilityLabel("删除纪念日"))))
         .alert("删除纪念日", isPresented: $confirmDelete) {
             Button("取消", role: .cancel) {}
             Button("删除", role: .destructive) { Task { await delete() } }
         } message: { Text("确定删除这个纪念日吗？删除后无法恢复。") }
-        .sheet(isPresented: $datePicker) {
-            DateSelectionSheet(date: $selectedDate, calendarType: $item.calendarType).presentationDetents([.height(360), .large]).presentationDragIndicator(.visible)
+        .overlay {
+            if datePicker {
+                ZStack(alignment: .bottom) {
+                    Color.black.opacity(0.35).ignoresSafeArea().contentShape(Rectangle()).onTapGesture { datePicker = false }
+                    DateSelectionSheet(date: $selectedDate, calendarType: $item.calendarType, dismiss: { datePicker = false })
+                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24)).padding(.horizontal, 12).padding(.bottom, 12)
+                }
+            }
         }
         .task { await load() }
     }
     private var dateDescription: Text {
-        let formatter = DateFormatter(); formatter.locale = locale; formatter.dateFormat = "yyyy.MM.dd"
-        if item.calendarType == CalendarKind.lunar.rawValue {
-            let lunar = DateFormatter(); lunar.calendar = AnniversaryCalendar.chinese; lunar.locale = locale; lunar.setLocalizedDateFormatFromTemplate("MMMMd")
-            return Text(verbatim: formatter.string(from: selectedDate) + " · ") + Text("农历") + Text(verbatim: " " + lunar.string(from: selectedDate))
+        let formatter = DateFormatter(); formatter.locale = locale
+        let chinese = locale.language.languageCode?.identifier == "zh" || locale.language.languageCode?.identifier == "yue"
+        if item.calendarType == CalendarKind.lunar.rawValue, let parts = AnniversaryCalendar.lunarParts(for: selectedDate), chinese {
+            formatter.calendar = AnniversaryCalendar.chinese; formatter.locale = Locale(identifier: "zh_CN"); formatter.dateFormat = "MMMM"
+            return Text(verbatim: "（\(parts.year)）\(AnniversaryCalendar.yearName(parts.year))年\(formatter.string(from: selectedDate))\(AnniversaryCalendar.dayName(parts.day))")
         }
+        formatter.dateFormat = chinese ? "yyyy 年 M 月 d 日" : DateFormatter.dateFormat(fromTemplate: "yMMMMd", options: 0, locale: locale)
+        if item.calendarType == CalendarKind.lunar.rawValue { formatter.calendar = AnniversaryCalendar.chinese }
         return Text(verbatim: formatter.string(from: selectedDate))
     }
     private func label(_ text: String) -> some View { Text(LocalizedStringKey(text)).font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary) }
@@ -108,7 +116,7 @@ struct AnniversaryEditView: View {
 struct DateSelectionSheet: View {
     @Binding var date: Date
     @Binding var calendarType: String
-    @Environment(\.dismiss) private var dismiss
+    let dismiss: () -> Void
     @State private var draftDate: Date = Date()
     @State private var draftCalendar = CalendarKind.solar.rawValue
     var body: some View {
@@ -119,10 +127,64 @@ struct DateSelectionSheet: View {
                 Button("确定") { DaymarkLog.event("确认日期选择"); date = draftDate; calendarType = draftCalendar; dismiss() }
             }.foregroundStyle(GlassPalette.accent)
             Picker("日期类型", selection: $draftCalendar) { Text("公历").tag(CalendarKind.solar.rawValue); Text("农历").tag(CalendarKind.lunar.rawValue) }.pickerStyle(.segmented)
-            DatePicker("日期", selection: $draftDate, displayedComponents: .date).datePickerStyle(.wheel).labelsHidden().environment(\.calendar, draftCalendar == CalendarKind.lunar.rawValue ? AnniversaryCalendar.chinese : AnniversaryCalendar.gregorian)
+            if draftCalendar == CalendarKind.lunar.rawValue {
+                LunarDateWheels(date: $draftDate)
+            } else {
+                DatePicker("日期", selection: $draftDate, displayedComponents: .date).datePickerStyle(.wheel).labelsHidden().environment(\.calendar, AnniversaryCalendar.gregorian)
+            }
             Spacer(minLength: 0)
         }.padding(20).onAppear { draftDate = date; draftCalendar = calendarType }
             .onChange(of: draftDate) { _, _ in DaymarkLog.event("日期选择器变更") }
             .onChange(of: draftCalendar) { _, _ in DaymarkLog.event("日期选择器历法变更") }
+    }
+}
+
+/// 农历滚轮以农历年起始年份标注干支，并按实际月份处理闰月和月末。
+private struct LunarDateWheels: View {
+    @Binding var date: Date
+    private var parts: (year: Int, month: Int, day: Int, leap: Bool)? { AnniversaryCalendar.lunarParts(for: date) }
+    private var months: [Date] {
+        let calendar = AnniversaryCalendar.chinese
+        guard let interval = calendar.dateInterval(of: .year, for: date) else { return [] }
+        var result: [Date] = []; var current = interval.start
+        while current < interval.end {
+            result.append(current)
+            guard let next = calendar.date(byAdding: .month, value: 1, to: current), next > current else { break }
+            current = next
+        }
+        return result
+    }
+    private func monthLabel(_ date: Date) -> String {
+        let formatter = DateFormatter(); formatter.calendar = AnniversaryCalendar.chinese; formatter.locale = Locale(identifier: "zh_CN"); formatter.dateFormat = "MMMM"
+        return formatter.string(from: date)
+    }
+    var body: some View {
+        if let parts {
+            let selectedMonth = months.firstIndex { candidate in
+                let value = AnniversaryCalendar.chinese.dateComponents([.month, .isLeapMonth], from: candidate)
+                return value.month == parts.month && (value.isLeapMonth ?? false) == parts.leap
+            } ?? 0
+            let count = AnniversaryCalendar.chinese.range(of: .day, in: .month, for: date)?.count ?? 30
+            HStack(spacing: 0) {
+                Picker("年", selection: Binding(get: { parts.year }, set: { year in
+                    let leap = parts.leap && AnniversaryCalendar.solarDate(year: year, month: parts.month, day: 1, leap: true) != nil
+                    if let value = AnniversaryCalendar.solarDate(year: year, month: parts.month, day: parts.day, leap: leap) ?? AnniversaryCalendar.solarDate(year: year, month: parts.month, day: min(parts.day, 29), leap: leap) { date = value }
+                })) {
+                    ForEach(1...9998, id: \.self) { year in Text("（\(year)）\(AnniversaryCalendar.yearName(year))").tag(year) }
+                }.frame(maxWidth: .infinity)
+                Picker("月", selection: Binding(get: { selectedMonth }, set: { index in
+                    guard months.indices.contains(index), let count = AnniversaryCalendar.chinese.range(of: .day, in: .month, for: months[index])?.count,
+                          let value = AnniversaryCalendar.chinese.date(byAdding: .day, value: min(parts.day, count) - 1, to: months[index]) else { return }
+                    date = value
+                })) {
+                    ForEach(months.indices, id: \.self) { index in Text(monthLabel(months[index])).tag(index) }
+                }.frame(maxWidth: .infinity)
+                Picker("日", selection: Binding(get: { parts.day }, set: { day in
+                    if let value = AnniversaryCalendar.chinese.date(byAdding: .day, value: day - parts.day, to: date) { date = value }
+                })) {
+                    ForEach(1...count, id: \.self) { day in Text(AnniversaryCalendar.dayName(day)).tag(day) }
+                }.frame(maxWidth: .infinity)
+            }.pickerStyle(.wheel).labelsHidden().frame(height: 216).clipped()
+        }
     }
 }
