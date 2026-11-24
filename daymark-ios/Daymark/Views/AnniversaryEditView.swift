@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// 新建或编辑纪念日；切换历法时保留同一个实际日期。
 struct AnniversaryEditView: View {
@@ -56,7 +57,7 @@ struct AnniversaryEditView: View {
             if datePicker {
                 ZStack(alignment: .bottom) {
                     Color.black.opacity(0.35).ignoresSafeArea().contentShape(Rectangle()).onTapGesture { datePicker = false }
-                    DateSelectionSheet(date: $selectedDate, calendarType: $item.calendarType, dismiss: { datePicker = false })
+                    DateSelectionSheet(date: $selectedDate, calendarType: item.calendarType, dismiss: { datePicker = false })
                         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24)).padding(.horizontal, 12).padding(.bottom, 12)
                 }
             }
@@ -115,27 +116,32 @@ struct AnniversaryEditView: View {
 /// 使用系统滚轮日期选择器，农历使用系统中国农历并保留闰月信息。
 struct DateSelectionSheet: View {
     @Binding var date: Date
-    @Binding var calendarType: String
+    let calendarType: String
     let dismiss: () -> Void
     @State private var draftDate: Date = Date()
-    @State private var draftCalendar = CalendarKind.solar.rawValue
     var body: some View {
         VStack(spacing: 12) {
             HStack {
                 Button("取消") { dismiss() }
                 Spacer(); Text("选择纪念日日期").font(.system(size: 16, weight: .semibold)); Spacer()
-                Button("确定") { DaymarkLog.event("确认日期选择"); date = draftDate; calendarType = draftCalendar; dismiss() }
+                Button("确定") { DaymarkLog.event("确认日期选择"); date = draftDate; dismiss() }
             }.foregroundStyle(GlassPalette.accent)
-            Picker("日期类型", selection: $draftCalendar) { Text("公历").tag(CalendarKind.solar.rawValue); Text("农历").tag(CalendarKind.lunar.rawValue) }.pickerStyle(.segmented)
-            if draftCalendar == CalendarKind.lunar.rawValue {
+            if calendarType == CalendarKind.lunar.rawValue {
                 LunarDateWheels(date: $draftDate)
             } else {
                 DatePicker("日期", selection: $draftDate, displayedComponents: .date).datePickerStyle(.wheel).labelsHidden().environment(\.calendar, AnniversaryCalendar.gregorian)
             }
             Spacer(minLength: 0)
-        }.padding(20).onAppear { draftDate = date; draftCalendar = calendarType }
+        }.padding(20).onAppear {
+            draftDate = date
+            // 已有日期超出可选范围时，将弹窗初始年份移到最近的边界。
+            if calendarType == CalendarKind.lunar.rawValue, let parts = AnniversaryCalendar.lunarParts(for: date), !AnniversaryCalendar.selectableLunarYears.contains(parts.year) {
+                let year = min(max(parts.year, AnniversaryCalendar.selectableLunarYears.lowerBound), AnniversaryCalendar.selectableLunarYears.upperBound)
+                let leap = parts.leap && AnniversaryCalendar.solarDate(year: year, month: parts.month, day: 1, leap: true) != nil
+                if let value = AnniversaryCalendar.solarDate(year: year, month: parts.month, day: parts.day, leap: leap) ?? AnniversaryCalendar.solarDate(year: year, month: parts.month, day: min(parts.day, 29), leap: leap) { draftDate = value }
+            }
+        }
             .onChange(of: draftDate) { _, _ in DaymarkLog.event("日期选择器变更") }
-            .onChange(of: draftCalendar) { _, _ in DaymarkLog.event("日期选择器历法变更") }
     }
 }
 
@@ -166,12 +172,10 @@ private struct LunarDateWheels: View {
             } ?? 0
             let count = AnniversaryCalendar.chinese.range(of: .day, in: .month, for: date)?.count ?? 30
             HStack(spacing: 0) {
-                Picker("年", selection: Binding(get: { parts.year }, set: { year in
+                LunarYearWheel(year: Binding(get: { parts.year }, set: { year in
                     let leap = parts.leap && AnniversaryCalendar.solarDate(year: year, month: parts.month, day: 1, leap: true) != nil
                     if let value = AnniversaryCalendar.solarDate(year: year, month: parts.month, day: parts.day, leap: leap) ?? AnniversaryCalendar.solarDate(year: year, month: parts.month, day: min(parts.day, 29), leap: leap) { date = value }
-                })) {
-                    ForEach(1...9998, id: \.self) { year in Text("（\(year)）\(AnniversaryCalendar.yearName(year))").tag(year) }
-                }.frame(maxWidth: .infinity)
+                })).frame(maxWidth: .infinity)
                 Picker("月", selection: Binding(get: { selectedMonth }, set: { index in
                     guard months.indices.contains(index), let count = AnniversaryCalendar.chinese.range(of: .day, in: .month, for: months[index])?.count,
                           let value = AnniversaryCalendar.chinese.date(byAdding: .day, value: min(parts.day, count) - 1, to: months[index]) else { return }
@@ -186,5 +190,38 @@ private struct LunarDateWheels: View {
                 }.frame(maxWidth: .infinity)
             }.pickerStyle(.wheel).labelsHidden().frame(height: 216).clipped()
         }
+    }
+}
+
+/// 年份由系统滚轮按需提供，避免一次创建所有 SwiftUI 选项。
+private struct LunarYearWheel: UIViewRepresentable {
+    @Binding var year: Int
+
+    func makeCoordinator() -> Coordinator { Coordinator(year: $year) }
+
+    func makeUIView(context: Context) -> UIPickerView {
+        let picker = UIPickerView()
+        picker.dataSource = context.coordinator; picker.delegate = context.coordinator
+        picker.accessibilityLabel = NSLocalizedString("年", comment: "农历年份")
+        return picker
+    }
+
+    func updateUIView(_ picker: UIPickerView, context: Context) {
+        context.coordinator.year = $year
+        let row = year - AnniversaryCalendar.selectableLunarYears.lowerBound
+        if AnniversaryCalendar.selectableLunarYears.contains(year) && picker.selectedRow(inComponent: 0) != row { picker.selectRow(row, inComponent: 0, animated: false) }
+    }
+
+    /// 系统只请求可见行的标题，选中后再更新日期。
+    final class Coordinator: NSObject, UIPickerViewDataSource, UIPickerViewDelegate {
+        var year: Binding<Int>
+        init(year: Binding<Int>) { self.year = year }
+        func numberOfComponents(in pickerView: UIPickerView) -> Int { 1 }
+        func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int { AnniversaryCalendar.selectableLunarYears.count }
+        func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+            let year = row + AnniversaryCalendar.selectableLunarYears.lowerBound
+            return "（\(year)）\(AnniversaryCalendar.yearName(year))"
+        }
+        func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) { year.wrappedValue = row + AnniversaryCalendar.selectableLunarYears.lowerBound }
     }
 }

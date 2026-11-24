@@ -25,6 +25,8 @@ enum RepeatKind: String, CaseIterable { case none, monthly, yearly }
 
 /// 使用 Foundation 中国农历进行日期转换，避免将农历月份误当作公历月份。
 enum AnniversaryCalendar {
+    // 农历日期选择器支持的年份范围。
+    static let selectableLunarYears = 1900...2100
     // 每次读取系统时区，跨时区后不会沿用应用启动时的旧日期。
     static var gregorian: Calendar { Calendar(identifier: .gregorian) }
     static var chinese: Calendar { Calendar(identifier: .chinese) }
@@ -52,16 +54,35 @@ enum AnniversaryCalendar {
     /// 由农历年月日查找对应公历日期；闰月必须与用户选择一致。
     static func solarDate(year: Int, month: Int, day: Int, leap: Bool) -> Date? {
         let gregorian = Self.gregorian, chinese = Self.chinese
-        guard (1...9998).contains(year), (1...12).contains(month), (1...30).contains(day),
-              let start = gregorian.date(from: DateComponents(year: year, month: 1, day: 1)),
-              let end = gregorian.date(from: DateComponents(year: year + 1, month: 3, day: 1)) else { return nil }
-        var candidate = start
-        while candidate < end {
-            let parts = chinese.dateComponents([.month, .day, .isLeapMonth], from: candidate)
-            if parts.month == month && parts.day == day && (parts.isLeapMonth ?? false) == leap,
-               let lunarYearStart = chinese.dateInterval(of: .year, for: candidate)?.start,
-               gregorian.component(.year, from: lunarYearStart) == year { return candidate }
-            guard let next = gregorian.date(byAdding: .day, value: 1, to: candidate) else { return nil }
+        guard (1...9998).contains(year), (1...12).contains(month), (1...30).contains(day) else { return nil }
+        // 其他年份保留原有换算行为，兼容已保存的数据。
+        if !selectableLunarYears.contains(year) {
+            guard let start = gregorian.date(from: DateComponents(year: year, month: 1, day: 1)),
+                  let end = gregorian.date(from: DateComponents(year: year + 1, month: 3, day: 1)) else { return nil }
+            var candidate = start
+            while candidate < end {
+                let parts = chinese.dateComponents([.month, .day, .isLeapMonth], from: candidate)
+                if parts.month == month && parts.day == day && (parts.isLeapMonth ?? false) == leap,
+                   let lunarYearStart = chinese.dateInterval(of: .year, for: candidate)?.start,
+                   gregorian.component(.year, from: lunarYearStart) == year { return candidate }
+                guard let next = gregorian.date(byAdding: .day, value: 1, to: candidate) else { return nil }
+                candidate = next
+            }
+            return nil
+        }
+        // 公历七月位于同一年开始的农历年内，按月查找可以避免逐日遍历。
+        guard
+              let middle = gregorian.date(from: DateComponents(year: year, month: 7, day: 1)),
+              let interval = chinese.dateInterval(of: .year, for: middle),
+              gregorian.component(.year, from: interval.start) == year else { return nil }
+        var candidate = interval.start
+        while candidate < interval.end {
+            let parts = chinese.dateComponents([.month, .isLeapMonth], from: candidate)
+            if parts.month == month && (parts.isLeapMonth ?? false) == leap {
+                guard let count = chinese.range(of: .day, in: .month, for: candidate)?.count, day <= count else { return nil }
+                return chinese.date(byAdding: .day, value: day - 1, to: candidate)
+            }
+            guard let next = chinese.date(byAdding: .month, value: 1, to: candidate), next > candidate else { return nil }
             candidate = next
         }
         return nil

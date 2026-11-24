@@ -30,10 +30,10 @@ struct DaymarkApp: App {
                 GlassBackground()
                 NavigationStack(path: $path) {
                     Group {
-                        if welcomeScreenShowVersion < welcomeScreenCurrentVersion { OnboardingView(onFinish: { welcomeScreenShowVersion = welcomeScreenCurrentVersion }) }
+                        if welcomeScreenShowVersion < welcomeScreenCurrentVersion { OnboardingView(onFinish: { welcomeScreenShowVersion = welcomeScreenCurrentVersion }).toolbar(.hidden, for: .navigationBar) }
                         else if api.session != nil { HomeView(api: api, path: $path) }
-                        else { LoginView(api: api, path: $path) }
-                    }.modifier(GlassScreenBackground()).toolbar(.hidden, for: .navigationBar)
+                        else { LoginView(api: api, path: $path).toolbar(.hidden, for: .navigationBar) }
+                    }.modifier(GlassScreenBackground())
                     .navigationDestination(for: DaymarkRoute.self) { route in
                         Group {
                             switch route {
