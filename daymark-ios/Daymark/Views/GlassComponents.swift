@@ -8,6 +8,207 @@ enum GlassPalette {
     static let secondaryLight = Color(red: 165 / 255, green: 121 / 255, blue: 92 / 255)
 }
 
+/// 对应 Ardot 的两种操作区布局，调用方可按场景选择。
+enum ChoiceDialogActionPlacement {
+    case footer
+    case titleBar
+}
+
+/// 弹窗面板的位置独立于操作按钮的位置。
+enum ChoiceDialogPlacement {
+    case bottom
+    case center
+}
+
+/// 全屏容器只负责隔离点击和辅助功能焦点，转场由弹窗自行绘制。
+func withoutChoiceDialogPresentationAnimation(_ update: () -> Void) {
+    var transaction = Transaction(animation: nil)
+    transaction.disablesAnimations = true
+    withTransaction(transaction, update)
+}
+
+/// iPhone 和 iPad 共用选择弹窗，默认使用底部操作区。
+struct ChoiceDialog<Content: View>: View {
+    let title: LocalizedStringKey
+    var placement: ChoiceDialogPlacement = .bottom
+    var actionPlacement: ChoiceDialogActionPlacement = .footer
+    var confirmTitle: LocalizedStringKey = "确定"
+    var destructive = false
+    var confirmEnabled = true
+    var saveBeforeClosing: (() async -> Bool)? = nil
+    let cancel: () -> Void
+    let confirm: () -> Void
+    @ViewBuilder let content: () -> Content
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var visible = false
+    @State private var closing = false
+    @State private var saving = false
+
+    private var displayedConfirmTitle: LocalizedStringKey { saving ? "保存中…" : confirmTitle }
+
+    private let outline = Color(red: 1, green: 140 / 255, blue: 66 / 255)
+    private let cream = Color(red: 1, green: 246 / 255, blue: 236 / 255)
+    private let actionGradient = LinearGradient(colors: [
+        Color(red: 1, green: 148 / 255, blue: 89 / 255),
+        Color(red: 1, green: 107 / 255, blue: 82 / 255)
+    ], startPoint: .leading, endPoint: .trailing)
+    private let actionWidth: CGFloat = 132
+    private let actionSpacing: CGFloat = 12
+    private let outerInset: CGFloat = 16
+    private let tabletWidth: CGFloat = 540
+    private let hiddenScale: CGFloat = 0.94
+    private let dimOpacity = 0.35
+    private let dimFadeIn = Animation.easeOut(duration: 0.20)
+    private let dimFadeOut = Animation.easeInOut(duration: 0.17)
+
+    /// 底部面板平滑停靠，居中面板在缩放结束前略微回弹。
+    private var panelEntrance: Animation {
+        if reduceMotion { return dimFadeIn }
+        return placement == .bottom ? .smooth(duration: 0.36) : .smooth(duration: 0.30, extraBounce: 0.10)
+    }
+
+    /// 关闭时先轻轻起步，再加速离场。
+    private var panelExit: Animation {
+        if reduceMotion { return dimFadeOut }
+        if placement == .center { return .easeIn(duration: 0.20) }
+        return .timingCurve(0.40, 0.0, 0.85, 0.45, duration: 0.24)
+    }
+
+    var body: some View {
+        GeometryReader { geometry in
+            let wide = horizontalSizeClass == .regular && geometry.size.width >= tabletWidth + 2 * outerInset
+            let inset: CGFloat = wide ? 28 : 20
+            let shape = RoundedRectangle(cornerRadius: wide ? 26 : 22)
+            let bottom = placement == .bottom
+            let bottomInset = bottom ? geometry.safeAreaInsets.bottom : 0
+            let slideOffscreen = bottom && !visible && !reduceMotion
+            ZStack(alignment: bottom ? .bottom : .center) {
+                // 遮罩固定覆盖全屏，仅改变透明度。
+                Color.black.opacity(visible ? dimOpacity : 0)
+                    .animation(visible ? dimFadeIn : dimFadeOut, value: visible)
+                    .ignoresSafeArea().contentShape(Rectangle())
+                    .onTapGesture { close(perform: cancel) }.accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 0) {
+                    if actionPlacement == .titleBar {
+                        titleBar(wide: wide)
+                    } else {
+                        Text(title).font(.system(size: wide ? 18 : 16, weight: .semibold))
+                            .multilineTextAlignment(.center).frame(maxWidth: .infinity)
+                            .accessibilityAddTraits(.isHeader)
+                            .padding(.horizontal, inset).padding(.top, wide ? 26 : 20).padding(.bottom, wide ? 14 : 12)
+                    }
+                    // 横屏或分屏高度不足时，只滚动内容，底部操作始终可用。
+                    ViewThatFits(in: .vertical) {
+                        content().fixedSize(horizontal: false, vertical: true)
+                        ScrollView { content() }
+                    }.disabled(saving).frame(maxWidth: .infinity).padding(.horizontal, inset)
+                        .padding(.bottom, actionPlacement == .titleBar ? (wide ? 26 : 22) : (wide ? 24 : 20))
+                    if actionPlacement == .footer {
+                        Rectangle().fill(outline.opacity(0.10)).frame(height: 1)
+                        HStack(spacing: actionSpacing) {
+                            if wide { Spacer(minLength: 0) }
+                            action("取消", wide: wide, primary: false)
+                            action(displayedConfirmTitle, wide: wide, primary: true)
+                        }.padding(.horizontal, inset).padding(.top, wide ? 20 : 16).padding(.bottom, wide ? 26 : 20)
+                    }
+                }
+                .foregroundStyle(colorScheme == .dark ? Color.white : GlassPalette.primaryLight)
+                .frame(maxWidth: wide ? tabletWidth : 353)
+                // 只延伸背景到屏幕底边，键盘出现时内容和按钮仍留在键盘上方。
+                .background {
+                    shape.fill(colorScheme == .dark ? Color(uiColor: .secondarySystemBackground) : Color.white)
+                        .ignoresSafeArea(.container, edges: bottom ? .bottom : [])
+                }
+                .shadow(color: outline.opacity(0.10), radius: wide ? 36 : 30, y: wide ? 14 : 10)
+                .padding(.horizontal, outerInset)
+                .padding(.top, outerInset)
+                .padding(.bottom, bottom ? 0 : outerInset)
+                .scaleEffect(!bottom && !visible && !reduceMotion ? hiddenScale : 1)
+                .opacity((!bottom || reduceMotion) && !visible ? 0 : 1)
+                .visualEffect { panel, proxy in
+                    panel.offset(y: slideOffscreen ? proxy.size.height + bottomInset : 0)
+                }
+                .allowsHitTesting(visible && !closing)
+                .accessibilityHidden(!visible || closing)
+                .accessibilityAction(.escape) { close(perform: cancel) }
+            }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: bottom ? .bottom : .center)
+        }.task {
+            // 先让透明容器完成布局，再启动面板和遮罩的动画。
+            await Task.yield()
+            guard !Task.isCancelled, !closing else { return }
+            withAnimation(panelEntrance) { visible = true }
+        }
+    }
+
+    /// 表单保存成功后才离场，提交期间禁止重复操作或关闭弹窗。
+    private func requestConfirmation() {
+        guard visible, !closing, !saving, confirmEnabled else { return }
+        guard let saveBeforeClosing else { close(perform: confirm); return }
+        saving = true
+        Task {
+            let saved = await saveBeforeClosing()
+            saving = false
+            if saved { close(perform: confirm) }
+        }
+    }
+
+    /// 等退出动画结束后再关闭容器并提交操作，避免系统转场叠加。
+    private func close(perform: @escaping () -> Void) {
+        guard visible, !closing, !saving else { return }
+        closing = true
+        withAnimation(panelExit, completionCriteria: .removed) {
+            visible = false
+        } completion: {
+            withoutChoiceDialogPresentationAnimation(perform)
+        }
+    }
+
+    /// 标题栏使用轻量文字操作，两侧留出相同宽度以保持标题居中。
+    private func titleBar(wide: Bool) -> some View {
+        let actionFont = Font.system(size: wide ? 15 : 14)
+        let titleActionWidth: CGFloat = 60
+        let touchHeight: CGFloat = 44
+        let cancelColor = Color(red: 138 / 255, green: 90 / 255, blue: 60 / 255)
+        return HStack(spacing: wide ? 10 : 8) {
+            Button { close(perform: cancel) } label: {
+                Text("取消").font(actionFont).foregroundStyle(colorScheme == .dark ? Color.secondary : cancelColor)
+                    .frame(width: titleActionWidth, height: touchHeight, alignment: .leading).contentShape(Rectangle())
+            }.buttonStyle(.plain).disabled(saving)
+            Text(title).font(.system(size: wide ? 17 : 15, weight: .semibold))
+                .multilineTextAlignment(.center).frame(maxWidth: .infinity).accessibilityAddTraits(.isHeader)
+            Button(role: destructive ? .destructive : nil, action: requestConfirmation) {
+                Text(displayedConfirmTitle).font(actionFont.weight(.semibold)).foregroundStyle(destructive ? Color.red : GlassPalette.accent)
+                    .frame(width: titleActionWidth, height: touchHeight, alignment: .trailing).contentShape(Rectangle())
+            }.buttonStyle(.plain).disabled(saving || !confirmEnabled)
+        }.padding(.horizontal, wide ? 24 : 16).padding(.top, wide ? 12 : 6).padding(.bottom, wide ? 12 : 10)
+    }
+
+    /// 主操作固定在右侧，两种按钮共用尺寸规则。
+    private func action(_ title: LocalizedStringKey, wide: Bool, primary: Bool) -> some View {
+        let shape = RoundedRectangle(cornerRadius: wide ? 16 : 14)
+        let disabled = saving || (primary && !confirmEnabled)
+        return Button(role: primary && destructive ? .destructive : nil) {
+            if primary { requestConfirmation() } else { close(perform: cancel) }
+        } label: {
+            Text(title).font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(primary || colorScheme == .dark ? Color.white : GlassPalette.primaryLight)
+                .frame(maxWidth: .infinity, minHeight: wide ? 52 : 48)
+                .background {
+                    if primary && destructive {
+                        shape.fill(Color.red)
+                    } else if primary {
+                        shape.fill(actionGradient).shadow(color: outline.opacity(0.28), radius: 8, y: 6)
+                    } else {
+                        shape.fill(colorScheme == .dark ? Color(uiColor: .tertiarySystemBackground) : cream)
+                            .overlay { shape.strokeBorder(outline.opacity(0.16)) }
+                    }
+                }.contentShape(shape)
+        }.buttonStyle(.plain).disabled(disabled).opacity(disabled ? 0.55 : 1).frame(width: wide ? actionWidth : nil)
+    }
+}
+
 /// 两份文档暂时指向同一地址，正式地址可分别替换。
 enum LegalLinks {
     static let userAgreement = URL(string: "https://blog.creepersan.com/article/65")!

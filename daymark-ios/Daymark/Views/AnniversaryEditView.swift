@@ -9,12 +9,14 @@ struct AnniversaryEditView: View {
     @Environment(\.locale) private var locale
     @State private var item = Anniversary()
     @State private var selectedDate = Date()
-    @State private var datePicker = false
+    @State private var dialog: Dialog?
     @State private var loading = false
     @State private var loaded = false
     @State private var saving = false
-    @State private var confirmDelete = false
+    @State private var deleteAfterDismiss = false
     @State private var error: String?
+
+    private enum Dialog: String, Identifiable { case date, delete; var id: String { rawValue } }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -35,7 +37,7 @@ struct AnniversaryEditView: View {
                             Text("农历").tag(CalendarKind.lunar.rawValue)
                         }.pickerStyle(.segmented)
                         label("纪念日日期")
-                        Button { datePicker = true } label: { HStack { dateDescription; Spacer(); Image(systemName: "chevron.right") }.font(.system(size: 14)).frame(maxWidth: .infinity, minHeight: 32) }.modifier(SystemGlassButton()).buttonBorderShape(.roundedRectangle(radius: 14)).tint(GlassPalette.accent)
+                        Button { withoutChoiceDialogPresentationAnimation { dialog = .date } } label: { HStack { dateDescription; Spacer(); Image(systemName: "chevron.right") }.font(.system(size: 14)).frame(maxWidth: .infinity, minHeight: 32) }.modifier(SystemGlassButton()).buttonBorderShape(.roundedRectangle(radius: 14)).tint(GlassPalette.accent)
                         label("重复模式")
                         HStack(spacing: 8) {
                             repeatOption("不重复", .none)
@@ -48,19 +50,26 @@ struct AnniversaryEditView: View {
                 GlassPrimaryButton(title: saving ? "保存中…" : "保存纪念日", disabled: saving || item.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) { Task { await save() } }.padding(.horizontal, 24).padding(.bottom, 16)
             }
         }
-        .modifier(SystemNavigationHeader(title: id == nil ? "新建纪念日" : "编辑纪念日", back: { dismiss() }, trailing: id == nil ? nil : AnyView(Button { confirmDelete = true } label: { Image(systemName: "trash") }.tint(.red).disabled(!loaded || saving).accessibilityLabel("删除纪念日"))))
-        .alert("删除纪念日", isPresented: $confirmDelete) {
-            Button("取消", role: .cancel) {}
-            Button("删除", role: .destructive) { Task { await delete() } }
-        } message: { Text("确定删除这个纪念日吗？删除后无法恢复。") }
-        .overlay {
-            if datePicker {
-                ZStack(alignment: .bottom) {
-                    Color.black.opacity(0.35).ignoresSafeArea().contentShape(Rectangle()).onTapGesture { datePicker = false }
-                    DateSelectionSheet(date: $selectedDate, calendarType: item.calendarType, dismiss: { datePicker = false })
-                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24)).padding(.horizontal, 12).padding(.bottom, 12)
+        .modifier(SystemNavigationHeader(title: id == nil ? "新建纪念日" : "编辑纪念日", back: { dismiss() }, trailing: id == nil ? nil : AnyView(Button { withoutChoiceDialogPresentationAnimation { dialog = .delete } } label: { Image(systemName: "trash") }.tint(.red).disabled(!loaded || saving).accessibilityLabel("删除纪念日"))))
+        .fullScreenCover(item: $dialog, onDismiss: {
+            guard deleteAfterDismiss else { return }
+            deleteAfterDismiss = false
+            Task { await delete() }
+        }) { selected in
+            Group {
+                switch selected {
+                case .date:
+                    DateSelectionSheet(date: $selectedDate, calendarType: item.calendarType, dismiss: { dialog = nil })
+                case .delete:
+                    ChoiceDialog(title: "删除纪念日", placement: .center, confirmTitle: "删除", destructive: true, cancel: { dialog = nil }, confirm: {
+                        deleteAfterDismiss = true
+                        dialog = nil
+                    }) {
+                        Text("确定删除这个纪念日吗？删除后无法恢复。").font(.subheadline)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 }
-            }
+            }.presentationBackground(.clear)
         }
         .task { await load() }
     }
@@ -117,22 +126,21 @@ struct AnniversaryEditView: View {
 struct DateSelectionSheet: View {
     @Binding var date: Date
     let calendarType: String
+    var actionPlacement: ChoiceDialogActionPlacement = .footer
     let dismiss: () -> Void
     @State private var draftDate: Date = Date()
     var body: some View {
-        VStack(spacing: 12) {
-            HStack {
-                Button("取消") { dismiss() }
-                Spacer(); Text("选择纪念日日期").font(.system(size: 16, weight: .semibold)); Spacer()
-                Button("确定") { DaymarkLog.event("确认日期选择"); date = draftDate; dismiss() }
-            }.foregroundStyle(GlassPalette.accent)
+        ChoiceDialog(title: "选择纪念日日期", actionPlacement: actionPlacement, cancel: dismiss, confirm: {
+            DaymarkLog.event("确认日期选择")
+            date = draftDate
+            dismiss()
+        }) {
             if calendarType == CalendarKind.lunar.rawValue {
                 LunarDateWheels(date: $draftDate)
             } else {
                 DatePicker("日期", selection: $draftDate, displayedComponents: .date).datePickerStyle(.wheel).labelsHidden().environment(\.calendar, AnniversaryCalendar.gregorian)
             }
-            Spacer(minLength: 0)
-        }.padding(20).onAppear {
+        }.onAppear {
             draftDate = date
             // 已有日期超出可选范围时，将弹窗初始年份移到最近的边界。
             if calendarType == CalendarKind.lunar.rawValue, let parts = AnniversaryCalendar.lunarParts(for: date), !AnniversaryCalendar.selectableLunarYears.contains(parts.year) {

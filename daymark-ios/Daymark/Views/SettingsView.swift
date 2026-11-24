@@ -17,15 +17,17 @@ struct SettingsView: View {
     @AppStorage(DaymarkAPI.accountHostKey) private var accountHost = ""
     @AppStorage(DaymarkAPI.serverHostKey) private var serverHost = ""
     @State private var selection: Selection?
-    @State private var confirmLogout = false
-    @State private var confirmDelete = false
+    @State private var dialog: Dialog?
+    @State private var confirmedDialog: Dialog?
     @State private var mailUnavailable = false
     @State private var titleTaps = 0
     @State private var lastTitleTap = Date.distantPast
     private let developerTapCount = 8
     private let developerTapInterval: TimeInterval = 0.5
     private let languages = [("system", "跟随系统"), ("zh-CN", "简体中文"), ("zh-TW", "繁體中文"), ("yue-Hans-CN", "简体粤语（广东）"), ("yue-Hant-HK", "繁體粵語（香港）"), ("en", "English"), ("ja", "日本語"), ("ko", "한국어")]
-    enum Selection: String, Identifiable { case theme, language, nickname, accountHost, serverHost; var id: String { rawValue } }
+    enum Selection: String, Identifiable { case accountHost, serverHost; var id: String { rawValue } }
+    /// 使用公共弹窗的设置操作。
+    private enum Dialog: String, Identifiable { case nickname, logout, theme, language, deleteAccount; var id: String { rawValue } }
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
@@ -33,15 +35,15 @@ struct SettingsView: View {
                     section("个人信息") {
                         rowLabel("用户名", value: api.session?.account.flatMap { $0.isEmpty ? nil : $0 } ?? "—", showArrow: false)
                         rowLabel("邮箱", value: api.session?.email.flatMap { $0.isEmpty ? nil : $0 } ?? "—", showArrow: false)
-                        row("昵称", value: api.session.map { $0.name }.flatMap { $0.isEmpty ? nil : $0 } ?? "—") { selection = .nickname }
+                        row("昵称", value: api.session.map { $0.name }.flatMap { $0.isEmpty ? nil : $0 } ?? "—") { withoutChoiceDialogPresentationAnimation { dialog = .nickname } }
                         row("修改密码") { path.append(.changePassword) }
-                        row("删除账号", danger: true) { confirmDelete = true }
-                        Button("退出登录") { DaymarkLog.event("打开退出登录确认"); confirmLogout = true }.foregroundStyle(.red.opacity(0.8)).frame(maxWidth: .infinity).frame(height: 56).buttonStyle(.plain)
+                        row("删除账号", danger: true) { withoutChoiceDialogPresentationAnimation { dialog = .deleteAccount } }
+                        Button("退出登录") { DaymarkLog.event("打开退出登录确认"); withoutChoiceDialogPresentationAnimation { dialog = .logout } }.foregroundStyle(.red.opacity(0.8)).frame(maxWidth: .infinity).frame(height: 56).buttonStyle(.plain)
                     }
                 }
                 section("应用") {
-                    row("主题", value: theme == "light" ? "亮色" : theme == "dark" ? "暗色" : "跟随系统") { selection = .theme }
-                    row("语言", value: languages.first { $0.0 == language }?.1 ?? "跟随系统") { selection = .language }
+                    row("主题", value: theme == "light" ? "亮色" : theme == "dark" ? "暗色" : "跟随系统") { withoutChoiceDialogPresentationAnimation { dialog = .theme } }
+                    row("语言", value: languages.first { $0.0 == language }?.1 ?? "跟随系统") { withoutChoiceDialogPresentationAnimation { dialog = .language } }
                 }
                 if developer {
                     section("开发者设置") {
@@ -62,29 +64,58 @@ struct SettingsView: View {
         .scrollIndicators(.hidden)
         .modifier(SystemNavigationHeader(title: "设置", back: { dismiss() }, onTitleTap: tapTitle))
         .sheet(item: $selection) { selected in
-            if selected == .nickname {
-                NicknameSheet(api: api) { selection = nil }.presentationDetents([.medium]).presentationDragIndicator(.visible)
-            } else if selected == .accountHost || selected == .serverHost {
-                HostSheet(title: selected == .accountHost ? "账号代理设置" : "服务器代理设置", value: selected == .accountHost ? accountHost : serverHost) { value in
-                    if selected == .accountHost { accountHost = value } else { serverHost = value }
-                    selection = nil
-                }.presentationDetents([.medium]).presentationDragIndicator(.visible)
-            } else {
-                SelectionSheet(title: selected == .theme ? "主题" : "语言", options: selected == .theme ? [("system", "跟随系统"), ("light", "亮色"), ("dark", "暗色")] : languages, value: selected == .theme ? theme : language) { value in
-                    if selected == .theme { theme = value } else { language = value }
-                    selection = nil
-                }.presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
-            }
+            HostSheet(title: selected == .accountHost ? "账号代理设置" : "服务器代理设置", value: selected == .accountHost ? accountHost : serverHost) { value in
+                if selected == .accountHost { accountHost = value } else { serverHost = value }
+                selection = nil
+            }.presentationDetents([.medium]).presentationDragIndicator(.visible)
         }
-        .alert("退出登录", isPresented: $confirmLogout) {
-            Button("取消", role: .cancel) {}
-            Button("确定", role: .destructive) { api.logout(); path.removeAll() }
-        } message: { Text("确定要退出登录吗？") }
-        .alert("删除账号", isPresented: $confirmDelete) {
-            Button("取消", role: .cancel) {}
-            Button("确定", role: .destructive) { DaymarkLog.event("确认申请删除账号"); composeDeletionMail() }
-        } message: { Text("将打开邮件应用，请发送邮件申请删除账号。核实身份后，我们会人工处理；账号及其云端数据删除后无法恢复。") }
+        .fullScreenCover(item: $dialog, onDismiss: performConfirmedDialog) { selected in
+            Group {
+                switch selected {
+                case .nickname:
+                    NicknameSheet(api: api) { dialog = nil }
+                case .logout:
+                    ChoiceDialog(title: "退出登录", placement: .center, destructive: true, cancel: { dialog = nil }, confirm: {
+                        confirmedDialog = .logout
+                        dialog = nil
+                    }) {
+                        Text("确定要退出登录吗？").font(.subheadline).frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                case .deleteAccount:
+                    ChoiceDialog(title: "删除账号", placement: .center, destructive: true, cancel: { dialog = nil }, confirm: {
+                        confirmedDialog = .deleteAccount
+                        dialog = nil
+                    }) {
+                        Text("将打开邮件应用，请发送邮件申请删除账号。核实身份后，我们会人工处理；账号及其云端数据删除后无法恢复。")
+                            .font(.subheadline).frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                case .theme, .language:
+                    SelectionSheet(title: selected == .theme ? "主题" : "语言",
+                                   options: selected == .theme ? [("system", "跟随系统"), ("light", "亮色"), ("dark", "暗色")] : languages,
+                                   value: selected == .theme ? theme : language,
+                                   cancel: { dialog = nil }) { value in
+                        if selected == .theme { theme = value } else { language = value }
+                        dialog = nil
+                    }
+                }
+            }.presentationBackground(.clear)
+        }
         .alert("无法打开邮件应用", isPresented: $mailUnavailable) { Button("好", role: .cancel) {} }
+    }
+    /// 等弹窗完全关闭后，再退出登录或打开邮件应用。
+    private func performConfirmedDialog() {
+        let confirmed = confirmedDialog
+        confirmedDialog = nil
+        switch confirmed {
+        case .logout:
+            api.logout()
+            path.removeAll()
+        case .deleteAccount:
+            DaymarkLog.event("确认申请删除账号")
+            composeDeletionMail()
+        default:
+            break
+        }
     }
     /// 使用当前应用语言生成邮件；旧会话缺少资料时提示用户自行填写。
     private func composeDeletionMail() {
@@ -127,33 +158,36 @@ struct SettingsView: View {
 }
 
 /// 昵称保存成功后关闭弹窗，失败时保留输入以便重试。
-struct NicknameSheet: View {
+private struct NicknameSheet: View {
     @ObservedObject var api: DaymarkAPI
-    let onSaved: () -> Void
+    let close: () -> Void
     @State private var value: String
-    @State private var loading = false
     @State private var error: String?
     @State private var showingError = false
-    init(api: DaymarkAPI, onSaved: @escaping () -> Void) {
-        self.api = api; self.onSaved = onSaved; _value = State(initialValue: api.session?.name ?? "")
+    init(api: DaymarkAPI, close: @escaping () -> Void) {
+        self.api = api; self.close = close; _value = State(initialValue: api.session?.name ?? "")
     }
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("昵称").font(.system(size: 18, weight: .semibold))
-            GlassInput(placeholder: "昵称", text: $value)
-            if let error { Text(LocalizedStringKey(error)).font(.system(size: 12)).foregroundStyle(.red) }
-            GlassPrimaryButton(title: loading ? "保存中…" : "保存", disabled: loading || value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) {
-                Task { await save() }
+        ChoiceDialog(title: "昵称", confirmTitle: "保存", confirmEnabled: !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, saveBeforeClosing: save, cancel: close, confirm: close) {
+            VStack(alignment: .leading, spacing: 12) {
+                GlassInput(placeholder: "昵称", text: $value)
+                if let error { Text(LocalizedStringKey(error)).font(.system(size: 12)).foregroundStyle(.red) }
             }
-            Spacer()
-        }.padding(24).interactiveDismissDisabled(loading)
-            .alert("保存失败，请重试。", isPresented: $showingError) { Button("好", role: .cancel) {} } message: { Text(LocalizedStringKey(error ?? "保存失败，请重试。")) }
+        }
+        .alert("保存失败，请重试。", isPresented: $showingError) { Button("好", role: .cancel) {} } message: { Text(LocalizedStringKey(error ?? "保存失败，请重试。")) }
     }
-    private func save() async {
-        guard !loading else { return }
-        loading = true; error = nil; defer { loading = false }
-        do { try await api.updateNickname(value.trimmingCharacters(in: .whitespacesAndNewlines)); onSaved() }
-        catch { DaymarkLog.event("昵称修改失败：\(type(of: error))"); self.error = error.localizedDescription; showingError = true }
+    /// 保存失败时保留输入和错误提示，允许再次提交。
+    private func save() async -> Bool {
+        error = nil
+        do {
+            try await api.updateNickname(value.trimmingCharacters(in: .whitespacesAndNewlines))
+            return true
+        } catch {
+            DaymarkLog.event("昵称修改失败：\(type(of: error))")
+            self.error = error.localizedDescription
+            showingError = true
+            return false
+        }
     }
 }
 
@@ -183,19 +217,42 @@ struct HostSheet: View {
     }
 }
 
-/// 主题和语言使用模态选择，选择后立即保存。
-struct SelectionSheet: View {
+/// 主题和语言先更新勾选状态，确认后才保存。
+private struct SelectionSheet: View {
     let title: String
     let options: [(String, String)]
-    let value: String
+    let actionPlacement: ChoiceDialogActionPlacement
+    let cancel: () -> Void
     let onSelect: (String) -> Void
+    @State private var draftValue: String
+
+    init(title: String, options: [(String, String)], value: String, actionPlacement: ChoiceDialogActionPlacement = .footer, cancel: @escaping () -> Void, onSelect: @escaping (String) -> Void) {
+        self.title = title
+        self.options = options
+        self.actionPlacement = actionPlacement
+        self.cancel = cancel
+        self.onSelect = onSelect
+        _draftValue = State(initialValue: value)
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text(LocalizedStringKey(title)).font(.system(size: 18, weight: .semibold)).padding(.bottom, 12)
-            ScrollView { VStack(spacing: 0) { ForEach(options, id: \.0) { option in
-                Button { DaymarkLog.event("选择设置选项：\(title)"); onSelect(option.0) } label: { HStack { Text(LocalizedStringKey(option.1)); Spacer(); if value == option.0 { Image(systemName: "checkmark").foregroundStyle(GlassPalette.accent) } }.frame(maxWidth: .infinity).frame(height: 48).contentShape(Rectangle()) }.buttonStyle(.plain)
-            } } }
-        }.padding(24)
+        ChoiceDialog(title: LocalizedStringKey(title), actionPlacement: actionPlacement, cancel: cancel, confirm: {
+            DaymarkLog.event("选择设置选项：\(title)")
+            onSelect(draftValue)
+        }) {
+            VStack(spacing: 0) {
+                ForEach(options, id: \.0) { option in
+                    let selected = draftValue == option.0
+                    Button { draftValue = option.0 } label: {
+                        HStack {
+                            Text(LocalizedStringKey(option.1))
+                            Spacer()
+                            if selected { Image(systemName: "checkmark").foregroundStyle(GlassPalette.accent).accessibilityHidden(true) }
+                        }.frame(maxWidth: .infinity, minHeight: 48).contentShape(Rectangle())
+                    }.buttonStyle(.plain).accessibilityAddTraits(selected ? .isSelected : [])
+                }
+            }
+        }
     }
 }
 
