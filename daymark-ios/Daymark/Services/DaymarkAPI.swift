@@ -43,9 +43,11 @@ enum DaymarkError: LocalizedError {
 final class DaymarkAPI: ObservableObject {
     static let accountHost = "https://account.creepersan.com"
     static let daymarkHost = "https://daymark.creepersan.com"
+    #if DEBUG
     static let developerKey = "developerMode"
     static let accountHostKey = "accountHost"
     static let serverHostKey = "serverHost"
+    #endif
     private static let appVersion = "30000"
     private static let pageSize = 100
     private static let refreshAheadMilliseconds: Int64 = 60_000
@@ -63,12 +65,14 @@ final class DaymarkAPI: ObservableObject {
     private let saveSessionData: (Data) throws -> Void
     private let clearSessionData: () -> Void
 
-    /// 只有主动开启开发者模式时才使用已配置的代理地址。
+    #if DEBUG
+    /// 只有调试版主动开启开发者模式时才使用已配置的代理地址。
     private func host(_ fallback: String, key: String) -> String {
         let defaults = UserDefaults.standard
         guard defaults.bool(forKey: Self.developerKey), let value = defaults.string(forKey: key), !value.isEmpty else { return fallback }
         return value
     }
+    #endif
 
     /// 直连本机名或 IP 时保留业务域名，供开发服务按 Host 分发路由。
     static func developmentHostHeader(address: String, canonicalAddress: String) -> String? {
@@ -95,14 +99,21 @@ final class DaymarkAPI: ObservableObject {
     func logout() { DaymarkLog.event("退出登录，清除本机会话"); generation += 1; refreshTask?.cancel(); refreshTask = nil; session = nil; lastSavedAnniversary = nil; lastDeletedAnniversaryID = nil; clearSessionData() }
 
     private func request<T: Decodable>(_ host: String, _ path: String, body: [String: Any], token: String? = nil, query: [URLQueryItem] = []) async throws -> T? {
+        #if DEBUG
         let resolvedHost = host == Self.accountHost ? self.host(host, key: Self.accountHostKey) : self.host(host, key: Self.serverHostKey)
+        #else
+        // 正式版始终使用业务域名，包括设备上仍有旧代理配置的情况。
+        let resolvedHost = host
+        #endif
         guard var components = URLComponents(string: resolvedHost + path) else { throw DaymarkError.invalidData }
         if !query.isEmpty { components.queryItems = query }
         guard let url = components.url else { throw DaymarkError.invalidData }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.timeoutInterval = Self.requestTimeout
+        #if DEBUG
         if let routingHost = Self.developmentHostHeader(address: resolvedHost, canonicalAddress: host) { request.setValue(routingHost, forHTTPHeaderField: "Host") }
+        #endif
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Daymark", forHTTPHeaderField: "CS-App")

@@ -51,6 +51,13 @@ enum AnniversaryCalendar {
         }
     }
 
+    /// 按月初到下一个月初计算天数，避免系统日范围在个别农历月份返回空值。
+    static func lunarMonthLength(containing date: Date) -> Int? {
+        let calendar = chinese
+        guard let interval = calendar.dateInterval(of: .month, for: date) else { return nil }
+        return calendar.dateComponents([.day], from: interval.start, to: interval.end).day
+    }
+
     /// 由农历年月日查找对应公历日期；闰月必须与用户选择一致。
     static func solarDate(year: Int, month: Int, day: Int, leap: Bool) -> Date? {
         let gregorian = Self.gregorian, chinese = Self.chinese
@@ -79,7 +86,7 @@ enum AnniversaryCalendar {
         while candidate < interval.end {
             let parts = chinese.dateComponents([.month, .isLeapMonth], from: candidate)
             if parts.month == month && (parts.isLeapMonth ?? false) == leap {
-                guard let count = chinese.range(of: .day, in: .month, for: candidate)?.count, day <= count else { return nil }
+                guard let count = lunarMonthLength(containing: candidate), day <= count else { return nil }
                 return chinese.date(byAdding: .day, value: day - 1, to: candidate)
             }
             guard let next = chinese.date(byAdding: .month, value: 1, to: candidate), next > candidate else { return nil }
@@ -91,8 +98,16 @@ enum AnniversaryCalendar {
     /// 获取选中公历日对应的农历年月日和闰月标记。
     static func lunarParts(for date: Date) -> (year: Int, month: Int, day: Int, leap: Bool)? {
         let gregorian = Self.gregorian, chinese = Self.chinese
-        let parts = chinese.dateComponents([.month, .day, .isLeapMonth], from: date)
-        guard let start = chinese.dateInterval(of: .year, for: date)?.start,
+        let components: Set<Calendar.Component> = [.month, .day, .isLeapMonth]
+        var reference = date
+        var parts = chinese.dateComponents(components, from: reference)
+        // 系统偶尔把农历月末标为下个月的第 0 天，沿前一天确定该月的最后一天。
+        if parts.day == 0, let previous = gregorian.date(byAdding: .day, value: -1, to: reference) {
+            reference = previous
+            parts = chinese.dateComponents(components, from: reference)
+            parts.day = parts.day.map { $0 + 1 }
+        }
+        guard let start = chinese.dateInterval(of: .year, for: reference)?.start,
               let month = parts.month, let day = parts.day else { return nil }
         return (gregorian.component(.year, from: start), month, day, parts.isLeapMonth ?? false)
     }

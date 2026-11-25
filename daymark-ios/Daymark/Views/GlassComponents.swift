@@ -32,6 +32,7 @@ struct ChoiceDialog<Content: View>: View {
     let title: LocalizedStringKey
     var placement: ChoiceDialogPlacement = .bottom
     var actionPlacement: ChoiceDialogActionPlacement = .footer
+    var animatesEntrance = true
     var confirmTitle: LocalizedStringKey = "确定"
     var destructive = false
     var confirmEnabled = true
@@ -47,6 +48,8 @@ struct ChoiceDialog<Content: View>: View {
     @State private var saving = false
 
     private var displayedConfirmTitle: LocalizedStringKey { saving ? "保存中…" : confirmTitle }
+    // 直接入场的面板首帧即可操作，遮罩仍可独立淡入。
+    private var panelVisible: Bool { visible || (!animatesEntrance && !closing) }
 
     private let outline = Color(red: 1, green: 140 / 255, blue: 66 / 255)
     private let cream = Color(red: 1, green: 246 / 255, blue: 236 / 255)
@@ -83,7 +86,7 @@ struct ChoiceDialog<Content: View>: View {
             let shape = RoundedRectangle(cornerRadius: wide ? 26 : 22)
             let bottom = placement == .bottom
             let bottomInset = bottom ? geometry.safeAreaInsets.bottom : 0
-            let slideOffscreen = bottom && !visible && !reduceMotion
+            let slideOffscreen = bottom && !panelVisible && !reduceMotion
             ZStack(alignment: bottom ? .bottom : .center) {
                 // 遮罩固定覆盖全屏，仅改变透明度。
                 Color.black.opacity(visible ? dimOpacity : 0)
@@ -106,7 +109,6 @@ struct ChoiceDialog<Content: View>: View {
                     }.disabled(saving).frame(maxWidth: .infinity).padding(.horizontal, inset)
                         .padding(.bottom, actionPlacement == .titleBar ? (wide ? 26 : 22) : (wide ? 24 : 20))
                     if actionPlacement == .footer {
-                        Rectangle().fill(outline.opacity(0.10)).frame(height: 1)
                         HStack(spacing: actionSpacing) {
                             if wide { Spacer(minLength: 0) }
                             action("取消", wide: wide, primary: false)
@@ -114,27 +116,32 @@ struct ChoiceDialog<Content: View>: View {
                         }.padding(.horizontal, inset).padding(.top, wide ? 20 : 16).padding(.bottom, wide ? 26 : 20)
                     }
                 }
+                // 转场动画作用在整个面板上，内部控件按正常布局更新。
+                .transaction(value: panelVisible) { $0.animation = nil }
                 .foregroundStyle(colorScheme == .dark ? Color.white : GlassPalette.primaryLight)
                 .frame(maxWidth: wide ? tabletWidth : 353)
-                // 只延伸背景到屏幕底边，键盘出现时内容和按钮仍留在键盘上方。
+                // 面板背景随圆角收口，外边距在底部安全区上方留出空隙。
                 .background {
                     shape.fill(colorScheme == .dark ? Color(uiColor: .secondarySystemBackground) : Color.white)
-                        .ignoresSafeArea(.container, edges: bottom ? .bottom : [])
+                        .shadow(color: outline.opacity(0.10), radius: wide ? 36 : 30, y: wide ? 14 : 10)
                 }
-                .shadow(color: outline.opacity(0.10), radius: wide ? 36 : 30, y: wide ? 14 : 10)
                 .padding(.horizontal, outerInset)
                 .padding(.top, outerInset)
-                .padding(.bottom, bottom ? 0 : outerInset)
-                .scaleEffect(!bottom && !visible && !reduceMotion ? hiddenScale : 1)
-                .opacity((!bottom || reduceMotion) && !visible ? 0 : 1)
+                .padding(.bottom, outerInset)
+                .scaleEffect(!bottom && !panelVisible && !reduceMotion ? hiddenScale : 1)
+                .opacity((!bottom || reduceMotion) && !panelVisible ? 0 : 1)
                 .visualEffect { panel, proxy in
                     panel.offset(y: slideOffscreen ? proxy.size.height + bottomInset : 0)
                 }
-                .allowsHitTesting(visible && !closing)
-                .accessibilityHidden(!visible || closing)
+                .allowsHitTesting(panelVisible && !closing)
+                .accessibilityHidden(!panelVisible || closing)
                 .accessibilityAction(.escape) { close(perform: cancel) }
             }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: bottom ? .bottom : .center)
         }.task {
+            if !animatesEntrance {
+                if !closing { visible = true }
+                return
+            }
             // 先让透明容器完成布局，再启动面板和遮罩的动画。
             await Task.yield()
             guard !Task.isCancelled, !closing else { return }
@@ -144,7 +151,7 @@ struct ChoiceDialog<Content: View>: View {
 
     /// 表单保存成功后才离场，提交期间禁止重复操作或关闭弹窗。
     private func requestConfirmation() {
-        guard visible, !closing, !saving, confirmEnabled else { return }
+        guard panelVisible, !closing, !saving, confirmEnabled else { return }
         guard let saveBeforeClosing else { close(perform: confirm); return }
         saving = true
         Task {
@@ -156,7 +163,7 @@ struct ChoiceDialog<Content: View>: View {
 
     /// 等退出动画结束后再关闭容器并提交操作，避免系统转场叠加。
     private func close(perform: @escaping () -> Void) {
-        guard visible, !closing, !saving else { return }
+        guard panelVisible, !closing, !saving else { return }
         closing = true
         withAnimation(panelExit, completionCriteria: .removed) {
             visible = false
@@ -296,19 +303,31 @@ struct GlassHeader: View {
     var back: (() -> Void)? = nil
     var trailing: AnyView? = nil
     var onTitleTap: (() -> Void)? = nil
+    private let actionWidth: CGFloat = 48
+
     var body: some View {
         HStack(spacing: 12) {
             if let back {
-                Button { DaymarkLog.event("返回页面：\(title)"); back() } label: { Image(systemName: "chevron.left").font(.system(size: 15, weight: .semibold)) }.modifier(SystemGlassButton()).buttonBorderShape(.circle)
+                Button { DaymarkLog.event("返回页面：\(title)"); back() } label: { Image(systemName: "chevron.left").font(.title3.weight(.semibold)) }
+                    .modifier(SystemGlassButton()).buttonBorderShape(.circle).controlSize(.large).accessibilityLabel("返回")
+                    .frame(width: actionWidth)
             }
             Text(LocalizedStringKey(title)).font(.system(size: 17, weight: .semibold)).onTapGesture { onTitleTap?() }
-            Spacer()
-            trailing
+                .frame(maxWidth: back == nil ? nil : .infinity)
+            if back == nil {
+                Spacer()
+                trailing
+            } else if let trailing {
+                trailing.frame(width: actionWidth)
+            } else {
+                // 两侧操作区等宽，让没有右侧按钮的子页也能保持标题居中。
+                Spacer(minLength: 0).frame(width: actionWidth)
+            }
         }.frame(height: 52).padding(.horizontal, 20)
     }
 }
 
-/// 使用系统导航栏放置返回和操作按钮，由系统提供标题栏样式及点击区域。
+/// 子页页眉跟随页面转场，边缘侧滑继续使用系统返回手势。
 struct SystemNavigationHeader: ViewModifier {
     let title: String
     let back: () -> Void
@@ -316,21 +335,14 @@ struct SystemNavigationHeader: ViewModifier {
     var onTitleTap: (() -> Void)? = nil
 
     func body(content: Content) -> some View {
+        let trailingButton = trailing.map { AnyView($0.modifier(SystemGlassButton()).buttonBorderShape(.circle).controlSize(.large)) }
         content
             .navigationBarBackButtonHidden(true)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar(.visible, for: .navigationBar)
-            // 滚动时不显示系统默认的着色背景和底部分割线。
-            .toolbarBackground(.hidden, for: .navigationBar)
+            .toolbar(.hidden, for: .navigationBar)
             .background(InteractiveBackGesture())
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button { DaymarkLog.event("返回页面：\(title)"); back() } label: { Image(systemName: "chevron.left") }.accessibilityLabel("返回")
-                }
-                ToolbarItem(placement: .principal) {
-                    Text(LocalizedStringKey(title)).font(.system(size: 17, weight: .semibold)).onTapGesture { onTitleTap?() }
-                }
-                ToolbarItem(placement: .topBarTrailing) { trailing }
+            .safeAreaInset(edge: .top, spacing: 0) {
+                // 页眉与表单处于同一个转场视图，侧滑时保留左右内边距。
+                GlassHeader(title: title, back: back, trailing: trailingButton, onTitleTap: onTitleTap)
             }
     }
 }

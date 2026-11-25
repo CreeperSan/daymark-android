@@ -399,7 +399,6 @@
 				CURRENT_PROJECT_VERSION = 30000;
 				DEVELOPMENT_TEAM = H83MN8F436;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Daymark/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "纪念日";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

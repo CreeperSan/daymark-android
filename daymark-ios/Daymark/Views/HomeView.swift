@@ -55,17 +55,16 @@ struct HomeView: View {
             currentDay = Date(); lastDay = Calendar.current.startOfDay(for: currentDay)
             await load()
         }
-        // 由系统导航栏管理按钮的玻璃样式和点击区域。
-        .toolbar(.visible, for: .navigationBar)
-        .toolbarBackground(.hidden, for: .navigationBar)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) { Text("我的纪念日").font(.system(size: 17, weight: .semibold)) }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button { DaymarkLog.event("打开设置"); path.append(.settings) } label: { Image(systemName: "gearshape") }.accessibilityLabel("设置")
-            }
-        }
         .overlay(alignment: .bottomTrailing) {
             Button { DaymarkLog.event("新建纪念日"); path.append(.edit(nil)) } label: { Image(systemName: "plus").font(.system(size: 24, weight: .light)).frame(width: 42, height: 42) }.modifier(SystemGlassButton(prominent: true)).buttonBorderShape(.circle).tint(GlassPalette.accent).padding(.trailing, 20).padding(.bottom, 20)
+        }
+        .toolbar(.hidden, for: .navigationBar)
+        .safeAreaInset(edge: .top, spacing: 0) {
+            // 首页标题与设置按钮共享整行宽度，避开系统工具栏左侧项目的独立宽度限制。
+            GlassHeader(title: "我的纪念日", trailing: AnyView(
+                Button { DaymarkLog.event("打开设置"); path.append(.settings) } label: { Image(systemName: "gearshape").font(.title3) }
+                    .modifier(SystemGlassButton()).buttonBorderShape(.circle).controlSize(.large).accessibilityLabel("设置")
+            ))
         }
         .onReceive(api.$lastSavedAnniversary.compactMap { $0 }) { item in
             // 编辑成功后合并服务端结果，不因为页面返回而刷新。

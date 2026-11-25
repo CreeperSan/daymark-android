@@ -13,19 +13,21 @@ struct SettingsView: View {
     @Environment(\.locale) private var locale
     @AppStorage("theme") private var theme = "system"
     @AppStorage("language") private var language = "system"
+    #if DEBUG
     @AppStorage(DaymarkAPI.developerKey) private var developer = false
     @AppStorage(DaymarkAPI.accountHostKey) private var accountHost = ""
     @AppStorage(DaymarkAPI.serverHostKey) private var serverHost = ""
     @State private var selection: Selection?
-    @State private var dialog: Dialog?
-    @State private var confirmedDialog: Dialog?
-    @State private var mailUnavailable = false
     @State private var titleTaps = 0
     @State private var lastTitleTap = Date.distantPast
     private let developerTapCount = 8
     private let developerTapInterval: TimeInterval = 0.5
+    private enum Selection: String, Identifiable { case accountHost, serverHost; var id: String { rawValue } }
+    #endif
+    @State private var dialog: Dialog?
+    @State private var confirmedDialog: Dialog?
+    @State private var mailUnavailable = false
     private let languages = [("system", "跟随系统"), ("zh-CN", "简体中文"), ("zh-TW", "繁體中文"), ("yue-Hans-CN", "简体粤语（广东）"), ("yue-Hant-HK", "繁體粵語（香港）"), ("en", "English"), ("ja", "日本語"), ("ko", "한국어")]
-    enum Selection: String, Identifiable { case accountHost, serverHost; var id: String { rawValue } }
     /// 使用公共弹窗的设置操作。
     private enum Dialog: String, Identifiable { case nickname, logout, theme, language, deleteAccount; var id: String { rawValue } }
     var body: some View {
@@ -45,6 +47,7 @@ struct SettingsView: View {
                     row("主题", value: theme == "light" ? "亮色" : theme == "dark" ? "暗色" : "跟随系统") { withoutChoiceDialogPresentationAnimation { dialog = .theme } }
                     row("语言", value: languages.first { $0.0 == language }?.1 ?? "跟随系统") { withoutChoiceDialogPresentationAnimation { dialog = .language } }
                 }
+                #if DEBUG
                 if developer {
                     section("开发者设置") {
                         row("账号代理设置") { selection = .accountHost }
@@ -52,6 +55,7 @@ struct SettingsView: View {
                         row("关闭开发者模式") { developer = false }
                     }
                 }
+                #endif
                 section("其他") {
                     rowLabel("应用版本", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "", showArrow: false)
                     row("关于应用") { path.append(.about) }
@@ -62,6 +66,7 @@ struct SettingsView: View {
             }.padding(.horizontal, 20).padding(.top, 12).padding(.bottom, 24)
         }
         .scrollIndicators(.hidden)
+        #if DEBUG
         .modifier(SystemNavigationHeader(title: "设置", back: { dismiss() }, onTitleTap: tapTitle))
         .sheet(item: $selection) { selected in
             HostSheet(title: selected == .accountHost ? "账号代理设置" : "服务器代理设置", value: selected == .accountHost ? accountHost : serverHost) { value in
@@ -69,6 +74,9 @@ struct SettingsView: View {
                 selection = nil
             }.presentationDetents([.medium]).presentationDragIndicator(.visible)
         }
+        #else
+        .modifier(SystemNavigationHeader(title: "设置", back: { dismiss() }))
+        #endif
         .fullScreenCover(item: $dialog, onDismiss: performConfirmedDialog) { selected in
             Group {
                 switch selected {
@@ -136,13 +144,15 @@ struct SettingsView: View {
         guard let url = components.url else { mailUnavailable = true; return }
         openURL(url) { accepted in if !accepted { mailUnavailable = true } }
     }
-    /// 和 Android 一致，连续点击标题开启开发者设置。
+    #if DEBUG
+    /// 调试版和 Android 一致，连续点击标题开启开发者设置。
     private func tapTitle() {
         let now = Date()
         titleTaps = now.timeIntervalSince(lastTitleTap) <= developerTapInterval ? titleTaps + 1 : 1
         lastTitleTap = now
         if titleTaps >= developerTapCount { developer = true; titleTaps = 0 }
     }
+    #endif
     private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(LocalizedStringKey(title)).font(.system(size: 12)).foregroundStyle(.secondary)
@@ -191,6 +201,7 @@ private struct NicknameSheet: View {
     }
 }
 
+#if DEBUG
 /// 开发代理支持 HTTP 和 HTTPS，可留空恢复默认地址。
 struct HostSheet: View {
     let title: String
@@ -216,6 +227,7 @@ struct HostSheet: View {
         }.padding(24)
     }
 }
+#endif
 
 /// 主题和语言先更新勾选状态，确认后才保存。
 private struct SelectionSheet: View {
