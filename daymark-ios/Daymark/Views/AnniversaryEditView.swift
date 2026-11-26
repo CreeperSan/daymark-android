@@ -9,14 +9,13 @@ struct AnniversaryEditView: View {
     @Environment(\.locale) private var locale
     @State private var item = Anniversary()
     @State private var selectedDate = Date()
-    @State private var dialog: Dialog?
+    @State private var showingDateSelector = false
+    @State private var showingDeleteConfirmation = false
     @State private var loading = false
     @State private var loaded = false
     @State private var saving = false
     @State private var deleteAfterDismiss = false
     @State private var error: String?
-
-    private enum Dialog: String, Identifiable { case date, delete; var id: String { rawValue } }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -32,12 +31,8 @@ struct AnniversaryEditView: View {
                         label("备注")
                         TextEditor(text: $item.description).scrollContentBackground(.hidden).font(.system(size: 14)).frame(height: 92).padding(.horizontal, 12).modifier(GlassSurface(radius: 16))
                         label("日期类型")
-                        Picker("日期类型", selection: $item.calendarType) {
-                            Text("公历").tag(CalendarKind.solar.rawValue)
-                            Text("农历").tag(CalendarKind.lunar.rawValue)
-                        }.pickerStyle(.segmented)
-                        label("纪念日日期")
-                        Button { withoutChoiceDialogPresentationAnimation { dialog = .date } } label: { HStack { dateDescription; Spacer(); Image(systemName: "chevron.right") }.font(.system(size: 14)).frame(maxWidth: .infinity, minHeight: 32) }.modifier(SystemGlassButton()).buttonBorderShape(.roundedRectangle(radius: 14)).tint(GlassPalette.accent)
+                        calendarSelector
+                        dateSelector
                         label("重复模式")
                         HStack(spacing: 8) {
                             repeatOption("不重复", .none)
@@ -50,29 +45,66 @@ struct AnniversaryEditView: View {
                 GlassPrimaryButton(title: saving ? "保存中…" : "保存纪念日", disabled: saving || item.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) { Task { await save() } }.padding(.horizontal, 24).padding(.bottom, 16)
             }
         }
-        .modifier(SystemNavigationHeader(title: id == nil ? "新建纪念日" : "编辑纪念日", back: { dismiss() }, trailing: id == nil ? nil : AnyView(Button { withoutChoiceDialogPresentationAnimation { dialog = .delete } } label: { Image(systemName: "trash") }.tint(.red).disabled(!loaded || saving).accessibilityLabel("删除纪念日"))))
-        .fullScreenCover(item: $dialog, onDismiss: {
+        .modifier(SystemNavigationHeader(title: id == nil ? "新建纪念日" : "编辑纪念日", back: { dismiss() }, trailing: id == nil ? nil : AnyView(Button { withoutChoiceDialogPresentationAnimation { showingDeleteConfirmation = true } } label: { Image(systemName: "trash") }.tint(.red).disabled(!loaded || saving).accessibilityLabel("删除纪念日"))))
+        .allowsHitTesting(!showingDateSelector)
+        .accessibilityHidden(showingDateSelector)
+        .overlay {
+            // 日期滚轮与表单共用宿主视图，滑入期间无需等待系统模态转场交还手势。
+            if showingDateSelector {
+                DateSelectionSheet(date: $selectedDate, calendarType: item.calendarType, dismiss: { showingDateSelector = false })
+                    .ignoresSafeArea(.keyboard)
+                    .accessibilityAddTraits(.isModal)
+            }
+        }
+        .fullScreenCover(isPresented: $showingDeleteConfirmation, onDismiss: {
             guard deleteAfterDismiss else { return }
             deleteAfterDismiss = false
             Task { await delete() }
-        }) { selected in
-            Group {
-                switch selected {
-                case .date:
-                    DateSelectionSheet(date: $selectedDate, calendarType: item.calendarType, dismiss: { dialog = nil })
-                case .delete:
-                    ChoiceDialog(title: "删除纪念日", placement: .center, confirmTitle: "删除", destructive: true, cancel: { dialog = nil }, confirm: {
-                        deleteAfterDismiss = true
-                        dialog = nil
-                    }) {
-                        Text("确定删除这个纪念日吗？删除后无法恢复。").font(.subheadline)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                }
+        }) {
+            ChoiceDialog(title: "删除纪念日", placement: .center, confirmTitle: "删除", destructive: true, cancel: { showingDeleteConfirmation = false }, confirm: {
+                deleteAfterDismiss = true
+                showingDeleteConfirmation = false
+            }) {
+                Text("确定删除这个纪念日吗？删除后无法恢复。").font(.subheadline)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }.presentationBackground(.clear)
         }
         .task { await load() }
     }
+    /// 历法切换沿用标题输入框的高度和圆角，选中底色向内收一圈。
+    private var calendarSelector: some View {
+        let selectionInset: CGFloat = 2
+        return HStack(spacing: 0) {
+            calendarOption("公历", .solar, cornerRadius: GlassInput.cornerRadius - selectionInset)
+            calendarOption("农历", .lunar, cornerRadius: GlassInput.cornerRadius - selectionInset)
+        }.padding(selectionInset).frame(height: GlassInput.height).modifier(GlassSurface(radius: GlassInput.cornerRadius))
+            .accessibilityElement(children: .contain).accessibilityLabel("日期类型")
+    }
+
+    /// 切换历法只更新显示与保存方式，保留当前选中的实际日期。
+    private func calendarOption(_ title: LocalizedStringKey, _ value: CalendarKind, cornerRadius: CGFloat) -> some View {
+        let selected = item.calendarType == value.rawValue
+        return Button { item.calendarType = value.rawValue } label: {
+            Text(title).font(.system(size: 13, weight: .medium))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color.primary.opacity(selected ? 0.16 : 0), in: RoundedRectangle(cornerRadius: cornerRadius))
+                .contentShape(Rectangle())
+        }.buttonStyle(.plain).accessibilityAddTraits(selected ? .isSelected : [])
+    }
+
+    /// 日期入口与名称输入框共用外框尺寸，整行都可点按。
+    private var dateSelector: some View {
+        Button {
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            showingDateSelector = true
+        } label: {
+            HStack { dateDescription; Spacer(); Image(systemName: "chevron.right").accessibilityHidden(true) }
+                .font(.system(size: 14)).padding(.horizontal, GlassInput.horizontalInset)
+                .frame(maxWidth: .infinity).frame(height: GlassInput.height)
+                .contentShape(RoundedRectangle(cornerRadius: GlassInput.cornerRadius))
+        }.buttonStyle(.plain).modifier(GlassSurface(radius: GlassInput.cornerRadius))
+    }
+
     private var dateDescription: Text {
         let formatter = DateFormatter(); formatter.locale = locale
         let chinese = locale.language.languageCode?.identifier == "zh" || locale.language.languageCode?.identifier == "yue"
@@ -150,8 +182,7 @@ struct DateSelectionSheet: View {
 
     var body: some View {
         let isLunar = calendarType == CalendarKind.lunar.rawValue
-        // UIKit 农历滚轮直接在最终位置显示，避免入场位移影响首个拖动手势。
-        ChoiceDialog(title: "选择纪念日日期", actionPlacement: actionPlacement, animatesEntrance: !isLunar, cancel: dismiss, confirm: {
+        ChoiceDialog(title: "选择纪念日日期", actionPlacement: actionPlacement, cancel: dismiss, confirm: {
             DaymarkLog.event("确认日期选择")
             date = draftDate
             dismiss()

@@ -32,7 +32,6 @@ struct ChoiceDialog<Content: View>: View {
     let title: LocalizedStringKey
     var placement: ChoiceDialogPlacement = .bottom
     var actionPlacement: ChoiceDialogActionPlacement = .footer
-    var animatesEntrance = true
     var confirmTitle: LocalizedStringKey = "确定"
     var destructive = false
     var confirmEnabled = true
@@ -44,12 +43,11 @@ struct ChoiceDialog<Content: View>: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var visible = false
+    @State private var panelHeight: CGFloat?
     @State private var closing = false
     @State private var saving = false
 
     private var displayedConfirmTitle: LocalizedStringKey { saving ? "保存中…" : confirmTitle }
-    // 直接入场的面板首帧即可操作，遮罩仍可独立淡入。
-    private var panelVisible: Bool { visible || (!animatesEntrance && !closing) }
 
     private let outline = Color(red: 1, green: 140 / 255, blue: 66 / 255)
     private let cream = Color(red: 1, green: 246 / 255, blue: 236 / 255)
@@ -86,7 +84,7 @@ struct ChoiceDialog<Content: View>: View {
             let shape = RoundedRectangle(cornerRadius: wide ? 26 : 22)
             let bottom = placement == .bottom
             let bottomInset = bottom ? geometry.safeAreaInsets.bottom : 0
-            let slideOffscreen = bottom && !panelVisible && !reduceMotion
+            let slideOffscreen = bottom && !visible && !reduceMotion
             ZStack(alignment: bottom ? .bottom : .center) {
                 // 遮罩固定覆盖全屏，仅改变透明度。
                 Color.black.opacity(visible ? dimOpacity : 0)
@@ -117,7 +115,7 @@ struct ChoiceDialog<Content: View>: View {
                     }
                 }
                 // 转场动画作用在整个面板上，内部控件按正常布局更新。
-                .transaction(value: panelVisible) { $0.animation = nil }
+                .transaction(value: visible) { $0.animation = nil }
                 .foregroundStyle(colorScheme == .dark ? Color.white : GlassPalette.primaryLight)
                 .frame(maxWidth: wide ? tabletWidth : 353)
                 // 面板背景随圆角收口，外边距在底部安全区上方留出空隙。
@@ -128,20 +126,16 @@ struct ChoiceDialog<Content: View>: View {
                 .padding(.horizontal, outerInset)
                 .padding(.top, outerInset)
                 .padding(.bottom, outerInset)
-                .scaleEffect(!bottom && !panelVisible && !reduceMotion ? hiddenScale : 1)
-                .opacity((!bottom || reduceMotion) && !panelVisible ? 0 : 1)
-                .visualEffect { panel, proxy in
-                    panel.offset(y: slideOffscreen ? proxy.size.height + bottomInset : 0)
-                }
-                .allowsHitTesting(panelVisible && !closing)
-                .accessibilityHidden(!panelVisible || closing)
+                .onGeometryChange(for: CGFloat.self, of: { $0.size.height }) { panelHeight = $0 }
+                .scaleEffect(!bottom && !visible && !reduceMotion ? hiddenScale : 1)
+                .opacity((!bottom || reduceMotion) && !visible ? 0 : 1)
+                // 整个面板连同滚轮的触摸区域一起位移。
+                .offset(y: slideOffscreen ? (panelHeight ?? geometry.size.height) + bottomInset : 0)
+                .allowsHitTesting(visible && !closing)
+                .accessibilityHidden(!visible || closing)
                 .accessibilityAction(.escape) { close(perform: cancel) }
             }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: bottom ? .bottom : .center)
         }.task {
-            if !animatesEntrance {
-                if !closing { visible = true }
-                return
-            }
             // 先让透明容器完成布局，再启动面板和遮罩的动画。
             await Task.yield()
             guard !Task.isCancelled, !closing else { return }
@@ -151,7 +145,7 @@ struct ChoiceDialog<Content: View>: View {
 
     /// 表单保存成功后才离场，提交期间禁止重复操作或关闭弹窗。
     private func requestConfirmation() {
-        guard panelVisible, !closing, !saving, confirmEnabled else { return }
+        guard visible, !closing, !saving, confirmEnabled else { return }
         guard let saveBeforeClosing else { close(perform: confirm); return }
         saving = true
         Task {
@@ -161,9 +155,9 @@ struct ChoiceDialog<Content: View>: View {
         }
     }
 
-    /// 等退出动画结束后再关闭容器并提交操作，避免系统转场叠加。
+    /// 等退出动画结束后再移除面板并提交操作。
     private func close(perform: @escaping () -> Void) {
-        guard panelVisible, !closing, !saving else { return }
+        guard visible, !closing, !saving else { return }
         closing = true
         withAnimation(panelExit, completionCriteria: .removed) {
             visible = false
@@ -366,7 +360,12 @@ private final class InteractiveBackController: UIViewController, UIGestureRecogn
     }
 }
 
+/// 单行玻璃输入框，供同一表单内的控件复用尺寸。
 struct GlassInput: View {
+    static let height: CGFloat = 54
+    static let cornerRadius: CGFloat = 16
+    static let horizontalInset: CGFloat = 16
+
     let placeholder: String
     @Binding var text: String
     var secure = false
@@ -376,7 +375,7 @@ struct GlassInput: View {
             Group { if secure && !visible { SecureField(LocalizedStringKey(placeholder), text: $text) } else { TextField(LocalizedStringKey(placeholder), text: $text) } }
                 .textInputAutocapitalization(.never).autocorrectionDisabled()
             if secure { Button { visible.toggle() } label: { Image(systemName: visible ? "eye.slash" : "eye") }.buttonStyle(.plain).accessibilityLabel(visible ? "隐藏密码" : "显示密码") }
-        }.font(.system(size: 15)).padding(.horizontal, 16).frame(height: 54).modifier(GlassSurface(radius: 16))
+        }.font(.system(size: 15)).padding(.horizontal, Self.horizontalInset).frame(height: Self.height).modifier(GlassSurface(radius: Self.cornerRadius))
     }
 }
 
